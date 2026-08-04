@@ -107,12 +107,12 @@
         }
     
         @keyframes spin-cw {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         @keyframes spin-ccw {
-            from { transform: translate(-50%, -50%) rotate(360deg); }
-            to { transform: translate(-50%, -50%) rotate(0deg); }
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
         }
         .vortex-container {
             position: relative;
@@ -120,6 +120,7 @@
             height: 70px;
             background: transparent;
             border: none;
+            pointer-events: none;
         }
         .vortex-ring {
             position: absolute;
@@ -467,26 +468,13 @@
             }).addTo(map);
             
             // Vortex animation using CSS spinning ellipses
-            const vortexSize = 60 + (1 - (pt.psfc - 94000) / 7000) * 40; // 60-100px
+            const intensityRatio = Math.max(0, Math.min(1, (pt.psfc - 94000) / 6000));
+                    const vortexSize = 100 - intensityRatio * 40; // 100px(strong) ~ 60px(weak)
             const vortexIcon = L.divIcon({
                 className: 'vortex-container',
-                html: `
-                    <div class="vortex-ring vortex-outer" style="
-                        width:${vortexSize}px; height:${vortexSize*0.7}px;
-                        border-color:${color};
-                        animation: spin-cw ${4 + Math.random()*2}s linear infinite;
-                    "></div>
-                    <div class="vortex-ring vortex-mid" style="
-                        width:${vortexSize*0.7}px; height:${vortexSize*0.5}px;
-                        border-color:${color};
-                        animation: spin-ccw ${3}s linear infinite;
-                    "></div>
-                    <div class="vortex-ring vortex-inner" style="
-                        width:${vortexSize*0.4}px; height:${vortexSize*0.3}px;
-                        border-color:${color};
-                        animation: spin-cw ${2}s linear infinite;
-                    "></div>
-                `,
+                html: '<div class="vortex-outer" style="width:' + vortexSize + 'px; height:' + (vortexSize*0.7) + 'px; border-color:' + color + ';"></div>' +
+                      '<div class="vortex-mid" style="width:' + (vortexSize*0.7) + 'px; height:' + (vortexSize*0.5) + 'px; border-color:' + color + ';"></div>' +
+                      '<div class="vortex-inner" style="width:' + (vortexSize*0.4) + 'px; height:' + (vortexSize*0.3) + 'px; border-color:' + color + ';"></div>',
                 iconSize: [vortexSize, vortexSize * 0.7],
                 iconAnchor: [vortexSize/2, vortexSize*0.35]
             });
