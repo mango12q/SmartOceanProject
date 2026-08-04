@@ -105,6 +105,32 @@
             vertical-align: middle;
             margin-right: 8px;
         }
+    
+        @keyframes spin-cw {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        @keyframes spin-ccw {
+            from { transform: translate(-50%, -50%) rotate(360deg); }
+            to { transform: translate(-50%, -50%) rotate(0deg); }
+        }
+        .vortex-container {
+            position: relative;
+            width: 100px;
+            height: 70px;
+            background: transparent;
+            border: none;
+        }
+        .vortex-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            border-style: solid;
+            border-width: 2px;
+            background: transparent;
+            transform-origin: center;
+        }
     </style>
 </head>
 <body>
@@ -112,7 +138,7 @@
     <div id="title">桦加沙</div>
     <div id="time-panel">
         <div id="time-display">2025-09-18 20:00</div>
-        <input type="range" id="time-slider" min="0" max="263" step="1" value="60">
+        <input type="range" id="time-slider" min="0" max="263" step="1" value="79">
     </div>
     <div id="legend">
         <div><span class="line-sample" style="background:#555;"></span>国界/海岸线</div>
@@ -126,95 +152,10 @@
     <script>
         // Typhoon track data extracted from WRF output (ocean minimum PSFC)
         const typhoonTrack = [
-            {"t":0,"lat":17.130279541015625,"lon":117.72357177734375,"psfc":100935.5234375,"wind":6.4},
-            {"t":1,"lat":17.766563415527344,"lon":118.79379272460938,"psfc":100999.8828125,"wind":8.3},
-            {"t":2,"lat":16.85199737548828,"lon":118.01080322265625,"psfc":100999.5625,"wind":3.7},
-            {"t":3,"lat":12.624496459960938,"lon":119.282958984375,"psfc":100963.96875,"wind":4.4},
-            {"t":4,"lat":13.59814453125,"lon":120.6146240234375,"psfc":100884.40625,"wind":9.0},
-            {"t":5,"lat":17.922882080078125,"lon":120.34951782226562,"psfc":100803.4375,"wind":5.3},
-            {"t":6,"lat":17.92516326904297,"lon":120.25247192382812,"psfc":100724.6875,"wind":3.4},
-            {"t":7,"lat":18.021865844726562,"lon":120.06057739257812,"psfc":100684.375,"wind":8.0},
-            {"t":8,"lat":12.642143249511719,"lon":116.394287109375,"psfc":100664.125,"wind":0.9},
-            {"t":9,"lat":10.379981994628906,"lon":116.67941284179688,"psfc":100726.609375,"wind":5.2},
-            {"t":10,"lat":10.380172729492188,"lon":117.22900390625,"psfc":100722.3359375,"wind":4.8},
-            {"t":11,"lat":12.460334777832031,"lon":116.39511108398438,"psfc":100819.296875,"wind":1.9},
-            {"t":12,"lat":12.369491577148438,"lon":116.39553833007812,"psfc":100843.2578125,"wind":1.8},
-            {"t":13,"lat":12.369491577148438,"lon":116.39553833007812,"psfc":100889.0078125,"wind":1.5},
-            {"t":14,"lat":12.369491577148438,"lon":116.39553833007812,"psfc":100914.1015625,"wind":1.4},
-            {"t":15,"lat":12.369491577148438,"lon":116.39553833007812,"psfc":100887.09375,"wind":2.0},
-            {"t":16,"lat":12.459907531738281,"lon":116.30206298828125,"psfc":100849.3671875,"wind":1.6},
-            {"t":17,"lat":12.551216125488281,"lon":116.39468383789062,"psfc":100812.1953125,"wind":5.3},
-            {"t":18,"lat":12.641700744628906,"lon":116.30108642578125,"psfc":100752.5703125,"wind":3.3},
-            {"t":19,"lat":12.732131958007812,"lon":116.20733642578125,"psfc":100695.3515625,"wind":0.9},
-            {"t":20,"lat":12.91461181640625,"lon":116.29962158203125,"psfc":100638.78125,"wind":4.8},
-            {"t":21,"lat":12.913528442382812,"lon":116.11285400390625,"psfc":100656.8203125,"wind":1.1},
-            {"t":22,"lat":13.545585632324219,"lon":115.45166015625,"psfc":100714.3125,"wind":1.6},
-            {"t":23,"lat":13.186737060546875,"lon":116.11099243164062,"psfc":100792.5859375,"wind":5.0},
-            {"t":24,"lat":13.277206420898438,"lon":116.0167236328125,"psfc":100841.953125,"wind":3.7},
-            {"t":25,"lat":13.367668151855469,"lon":115.92233276367188,"psfc":100898.578125,"wind":3.1},
-            {"t":26,"lat":14.726234436035156,"lon":124.43722534179688,"psfc":100846.78125,"wind":7.3},
-            {"t":27,"lat":15.208465576171875,"lon":123.98910522460938,"psfc":100838.8828125,"wind":7.1},
-            {"t":28,"lat":15.436370849609375,"lon":123.04815673828125,"psfc":100793.3828125,"wind":6.6},
-            {"t":29,"lat":15.44451904296875,"lon":122.85791015625,"psfc":100639.921875,"wind":4.9},
-            {"t":30,"lat":15.551773071289062,"lon":122.48126220703125,"psfc":100620.5546875,"wind":3.7},
-            {"t":31,"lat":15.532188415527344,"lon":122.957275390625,"psfc":100591.375,"wind":2.9},
-            {"t":32,"lat":11.118743896484375,"lon":108.65838623046875,"psfc":100598.7890625,"wind":2.9},
-            {"t":33,"lat":13.266632080078125,"lon":109.6458740234375,"psfc":100570.921875,"wind":7.2},
-            {"t":34,"lat":13.1041259765625,"lon":110.0296630859375,"psfc":100642.578125,"wind":7.0},
-            {"t":35,"lat":16.032188415527344,"lon":121.9273681640625,"psfc":100700.75,"wind":3.2},
-            {"t":36,"lat":16.474044799804688,"lon":122.42459106445312,"psfc":100739.578125,"wind":8.1},
-            {"t":37,"lat":16.278701782226562,"lon":122.70413208007812,"psfc":100788.71875,"wind":8.6},
-            {"t":38,"lat":16.382095336914062,"lon":122.42071533203125,"psfc":100764.296875,"wind":3.2},
-            {"t":39,"lat":16.106338500976562,"lon":122.40911865234375,"psfc":100802.515625,"wind":4.3},
-            {"t":40,"lat":16.47772979736328,"lon":122.32867431640625,"psfc":100793.3203125,"wind":7.9},
-            {"t":41,"lat":16.74626922607422,"lon":122.53237915039062,"psfc":100714.578125,"wind":11.9},
-            {"t":42,"lat":18.141395568847656,"lon":118.31280517578125,"psfc":100691.265625,"wind":10.1},
-            {"t":43,"lat":14.626609802246094,"lon":114.39776611328125,"psfc":100622.6953125,"wind":3.7},
-            {"t":44,"lat":14.746040344238281,"lon":109.9410400390625,"psfc":100511.7578125,"wind":3.3},
-            {"t":45,"lat":14.654579162597656,"lon":109.94601440429688,"psfc":100496.59375,"wind":2.3},
-            {"t":46,"lat":14.471771240234375,"lon":109.9559326171875,"psfc":100585.6875,"wind":3.2},
-            {"t":47,"lat":14.342033386230469,"lon":111.0972900390625,"psfc":100636.0546875,"wind":1.4},
-            {"t":48,"lat":14.974098205566406,"lon":110.87847900390625,"psfc":100706.8203125,"wind":1.6},
-            {"t":49,"lat":14.372200012207031,"lon":111.85202026367188,"psfc":100769.140625,"wind":1.0},
-            {"t":50,"lat":14.266242980957031,"lon":111.478515625,"psfc":100788.484375,"wind":0.7},
-            {"t":51,"lat":15.425262451171875,"lon":113.23886108398438,"psfc":100796.4921875,"wind":2.9},
-            {"t":52,"lat":14.229728698730469,"lon":110.6302490234375,"psfc":100757.34375,"wind":2.6},
-            {"t":53,"lat":13.914268493652344,"lon":109.79766845703125,"psfc":100648.8203125,"wind":8.8},
-            {"t":54,"lat":12.897850036621094,"lon":109.57315063476562,"psfc":100574.8203125,"wind":3.4},
-            {"t":55,"lat":13.524429321289062,"lon":109.34939575195312,"psfc":100491.109375,"wind":6.4},
-            {"t":56,"lat":11.331916809082031,"lon":109.19943237304688,"psfc":100465.328125,"wind":9.5},
-            {"t":57,"lat":11.118743896484375,"lon":108.65838623046875,"psfc":100467.0234375,"wind":10.0},
-            {"t":58,"lat":13.620689392089844,"lon":109.43777465820312,"psfc":100543.2265625,"wind":8.6},
-            {"t":59,"lat":11.799461364746094,"lon":109.44979858398438,"psfc":100564.9453125,"wind":4.9},
-            {"t":60,"lat":12.363037109375,"lon":109.78973388671875,"psfc":100599.4296875,"wind":4.9},
-            {"t":61,"lat":19.114883422851562,"lon":120.773193359375,"psfc":100577.3671875,"wind":11.6},
-            {"t":62,"lat":19.30755615234375,"lon":120.48440551757812,"psfc":100581.4453125,"wind":8.9},
-            {"t":63,"lat":18.853843688964844,"lon":120.0806884765625,"psfc":100571.8359375,"wind":11.2},
-            {"t":64,"lat":19.693283081054688,"lon":119.8057861328125,"psfc":100495.3125,"wind":11.8},
-            {"t":65,"lat":19.32464599609375,"lon":119.69943237304688,"psfc":100421.25,"wind":9.2},
-            {"t":66,"lat":19.420860290527344,"lon":119.5050048828125,"psfc":100393.7578125,"wind":6.8},
-            {"t":67,"lat":19.526351928710938,"lon":118.6221923828125,"psfc":100250.46875,"wind":12.9},
-            {"t":68,"lat":19.3421630859375,"lon":118.52163696289062,"psfc":100197.5546875,"wind":4.0},
-            {"t":69,"lat":19.3421630859375,"lon":118.52163696289062,"psfc":100219.703125,"wind":8.8},
-            {"t":70,"lat":19.436767578125,"lon":118.3262939453125,"psfc":100257.484375,"wind":5.3},
-            {"t":71,"lat":19.345001220703125,"lon":118.22714233398438,"psfc":100318.5078125,"wind":4.2},
-            {"t":72,"lat":19.530296325683594,"lon":118.22894287109375,"psfc":100339.875,"wind":8.6},
-            {"t":73,"lat":19.623764038085938,"lon":118.1314697265625,"psfc":100228.7890625,"wind":7.8},
-            {"t":74,"lat":19.717864990234375,"lon":117.93539428710938,"psfc":100247.96875,"wind":11.0},
-            {"t":75,"lat":19.719024658203125,"lon":117.73846435546875,"psfc":100247.1640625,"wind":2.5},
-            {"t":76,"lat":19.81219482421875,"lon":117.64047241210938,"psfc":100240.625,"wind":3.6},
-            {"t":77,"lat":19.90491485595703,"lon":117.64096069335938,"psfc":100183.7734375,"wind":6.6},
-            {"t":78,"lat":19.99761962890625,"lon":117.64141845703125,"psfc":100103.546875,"wind":4.2},
             {"t":79,"lat":20.090370178222656,"lon":117.64190673828125,"psfc":99908.9609375,"wind":2.2},
             {"t":80,"lat":20.276275634765625,"lon":117.5439453125,"psfc":99826.125,"wind":9.6},
             {"t":81,"lat":20.369407653808594,"lon":117.44537353515625,"psfc":99890.59375,"wind":5.5},
             {"t":82,"lat":20.462478637695312,"lon":117.3466796875,"psfc":99988.4609375,"wind":7.0},
-            {"t":83,"lat":20.555465698242188,"lon":117.247802734375,"psfc":100036.2734375,"wind":7.9},
-            {"t":84,"lat":20.648284912109375,"lon":117.24798583984375,"psfc":100084.4921875,"wind":9.3},
-            {"t":85,"lat":20.83415985107422,"lon":117.0496826171875,"psfc":100017.09375,"wind":7.4},
-            {"t":86,"lat":20.926803588867188,"lon":116.75146484375,"psfc":100095.375,"wind":11.8},
-            {"t":87,"lat":20.926597595214844,"lon":116.65206909179688,"psfc":100113.1328125,"wind":3.8},
-            {"t":88,"lat":21.019187927246094,"lon":116.55230712890625,"psfc":100100.21875,"wind":4.2},
             {"t":89,"lat":21.204933166503906,"lon":116.5516357421875,"psfc":99904.390625,"wind":13.5},
             {"t":90,"lat":21.38996124267578,"lon":116.35140991210938,"psfc":99837.5546875,"wind":7.5},
             {"t":91,"lat":21.481849670410156,"lon":116.1512451171875,"psfc":99901.1171875,"wind":3.8},
@@ -222,20 +163,13 @@
             {"t":93,"lat":21.85296630859375,"lon":116.04852294921875,"psfc":99934.90625,"wind":4.4},
             {"t":94,"lat":22.037429809570312,"lon":115.84652709960938,"psfc":99899.25,"wind":12.4},
             {"t":95,"lat":22.036590576171875,"lon":115.7462158203125,"psfc":99951.3125,"wind":5.2},
-            {"t":96,"lat":22.035675048828125,"lon":115.64593505859375,"psfc":100007.6171875,"wind":5.6},
-            {"t":97,"lat":22.127685546875,"lon":115.5445556640625,"psfc":100031.1015625,"wind":2.4},
-            {"t":98,"lat":22.22064971923828,"lon":115.54345703125,"psfc":100020.6875,"wind":1.4},
-            {"t":99,"lat":22.31365203857422,"lon":115.5423583984375,"psfc":100003.53125,"wind":1.0},
-            {"t":100,"lat":22.405593872070312,"lon":115.440673828125,"psfc":99912.109375,"wind":1.8},
+            {"t":100,"lat":22.49860382080078,"lon":115.43948364257812,"psfc":99923.96875,"wind":9.6},
             {"t":101,"lat":22.500633239746094,"lon":115.64083862304688,"psfc":99848.7890625,"wind":4.6},
             {"t":102,"lat":22.68756103515625,"lon":115.7396240234375,"psfc":99826.171875,"wind":12.3},
             {"t":103,"lat":22.68756103515625,"lon":115.7396240234375,"psfc":99847.28125,"wind":15.0},
             {"t":104,"lat":22.68756103515625,"lon":115.7396240234375,"psfc":99957.0234375,"wind":12.7},
-            {"t":105,"lat":16.68987274169922,"lon":130.2415771484375,"psfc":100036.3359375,"wind":3.6},
             {"t":106,"lat":15.196083068847656,"lon":129.420166015625,"psfc":99887.4375,"wind":22.7},
-            {"t":107,"lat":16.231910705566406,"lon":130.1943359375,"psfc":100042.203125,"wind":2.2},
-            {"t":108,"lat":16.359146118164062,"lon":129.822021484375,"psfc":100043.328125,"wind":3.6},
-            {"t":109,"lat":16.167198181152344,"lon":129.8990478515625,"psfc":99972.734375,"wind":0.7},
+            {"t":109,"lat":16.24987030029297,"lon":130.00363159179688,"psfc":99976.21875,"wind":2.8},
             {"t":110,"lat":15.352958679199219,"lon":129.72201538085938,"psfc":99897.265625,"wind":4.7},
             {"t":111,"lat":14.847770690917969,"lon":129.19635009765625,"psfc":99748.6484375,"wind":28.7},
             {"t":112,"lat":15.270286560058594,"lon":129.61834716796875,"psfc":99563.28125,"wind":10.1},
@@ -397,6 +331,7 @@
         // t=84 => 2025-09-18 12:00 UTC = 2025-09-18 20:00 Beijing
         // t=252 => 2025-09-25 12:00 UTC = 2025-09-25 20:00 Beijing
         const wrfStart = new Date('2025-09-15T00:00:00Z');
+        const TYPHOON_THRESHOLD_PSFC = 100000; // Pa, below which typhoon is considered formed
         
         function tToBeijingTime(t) {
             const utc = new Date(wrfStart.getTime() + t * 3600 * 1000);
@@ -480,28 +415,42 @@
             })
             .catch(err => console.error('Failed to load provinces:', err));
 
-        // Typhoon path and marker
-        const trackPoints = typhoonTrack.map(pt => [pt.lat, pt.lon]);
-        const trackLine = L.polyline(trackPoints, {
-            color: '#e94560',
-            weight: 2,
-            opacity: 0.8,
-            dashArray: '8,4'
-        }).addTo(map);
+        // Track line will be created dynamically in updateTyphoonPosition
+        let trackLine = null;
 
         let currentMarker = null;
-        let vortexCircles = [];
+        let vortexGroup = null;
+        let trackLine = null;
 
         function updateTyphoonPosition(t) {
-            const pt = typhoonTrack.find(p => p.t === t);
-            if (!pt) return;
+            // Find the latest valid typhoon data point at or before time t
+            const validPoints = typhoonTrack.filter(p => p.t <= t);
             
+            if (validPoints.length === 0) {
+                // Typhoon not yet formed
+                if (currentMarker) {
+                    map.removeLayer(currentMarker);
+                    currentMarker = null;
+                }
+                if (vortexGroup) {
+                    map.removeLayer(vortexGroup);
+                    vortexGroup = null;
+                }
+                if (trackLine) {
+                    map.removeLayer(trackLine);
+                }
+                timeDisplay.textContent = tToBeijingTime(t) + ' (台风尚未生成)';
+                return;
+            }
+            
+            const pt = validPoints[validPoints.length - 1];
+            
+            // Remove old elements
             if (currentMarker) {
                 map.removeLayer(currentMarker);
             }
-            if (vortexCircles) {
-                vortexCircles.forEach(c => map.removeLayer(c));
-                vortexCircles = [];
+            if (vortexGroup) {
+                map.removeLayer(vortexGroup);
             }
             
             const color = getTyphoonColor(pt.psfc);
@@ -517,24 +466,46 @@
                 fillOpacity: 0.8
             }).addTo(map);
             
-            // Vortex circles (airflow swirl)
-            const vortexLevels = [
-                { factor: 2.0, opacity: 0.15, weight: 2 },
-                { factor: 3.5, opacity: 0.10, weight: 1.5 },
-                { factor: 5.5, opacity: 0.06, weight: 1 }
-            ];
-            vortexCircles = [];
-            vortexLevels.forEach(level => {
-                const circle = L.circle([pt.lat, pt.lon], {
-                    radius: radius * level.factor * 2000,
-                    color: color,
-                    weight: level.weight,
-                    opacity: level.opacity,
-                    fillColor: color,
-                    fillOpacity: level.opacity * 0.3
-                }).addTo(map);
-                vortexCircles.push(circle);
+            // Vortex animation using CSS spinning ellipses
+            const vortexSize = 60 + (1 - (pt.psfc - 94000) / 7000) * 40; // 60-100px
+            const vortexIcon = L.divIcon({
+                className: 'vortex-container',
+                html: `
+                    <div class="vortex-ring vortex-outer" style="
+                        width:${vortexSize}px; height:${vortexSize*0.7}px;
+                        border-color:${color};
+                        animation: spin-cw ${4 + Math.random()*2}s linear infinite;
+                    "></div>
+                    <div class="vortex-ring vortex-mid" style="
+                        width:${vortexSize*0.7}px; height:${vortexSize*0.5}px;
+                        border-color:${color};
+                        animation: spin-ccw ${3}s linear infinite;
+                    "></div>
+                    <div class="vortex-ring vortex-inner" style="
+                        width:${vortexSize*0.4}px; height:${vortexSize*0.3}px;
+                        border-color:${color};
+                        animation: spin-cw ${2}s linear infinite;
+                    "></div>
+                `,
+                iconSize: [vortexSize, vortexSize * 0.7],
+                iconAnchor: [vortexSize/2, vortexSize*0.35]
             });
+            
+            vortexGroup = L.marker([pt.lat, pt.lon], { icon: vortexIcon, interactive: false }).addTo(map);
+            
+            // Update track line - show only up to current time
+            const currentTrackPoints = typhoonTrack.filter(p => p.t <= t).map(p => [p.lat, p.lon]);
+            if (trackLine) {
+                map.removeLayer(trackLine);
+            }
+            if (currentTrackPoints.length > 1) {
+                trackLine = L.polyline(currentTrackPoints, {
+                    color: '#e94560',
+                    weight: 2,
+                    opacity: 0.8,
+                    dashArray: '8,4'
+                }).addTo(map);
+            }
             
             currentMarker.bindPopup(
                 `<b>桦加沙</b><br>` +
