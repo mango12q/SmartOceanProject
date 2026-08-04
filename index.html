@@ -189,17 +189,26 @@
 
         /* News Ticker */
         #news-ticker {
-            position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
             z-index: 999; background: rgba(200, 40, 40, 0.88);
-            color: #fff; padding: 5px 0; border-radius: 4px;
+            color: #fff; padding: 5px 28px 5px 12px; border-radius: 4px;
             font-size: 0.82rem; overflow: hidden; white-space: nowrap;
-            width: 55%; min-width: 380px;
+            max-width: 55%; min-width: 380px;
         }
         .ticker-content { display: inline-block; animation: marquee 18s linear infinite; }
         @keyframes marquee {
             0% { transform: translateX(100%); }
             100% { transform: translateX(-100%); }
         }
+        #news-ticker-close {
+            position: absolute; top: 50%; right: 6px;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2); border: none;
+            color: #fff; width: 18px; height: 18px;
+            border-radius: 50%; font-size: 0.75rem;
+            cursor: pointer; line-height: 1; padding: 0;
+        }
+        #news-ticker-close:hover { background: rgba(255,255,255,0.4); }
 
         /* Animations */
         @keyframes pulse {
@@ -246,9 +255,9 @@
             <button id="btn-next" title="前进一帧">⏩</button>
             <button id="btn-end" title="跳到终点">⏭</button>
             <select id="speed-select" title="播放速度">
-                <option value="2000">1x</option>
-                <option value="1000">2x</option>
-                <option value="500">4x</option>
+                <option value="400">1x</option>
+                <option value="200">2x</option>
+                <option value="100">4x</option>
             </select>
         </div>
     </div>
@@ -310,6 +319,7 @@
 
     <div id="news-ticker">
         <span class="ticker-content" id="ticker-text">【台风快讯】加载中...</span>
+        <button id="news-ticker-close" title="关闭快讯">✕</button>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -502,7 +512,7 @@
             minT: 79,
             maxT: 263,
             defaultT: 79,
-            playSpeed: 2000,
+            playSpeed: 400,
             markerSize: 80,
             vortexSize: 160
         };
@@ -1051,6 +1061,12 @@
             }
         }
 
+        // ===== News Ticker =====
+        function closeNewsTicker() {
+            var ticker = document.getElementById('news-ticker');
+            if (ticker) ticker.style.display = 'none';
+        }
+
         // ===== Layer Switcher =====
         function switchLayer(layerName) {
             if (currentLayer === layerName) return;
@@ -1142,6 +1158,7 @@
             document.getElementById('legend-modal').addEventListener('click', function(e) {
                 if (e.target === document.getElementById('legend-modal')) toggleLegend();
             });
+            document.getElementById('news-ticker-close').addEventListener('click', closeNewsTicker);
 
             // Keyboard controls
             document.addEventListener('keydown', function(e) {
