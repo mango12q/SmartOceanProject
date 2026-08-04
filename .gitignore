@@ -1,0 +1,17 @@
+# WRF model binary output (large data files)
+wind_wrfout_d02_*
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
