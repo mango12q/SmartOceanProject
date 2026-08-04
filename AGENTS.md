@@ -24,3 +24,13 @@ scp -o StrictHostKeyChecking=no local_file haike@43.154.210.202:/home/haike/test
 ```
 
 Use base64 encoding via SSH when remote file writes with non-ASCII content risk garbling.
+
+## Git workflow
+
+- After every meaningful change: commit and push to `main` automatically.
+- Tags must only be created when the user explicitly asks for it; do not auto-tag.
+
+## User preferences
+
+- Do NOT auto-push to GitHub after commits. Wait for explicit user request.
+- Do NOT auto-deploy to remote server. Wait for explicit user request.
