@@ -9,138 +9,255 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Microsoft YaHei', sans-serif; overflow: hidden; }
         #map { width: 100vw; height: 100vh; }
-        
+
+        /* Info Panel */
+        #info-panel {
+            position: absolute; top: 15px; left: 15px; z-index: 1000;
+            background: rgba(0,0,0,0.75); color: #fff;
+            padding: 15px 18px; border-radius: 10px;
+            font-size: 0.88rem; line-height: 1.7;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.12);
+            min-width: 210px; pointer-events: none;
+        }
+        #info-panel h2 {
+            font-size: 1.25rem; margin-bottom: 8px;
+            color: #ff6b6b; letter-spacing: 0.05em;
+        }
+        #info-panel .info-row { display: flex; justify-content: space-between; }
+        #info-panel .info-label { color: #bbb; }
+        #info-panel .info-value { font-weight: bold; }
+        #info-category {
+            display: inline-block; padding: 2px 10px; border-radius: 4px;
+            font-size: 0.8rem; font-weight: bold; margin-top: 4px;
+        }
+
+        /* Layer Switcher */
+        #layer-switcher {
+            position: absolute; top: 15px; right: 15px; z-index: 1000;
+            display: flex; gap: 4px;
+            background: rgba(0,0,0,0.6); padding: 5px;
+            border-radius: 8px; backdrop-filter: blur(4px);
+        }
+        #layer-switcher button {
+            background: transparent; color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 5px 11px; border-radius: 6px;
+            cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+        }
+        #layer-switcher button:hover,
+        #layer-switcher button.active {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        /* Title */
         #title {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            z-index: 1000;
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            letter-spacing: 0.1em;
-            pointer-events: none;
-            backdrop-filter: blur(4px);
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: rgba(0,0,0,0.6); color: #fff;
+            padding: 8px 28px; border-radius: 20px; font-size: 1.2rem;
+            font-weight: bold; letter-spacing: 0.15em;
+            pointer-events: none; backdrop-filter: blur(4px);
         }
-        
+
+        /* Time Panel */
         #time-panel {
-            position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            background: rgba(255,255,255,0.95);
-            padding: 15px 25px;
-            border-radius: 12px;
+            position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: rgba(255,255,255,0.95);
+            padding: 12px 20px; border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            min-width: 420px;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 8px; min-width: 400px;
         }
-        
-        #time-display {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #333;
+        #time-display { font-size: 1rem; font-weight: bold; color: #333; }
+        #time-slider { width: 100%; cursor: pointer; }
+
+        /* Playback Controls */
+        #playback-controls { display: flex; align-items: center; gap: 6px; }
+        #playback-controls button {
+            background: #f0f0f0; border: 1px solid #ddd; border-radius: 6px;
+            padding: 5px 9px; cursor: pointer; font-size: 0.95rem;
+            transition: all 0.15s; min-width: 34px;
         }
-        
-        #time-slider {
-            width: 100%;
-            cursor: pointer;
+        #playback-controls button:hover { background: #e0e0e0; border-color: #bbb; }
+        #playback-controls button:active { transform: scale(0.93); }
+        #speed-select {
+            padding: 5px 7px; border-radius: 6px;
+            border: 1px solid #ddd; font-size: 0.82rem; cursor: pointer;
         }
-        
+
+        /* Color Bar */
+        #color-bar {
+            position: absolute; bottom: 38px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: rgba(255,255,255,0.92);
+            padding: 7px 14px; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+            display: flex; align-items: center; gap: 10px;
+        }
+        #color-bar canvas { height: 14px; border-radius: 3px; display: block; }
+        #color-bar-labels { display: flex; gap: 6px; flex-wrap: wrap; }
+        .color-label { display: flex; align-items: center; gap: 3px; font-size: 0.7rem; color: #444; }
+        .color-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+        /* Legend */
         #legend {
-            position: absolute;
-            bottom: 25px;
-            right: 15px;
-            z-index: 1000;
-            background: rgba(255,255,255,0.9);
-            padding: 12px 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-            font-size: 0.85rem;
-            color: #333;
-            line-height: 1.8;
+            position: absolute; bottom: 38px; right: 15px; z-index: 1000;
+            background: rgba(255,255,255,0.92); padding: 10px 15px;
+            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+            font-size: 0.82rem; color: #333; line-height: 1.9;
+            cursor: pointer; transition: background 0.2s;
         }
-        
+        #legend:hover { background: rgba(255,255,255,0.98); }
         #legend .line-sample {
-            display: inline-block;
-            width: 30px;
-            height: 3px;
-            vertical-align: middle;
-            margin-right: 8px;
+            display: inline-block; width: 28px; height: 3px;
+            vertical-align: middle; margin-right: 7px;
         }
-        
         #legend .dashed-sample {
-            display: inline-block;
-            width: 30px;
-            height: 0;
-            border-top: 2px dashed #999;
-            vertical-align: middle;
-            margin-right: 8px;
+            display: inline-block; width: 28px; height: 0;
+            border-top: 2px dashed #999; vertical-align: middle; margin-right: 7px;
         }
-        
-        #legend .vortex-sample {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #e94560;
-            border-radius: 50%;
-            opacity: 0.4;
-            vertical-align: middle;
-            margin-right: 8px;
-        }
-        
         #legend .typhoon-sample {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #e94560;
-            vertical-align: middle;
-            margin-right: 8px;
+            display: inline-block; width: 11px; height: 11px;
+            border-radius: 50%; background: #e94560;
+            vertical-align: middle; margin-right: 7px;
         }
-    
+        #legend .vortex-sample {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid rgba(100,150,255,0.5); border-radius: 50%;
+            vertical-align: middle; margin-right: 7px;
+        }
+
+        /* Left Panel */
+        #left-panel {
+            position: absolute; top: 0; left: 0; width: 360px; height: 100vh;
+            z-index: 1001; background: rgba(255,255,255,0.98);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+            display: flex; flex-direction: column;
+        }
+        #left-panel.open { transform: translateX(0); }
+        #left-panel-header {
+            padding: 14px 16px; border-bottom: 1px solid #eee;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        #left-panel-header h3 { font-size: 1.05rem; color: #333; }
+        #left-panel-close {
+            background: none; border: none; font-size: 1.4rem;
+            cursor: pointer; color: #999; padding: 0 4px;
+        }
+        #left-panel-content { flex: 1; overflow-y: auto; padding: 8px; }
+        #left-panel-content table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        #left-panel-content th {
+            background: #f5f5f5; padding: 7px 6px; text-align: left;
+            position: sticky; top: 0; font-weight: bold; color: #555;
+        }
+        #left-panel-content td { padding: 5px 6px; border-bottom: 1px solid #f0f0f0; }
+        #left-panel-content tr.active { background: #fff3cd; font-weight: bold; }
+        #left-panel-content tr:hover { background: #fafafa; }
+        #left-panel-toggle {
+            position: absolute; bottom: 38px; left: 15px; z-index: 1000;
+            background: rgba(0,0,0,0.6); color: #fff; border: none;
+            width: 38px; height: 38px; border-radius: 50%;
+            font-size: 1.1rem; cursor: pointer;
+            backdrop-filter: blur(4px); transition: background 0.2s;
+        }
+        #left-panel-toggle:hover { background: rgba(0,0,0,0.8); }
+
+        /* Legend Modal */
+        #legend-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1002; background: rgba(0,0,0,0.55);
+            display: none; justify-content: center; align-items: center;
+        }
+        #legend-modal.open { display: flex; }
+        #legend-modal-content {
+            background: #fff; padding: 22px 25px; border-radius: 12px;
+            max-width: 480px; width: 92%; max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative;
+        }
+        #legend-modal-content h3 { margin-bottom: 14px; color: #333; font-size: 1.1rem; }
+        .legend-section { margin-bottom: 18px; }
+        .legend-section h4 { font-size: 0.9rem; color: #666; margin-bottom: 7px; }
+        .legend-item { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; font-size: 0.88rem; }
+        #legend-close {
+            position: absolute; top: 12px; right: 14px;
+            background: #f0f0f0; border: none; width: 28px; height: 28px;
+            border-radius: 50%; font-size: 1.1rem; cursor: pointer; color: #666;
+        }
+        #legend-close:hover { background: #e0e0e0; }
+
+        /* News Ticker */
+        #news-ticker {
+            position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%);
+            z-index: 999; background: rgba(200, 40, 40, 0.88);
+            color: #fff; padding: 5px 0; border-radius: 4px;
+            font-size: 0.82rem; overflow: hidden; white-space: nowrap;
+            width: 55%; min-width: 380px;
+        }
+        .ticker-content { display: inline-block; animation: marquee 18s linear infinite; }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.85; }
+            50% { transform: scale(1.12); opacity: 1; }
+        }
         @keyframes spin-cw {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-        @keyframes spin-ccw {
-            from { transform: rotate(360deg); }
-            to { transform: rotate(0deg); }
-        }
-        .vortex-container {
-            position: relative;
-            width: 100px;
-            height: 70px;
-            background: transparent;
-            border: none;
-            pointer-events: none;
-        }
-        .vortex-ring {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            border-radius: 50%;
-            border-style: solid;
-            border-width: 2px;
-            background: transparent;
-            transform-origin: center;
-        }
+
+        .typhoon-marker-pulse { animation: pulse 2s ease-in-out infinite; transform-origin: center center; }
+        .vortex-container { animation: spin-cw 15s linear infinite; will-change: transform; }
     </style>
 </head>
 <body>
     <div id="map"></div>
+
+    <div id="info-panel">
+        <h2>桦加沙</h2>
+        <div class="info-row"><span class="info-label">时间</span><span class="info-value" id="info-time">--</span></div>
+        <div class="info-row"><span class="info-label">中心气压</span><span class="info-value" id="info-pressure">--</span></div>
+        <div class="info-row"><span class="info-label">最大风速</span><span class="info-value" id="info-wind">--</span></div>
+        <div class="info-row"><span class="info-label">纬度</span><span class="info-value" id="info-lat">--</span></div>
+        <div class="info-row"><span class="info-label">经度</span><span class="info-value" id="info-lon">--</span></div>
+        <div id="info-category">--</div>
+    </div>
+
+    <div id="layer-switcher">
+        <button data-layer="osm" class="active">行政地图</button>
+        <button data-layer="satellite">卫星地图</button>
+        <button data-layer="terrain">地形图</button>
+    </div>
+
     <div id="title">桦加沙</div>
+
     <div id="time-panel">
         <div id="time-display">2025-09-18 20:00</div>
-        <input type="range" id="time-slider" min="0" max="263" step="1" value="79">
+        <input type="range" id="time-slider" min="79" max="263" step="1" value="79">
+        <div id="playback-controls">
+            <button id="btn-start" title="回到起点">⏮</button>
+            <button id="btn-prev" title="后退一帧">⏪</button>
+            <button id="btn-play" title="播放/暂停">▶️</button>
+            <button id="btn-next" title="前进一帧">⏩</button>
+            <button id="btn-end" title="跳到终点">⏭</button>
+            <select id="speed-select" title="播放速度">
+                <option value="2000">1x</option>
+                <option value="1000">2x</option>
+                <option value="500">4x</option>
+            </select>
+        </div>
     </div>
+
+    <div id="color-bar">
+        <canvas id="color-bar-canvas" width="200" height="14"></canvas>
+        <div id="color-bar-labels"></div>
+    </div>
+
     <div id="legend">
         <div><span class="line-sample" style="background:#555;"></span>国界/海岸线</div>
         <div><span class="dashed-sample"></span>省界</div>
@@ -148,10 +265,60 @@
         <div><span class="vortex-sample"></span>气流漩涡</div>
     </div>
 
+    <button id="left-panel-toggle" title="路径数据">☰</button>
+
+    <div id="left-panel">
+        <div id="left-panel-header">
+            <h3>台风路径数据</h3>
+            <button id="left-panel-close">✕</button>
+        </div>
+        <div id="left-panel-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>时间</th><th>纬度</th><th>经度</th>
+                        <th>气压(hPa)</th><th>风速(m/s)</th><th>强度</th>
+                    </tr>
+                </thead>
+                <tbody id="left-panel-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="legend-modal">
+        <div id="legend-modal-content">
+            <h3>图例说明</h3>
+            <div class="legend-section">
+                <h4>台风强度等级（根据最大风速）</h4>
+                <div id="legend-categories"></div>
+            </div>
+            <div class="legend-section">
+                <h4>路径线</h4>
+                <div class="legend-item">
+                    <span class="line-sample" style="background:linear-gradient(90deg,#00bfff,#ffff00,#ff8c00,#ff0000,#c80000,#800080);height:4px;border-radius:2px;"></span>
+                    <span>台风路径（按强度分段着色，两点间距>3°断开）</span>
+                </div>
+            </div>
+            <div class="legend-section">
+                <h4>符号说明</h4>
+                <div class="legend-item"><span class="typhoon-sample"></span><span>台风中心（大小/颜色表示强度）</span></div>
+                <div class="legend-item"><span class="vortex-sample"></span><span>气流漩涡（螺旋云带+台风眼）</span></div>
+            </div>
+        </div>
+        <button id="legend-close">✕</button>
+    </div>
+
+    <div id="news-ticker">
+        <span class="ticker-content" id="ticker-text">【台风快讯】加载中...</span>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/topojson-client@3"></script>
     <script>
-        // Typhoon track data extracted from WRF output (ocean minimum PSFC)
+    (function() {
+        'use strict';
+
+        // ===== Typhoon Track Data =====
         const typhoonTrack = [
             {"t":79,"lat":20.090370178222656,"lon":117.64190673828125,"psfc":99908.9609375,"wind":2.2},
             {"t":80,"lat":20.276275634765625,"lon":117.5439453125,"psfc":99826.125,"wind":9.6},
@@ -327,194 +494,671 @@
             {"t":263,"lat":12.854202270507812,"lon":123.48971557617188,"psfc":99504.5625,"wind":16.6}
         ];
 
-        // Convert WRF time to Beijing Time
-        // WRF start: 2025-09-15 00:00 UTC
-        // t=84 => 2025-09-18 12:00 UTC = 2025-09-18 20:00 Beijing
-        // t=252 => 2025-09-25 12:00 UTC = 2025-09-25 20:00 Beijing
-        const wrfStart = new Date('2025-09-15T00:00:00Z');
-        const TYPHOON_THRESHOLD_PSFC = 100000; // Pa, below which typhoon is considered formed
-        
+        // ===== Configuration =====
+        const CONFIG = {
+            wrfStart: new Date('2025-09-15T00:00:00Z'),
+            psfcThreshold: 100000,
+            distanceThreshold: 3,
+            minT: 79,
+            maxT: 263,
+            defaultT: 79,
+            playSpeed: 2000,
+            markerSize: 80,
+            vortexSize: 160
+        };
+
+        // ===== Wind Categories (China Standard) =====
+        const WIND_CATEGORIES = [
+            { name: '热带低压', max: 10.8, color: '#00bfff' },
+            { name: '热带风暴', max: 17.1, color: '#ffeb3b' },
+            { name: '强热带风暴', max: 24.4, color: '#ff8c00' },
+            { name: '台风', max: 32.6, color: '#f44336' },
+            { name: '强台风', max: 41.4, color: '#c80000' },
+            { name: '超强台风', max: Infinity, color: '#9c27b0' }
+        ];
+
+        function getWindCategory(wind) {
+            for (const cat of WIND_CATEGORIES) {
+                if (wind <= cat.max) return cat;
+            }
+            return WIND_CATEGORIES[WIND_CATEGORIES.length - 1];
+        }
+
+        // ===== Time Conversion =====
         function tToBeijingTime(t) {
-            const utc = new Date(wrfStart.getTime() + t * 3600 * 1000);
+            const utc = new Date(CONFIG.wrfStart.getTime() + t * 3600 * 1000);
             const bj = new Date(utc.getTime() + 8 * 60 * 60 * 1000);
             const yyyy = bj.getUTCFullYear();
             const mm = String(bj.getUTCMonth() + 1).padStart(2, '0');
             const dd = String(bj.getUTCDate()).padStart(2, '0');
             const hh = String(bj.getUTCHours()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd} ${hh}:00`;
+            return yyyy + '-' + mm + '-' + dd + ' ' + hh + ':00';
         }
 
-        // Color scale for typhoon intensity (based on PSFC)
+        // ===== Color Functions =====
         function getTyphoonColor(psfc) {
-            // Lower pressure = stronger typhoon = deeper red
-            // Range: 94268 (min) to 100999 (max) in data
-            const minP = 94000;
-            const maxP = 101000;
-            const ratio = Math.max(0, Math.min(1, (psfc - minP) / (maxP - minP)));
-            // Interpolate from red (strong) to yellow (weak)
-            const r = 255;
-            const g = Math.floor(200 * (1 - ratio));
-            const b = Math.floor(100 * (1 - ratio));
-            return `rgb(${r},${g},${b})`;
+            var minP = 94000, maxP = 101000;
+            var ratio = Math.max(0, Math.min(1, (psfc - minP) / (maxP - minP)));
+            var r = 255, g = Math.floor(200 * (1 - ratio)), b = Math.floor(100 * (1 - ratio));
+            return 'rgb(' + r + ',' + g + ',' + b + ')';
         }
 
         function getTyphoonRadius(psfc) {
-            const minP = 94000;
-            const maxP = 101000;
-            const ratio = Math.max(0, Math.min(1, (psfc - minP) / (maxP - minP)));
-            return 6 + (1 - ratio) * 10; // 6-16px
+            var minP = 94000, maxP = 101000;
+            var ratio = Math.max(0, Math.min(1, (psfc - minP) / (maxP - minP)));
+            return 6 + (1 - ratio) * 10;
         }
 
-        // Initialize map
-        const map = L.map('map', {
-            center: [22.5, 114.1],
-            zoom: 5,
-            minZoom: 4,
-            maxZoom: 10
-        });
+        // ===== Distance Calculation =====
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            var R = 6371;
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLon = (lon2 - lon1) * Math.PI / 180;
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return (R * c) / 111;
+        }
 
-        // OpenStreetMap base layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 18
-        }).addTo(map);
+        // ===== Path Segmentation =====
+        function getPathSegments(t) {
+            var points = typhoonTrack.filter(function(p) { return p.t <= t; });
+            if (points.length < 2) return [];
 
-        // Load country boundaries
-        fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json')
-            .then(res => res.json())
-            .then(world => {
-                const countries = topojson.feature(world, world.objects.countries);
-                L.geoJSON(countries, {
-                    style: {
-                        color: '#555555',
-                        weight: 1.5,
-                        fillColor: 'transparent',
-                        fillOpacity: 0,
-                        dashArray: null
+            // Remove duplicate consecutive points
+            var filtered = [points[0]];
+            for (var i = 1; i < points.length; i++) {
+                var last = filtered[filtered.length - 1];
+                if (points[i].lat !== last.lat || points[i].lon !== last.lon) {
+                    filtered.push(points[i]);
+                }
+            }
+            points = filtered;
+            if (points.length < 2) return [];
+
+            // Break by distance threshold
+            var distanceSegments = [];
+            var currentSegment = [points[0]];
+            for (var i = 1; i < points.length; i++) {
+                var prev = points[i - 1];
+                var curr = points[i];
+                var dist = haversineDistance(prev.lat, prev.lon, curr.lat, curr.lon);
+                if (dist >= CONFIG.distanceThreshold) {
+                    if (currentSegment.length > 1) distanceSegments.push(currentSegment);
+                    currentSegment = [curr];
+                } else {
+                    currentSegment.push(curr);
+                }
+            }
+            if (currentSegment.length > 1) distanceSegments.push(currentSegment);
+
+            // Group by wind category within each distance segment
+            var segments = [];
+            for (var s = 0; s < distanceSegments.length; s++) {
+                var seg = distanceSegments[s];
+                var group = [seg[0]];
+                var prevCat = getWindCategory(seg[0].wind);
+                for (var i = 1; i < seg.length; i++) {
+                    var currCat = getWindCategory(seg[i].wind);
+                    if (currCat !== prevCat) {
+                        if (group.length > 1) {
+                            segments.push({
+                                points: group.map(function(p) { return [p.lat, p.lon]; }),
+                                color: prevCat.color,
+                                category: prevCat.name
+                            });
+                        }
+                        group = [seg[i - 1], seg[i]];
+                    } else {
+                        group.push(seg[i]);
                     }
-                }).addTo(map);
-            })
-            .catch(err => console.error('Failed to load countries:', err));
-
-        // Load China provinces
-        fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_1_states_provinces.geojson')
-            .then(res => res.json())
-            .then(data => {
-                const chinaFeatures = data.features.filter(f => {
-                    const admin = f.properties.admin || f.properties.ADMIN || '';
-                    return admin === 'China' || admin === 'Taiwan';
-                });
-                L.geoJSON(chinaFeatures, {
-                    style: {
-                        color: '#999999',
-                        weight: 1,
-                        dashArray: '5,5',
-                        fillColor: 'transparent',
-                        fillOpacity: 0
-                    }
-                }).addTo(map);
-            })
-            .catch(err => console.error('Failed to load provinces:', err));
-
-        // Track line will be created dynamically in updateTyphoonPosition
-        let trackLine = null;
-
-        let currentMarker = null;
-        let vortexGroup = null;
-
-        function updateTyphoonPosition(t) {
-            // Find the latest valid typhoon data point at or before time t
-            const validPoints = typhoonTrack.filter(p => p.t <= t);
-            
-            if (validPoints.length === 0) {
-                // Typhoon not yet formed
-                if (currentMarker) {
-                    map.removeLayer(currentMarker);
-                    currentMarker = null;
+                    prevCat = currCat;
                 }
-                if (vortexGroup) {
-                    map.removeLayer(vortexGroup);
-                    vortexGroup = null;
+                if (group.length > 1) {
+                    segments.push({
+                        points: group.map(function(p) { return [p.lat, p.lon]; }),
+                        color: prevCat.color,
+                        category: prevCat.name
+                    });
                 }
-                if (trackLine) {
-                    map.removeLayer(trackLine);
+            }
+            return segments;
+        }
+
+        // ===== Drawing Functions =====
+        function drawTyphoonMarkerDataUrl(psfc, wind) {
+            var dpr = window.devicePixelRatio || 1;
+            var size = CONFIG.markerSize;
+            var canvas = document.createElement('canvas');
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            var ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            var cx = size / 2, cy = size / 2;
+            var baseRadius = 13;
+            var radius = baseRadius + Math.max(0, (101000 - psfc) / 800);
+            var color = getTyphoonColor(psfc);
+            var rgb = color.match(/\d+/g);
+
+            // Outer glow
+            var glow = ctx.createRadialGradient(cx, cy, radius * 0.5, cx, cy, radius * 2);
+            glow.addColorStop(0, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.35)');
+            glow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Main circle
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Eye wall
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 0.55, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Eye
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 0.28, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.fill();
+
+            // Wind barbs
+            var barbCount = Math.min(10, Math.max(4, Math.floor(wind / 3) + 3));
+            for (var i = 0; i < barbCount; i++) {
+                var angle = (i / barbCount) * Math.PI * 2;
+                var innerR = radius + 2;
+                var outerR = radius + 10;
+                var x1 = cx + Math.cos(angle) * innerR;
+                var y1 = cy + Math.sin(angle) * innerR;
+                var x2 = cx + Math.cos(angle) * outerR;
+                var y2 = cy + Math.sin(angle) * outerR;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.75)';
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                // Small flag
+                var flagLen = 4;
+                var perpAngle = angle + Math.PI / 2;
+                ctx.beginPath();
+                ctx.moveTo(x2, y2);
+                ctx.lineTo(x2 + Math.cos(perpAngle) * flagLen, y2 + Math.sin(perpAngle) * flagLen);
+                ctx.stroke();
+            }
+
+            return canvas.toDataURL();
+        }
+
+        function drawVortexDataUrl() {
+            var dpr = window.devicePixelRatio || 1;
+            var size = CONFIG.vortexSize;
+            var canvas = document.createElement('canvas');
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            var ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            var cx = size / 2, cy = size / 2;
+            var maxR = size / 2 - 15;
+
+            ctx.clearRect(0, 0, size, size);
+            ctx.save();
+            ctx.translate(cx, cy);
+
+            // Dark background disk
+            var bgGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, maxR);
+            bgGrad.addColorStop(0, 'rgba(15, 25, 45, 0.35)');
+            bgGrad.addColorStop(0.6, 'rgba(25, 35, 55, 0.2)');
+            bgGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = bgGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, maxR, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3 spiral arms
+            for (var arm = 0; arm < 3; arm++) {
+                var armOffset = (arm / 3) * Math.PI * 2;
+                ctx.save();
+                ctx.rotate(armOffset);
+
+                var a = 7, b = maxR / (Math.PI * 3.2);
+                var steps = 180;
+                for (var i = 0; i < steps; i++) {
+                    var t = i / steps;
+                    var theta = t * Math.PI * 3.2;
+                    var r = a + b * theta;
+                    if (r > maxR - 3) break;
+
+                    var nextT = (i + 1) / steps;
+                    var nextTheta = nextT * Math.PI * 3.2;
+                    var nextR = a + b * nextTheta;
+
+                    var alpha = 0.45 * Math.pow(1 - t, 0.55);
+                    var lineWidth = Math.max(1.2, 5.5 * (1 - t * 0.75));
+
+                    ctx.beginPath();
+                    ctx.moveTo(r * Math.cos(theta), r * Math.sin(theta));
+                    ctx.lineTo(nextR * Math.cos(nextTheta), nextR * Math.sin(nextTheta));
+                    ctx.strokeStyle = 'rgba(210, 225, 255, ' + alpha + ')';
+                    ctx.lineWidth = lineWidth;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
                 }
-                timeDisplay.textContent = tToBeijingTime(t) + ' (台风尚未生成)';
-                return;
+                ctx.restore();
             }
-            
-            const pt = validPoints[validPoints.length - 1];
-            
-            // Remove old elements
-            if (currentMarker) {
-                map.removeLayer(currentMarker);
+
+            // Eye wall (bright ring)
+            ctx.beginPath();
+            ctx.arc(0, 0, 23, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.lineWidth = 4.5;
+            ctx.stroke();
+
+            // Secondary eye wall
+            ctx.beginPath();
+            ctx.arc(0, 0, 19, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(140, 160, 200, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Eye (dark center)
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(5, 10, 25, 0.45)';
+            ctx.fill();
+
+            ctx.restore();
+            return canvas.toDataURL();
+        }
+
+        function drawColorBar() {
+            var canvas = document.getElementById('color-bar-canvas');
+            var ctx = canvas.getContext('2d');
+            var width = 200, height = 14;
+            canvas.width = width;
+            canvas.height = height;
+
+            var segmentWidth = width / WIND_CATEGORIES.length;
+            for (var i = 0; i < WIND_CATEGORIES.length; i++) {
+                ctx.fillStyle = WIND_CATEGORIES[i].color;
+                ctx.fillRect(i * segmentWidth, 0, segmentWidth, height);
             }
-            if (vortexGroup) {
-                map.removeLayer(vortexGroup);
-            }
-            
-            const color = getTyphoonColor(pt.psfc);
-            const radius = getTyphoonRadius(pt.psfc);
-            
-            // Main marker
-            currentMarker = L.circleMarker([pt.lat, pt.lon], {
-                radius: radius,
-                fillColor: color,
-                color: '#fff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.8
-            }).addTo(map);
-            
-            // Vortex animation using CSS spinning ellipses
-            const intensityRatio = Math.max(0, Math.min(1, (pt.psfc - 94000) / 6000));
-                    const vortexSize = 100 - intensityRatio * 40; // 100px(strong) ~ 60px(weak)
-            const vortexIcon = L.divIcon({
-                className: 'vortex-container',
-                html: '<div class="vortex-outer" style="width:' + vortexSize + 'px; height:' + (vortexSize*0.7) + 'px; border-color:' + color + ';"></div>' +
-                      '<div class="vortex-mid" style="width:' + (vortexSize*0.7) + 'px; height:' + (vortexSize*0.5) + 'px; border-color:' + color + ';"></div>' +
-                      '<div class="vortex-inner" style="width:' + (vortexSize*0.4) + 'px; height:' + (vortexSize*0.3) + 'px; border-color:' + color + ';"></div>',
-                iconSize: [vortexSize, vortexSize * 0.7],
-                iconAnchor: [vortexSize/2, vortexSize*0.35]
+
+            var labelsContainer = document.getElementById('color-bar-labels');
+            labelsContainer.innerHTML = WIND_CATEGORIES.map(function(cat) {
+                var maxText = cat.max === Infinity ? '41.4+' : '≤' + cat.max;
+                return '<div class="color-label"><span class="color-dot" style="background:' + cat.color + '"></span><span>' + cat.name + '(' + maxText + ')</span></div>';
+            }).join('');
+        }
+
+        // ===== Map & State =====
+        var map, currentLayer;
+        var baseLayers = {};
+        var trackLineLayers = [];
+        var currentMarker = null;
+        var vortexMarker = null;
+        var isPlaying = false;
+        var playInterval = null;
+        var playSpeed = CONFIG.playSpeed;
+
+        function initMap() {
+            map = L.map('map', {
+                center: [17, 121],
+                zoom: 5,
+                minZoom: 4,
+                maxZoom: 10
             });
-            
-            vortexGroup = L.marker([pt.lat, pt.lon], { icon: vortexIcon, interactive: false }).addTo(map);
-            
-            // Update track line - show only up to current time
-            const currentTrackPoints = typhoonTrack.filter(p => p.t <= t).map(p => [p.lat, p.lon]);
-            if (trackLine) {
-                map.removeLayer(trackLine);
-            }
-            if (currentTrackPoints.length > 1) {
-                trackLine = L.polyline(currentTrackPoints, {
-                    color: '#e94560',
-                    weight: 2,
-                    opacity: 0.8,
-                    dashArray: '8,4'
-                }).addTo(map);
-            }
-            
-            currentMarker.bindPopup(
-                `<b>桦加沙</b><br>` +
-                `时间: ${tToBeijingTime(t)}<br>` +
-                `气压: ${pt.psfc.toFixed(1)} hPa<br>` +
-                `风速: ${pt.wind} m/s<br>` +
-                `位置: ${pt.lat.toFixed(2)}°N, ${pt.lon.toFixed(2)}°E`
-            );
+
+            baseLayers.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap', maxZoom: 18
+            });
+            baseLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '&copy; Esri', maxZoom: 18
+            });
+            baseLayers.terrain = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenTopoMap', maxZoom: 18
+            });
+
+            baseLayers.osm.addTo(map);
+            currentLayer = 'osm';
+
+            // Fit map to track bounds
+            var bounds = L.latLngBounds([]);
+            typhoonTrack.forEach(function(p) { bounds.extend([p.lat, p.lon]); });
+            map.fitBounds(bounds, { padding: [40, 40] });
+
+            // Load country boundaries
+            fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json')
+                .then(function(res) { return res.json(); })
+                .then(function(world) {
+                    var countries = topojson.feature(world, world.objects.countries);
+                    L.geoJSON(countries, {
+                        style: { color: '#555555', weight: 1.5, fillColor: 'transparent', fillOpacity: 0 }
+                    }).addTo(map);
+                })
+                .catch(function(err) { console.error('Failed to load countries:', err); });
+
+            // Load China provinces
+            fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_1_states_provinces.geojson')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    var chinaFeatures = data.features.filter(function(f) {
+                        var admin = (f.properties.admin || f.properties.ADMIN || '').toLowerCase();
+                        return admin === 'china' || admin === 'taiwan';
+                    });
+                    L.geoJSON(chinaFeatures, {
+                        style: { color: '#999999', weight: 1, dashArray: '5,5', fillColor: 'transparent', fillOpacity: 0 }
+                    }).addTo(map);
+                })
+                .catch(function(err) { console.error('Failed to load provinces:', err); });
         }
 
-        // Time slider
-        const slider = document.getElementById('time-slider');
-        const timeDisplay = document.getElementById('time-display');
-
+        // ===== UI Updates =====
         function updateTimeDisplay() {
-            const val = parseInt(slider.value);
-            timeDisplay.textContent = tToBeijingTime(val);
+            var val = parseInt(document.getElementById('time-slider').value);
+            document.getElementById('time-display').textContent = tToBeijingTime(val);
             updateTyphoonPosition(val);
         }
 
-        slider.addEventListener('input', updateTimeDisplay);
-        updateTimeDisplay();
+        function updateTyphoonPosition(t) {
+            var validPoints = typhoonTrack.filter(function(p) { return p.t <= t; });
+
+            // Clear old path lines
+            trackLineLayers.forEach(function(layer) { map.removeLayer(layer); });
+            trackLineLayers = [];
+
+            if (validPoints.length === 0) {
+                if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
+                if (vortexMarker) { map.removeLayer(vortexMarker); vortexMarker = null; }
+                document.getElementById('time-display').textContent = tToBeijingTime(t) + ' (台风尚未生成)';
+                return;
+            }
+
+            var pt = validPoints[validPoints.length - 1];
+
+            // Draw path segments
+            var segments = getPathSegments(t);
+            for (var i = 0; i < segments.length; i++) {
+                var seg = segments[i];
+                var layer = L.polyline(seg.points, {
+                    color: seg.color, weight: 3, opacity: 0.85
+                }).addTo(map);
+                trackLineLayers.push(layer);
+            }
+
+            // Update typhoon marker
+            var markerDataUrl = drawTyphoonMarkerDataUrl(pt.psfc, pt.wind);
+            var markerIcon = L.divIcon({
+                className: 'typhoon-marker-container',
+                html: '<div class="typhoon-marker-pulse"><img src="' + markerDataUrl + '" width="' + CONFIG.markerSize + '" height="' + CONFIG.markerSize + '" style="pointer-events:none;"></div>',
+                iconSize: [CONFIG.markerSize, CONFIG.markerSize],
+                iconAnchor: [CONFIG.markerSize / 2, CONFIG.markerSize / 2]
+            });
+
+            if (!currentMarker) {
+                currentMarker = L.marker([pt.lat, pt.lon], { icon: markerIcon, interactive: true }).addTo(map);
+                currentMarker.bindPopup(
+                    '<b>桦加沙</b><br>' +
+                    '时间: ' + tToBeijingTime(t) + '<br>' +
+                    '气压: ' + pt.psfc.toFixed(1) + ' hPa<br>' +
+                    '风速: ' + pt.wind.toFixed(1) + ' m/s<br>' +
+                    '位置: ' + pt.lat.toFixed(2) + '°N, ' + pt.lon.toFixed(2) + '°E'
+                );
+            } else {
+                currentMarker.setLatLng([pt.lat, pt.lon]);
+                currentMarker.setIcon(markerIcon);
+                currentMarker.setPopupContent(
+                    '<b>桦加沙</b><br>' +
+                    '时间: ' + tToBeijingTime(t) + '<br>' +
+                    '气压: ' + pt.psfc.toFixed(1) + ' hPa<br>' +
+                    '风速: ' + pt.wind.toFixed(1) + ' m/s<br>' +
+                    '位置: ' + pt.lat.toFixed(2) + '°N, ' + pt.lon.toFixed(2) + '°E'
+                );
+            }
+
+            // Update vortex (persistent, just move)
+            if (!vortexMarker) {
+                var vortexDataUrl = drawVortexDataUrl();
+                var vortexIcon = L.divIcon({
+                    className: 'vortex-container',
+                    html: '<img src="' + vortexDataUrl + '" width="' + CONFIG.vortexSize + '" height="' + CONFIG.vortexSize + '" style="pointer-events:none;">',
+                    iconSize: [CONFIG.vortexSize, CONFIG.vortexSize],
+                    iconAnchor: [CONFIG.vortexSize / 2, CONFIG.vortexSize / 2]
+                });
+                vortexMarker = L.marker([pt.lat, pt.lon], { icon: vortexIcon, interactive: false }).addTo(map);
+            } else {
+                vortexMarker.setLatLng([pt.lat, pt.lon]);
+            }
+
+            // Update info panel
+            updateInfoPanel(pt);
+            updateLeftPanelHighlight(t);
+            updateNewsTicker(pt);
+        }
+
+        function updateInfoPanel(pt) {
+            var cat = getWindCategory(pt.wind);
+            document.getElementById('info-time').textContent = tToBeijingTime(pt.t);
+            document.getElementById('info-pressure').textContent = pt.psfc.toFixed(1) + ' hPa';
+            document.getElementById('info-wind').textContent = pt.wind.toFixed(1) + ' m/s';
+            document.getElementById('info-lat').textContent = pt.lat.toFixed(2) + '°N';
+            document.getElementById('info-lon').textContent = pt.lon.toFixed(2) + '°E';
+
+            var badge = document.getElementById('info-category');
+            badge.textContent = cat.name;
+            badge.style.background = cat.color;
+            badge.style.color = (cat.color === '#ffeb3b' || cat.color === '#00bfff') ? '#333' : '#fff';
+        }
+
+        function updateNewsTicker(pt) {
+            var cat = getWindCategory(pt.wind);
+            var text = '【台风快讯】台风"桦加沙"' + tToBeijingTime(pt.t) +
+                '位于' + pt.lat.toFixed(1) + '°N, ' + pt.lon.toFixed(1) + '°E，' +
+                '中心气压' + pt.psfc.toFixed(0) + ' hPa，最大风力' + pt.wind.toFixed(1) + ' m/s（' + cat.name + '），请注意防范。';
+            document.getElementById('ticker-text').textContent = text;
+        }
+
+        // ===== Playback Controls =====
+        function togglePlay() {
+            if (isPlaying) {
+                pausePlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function startPlayback() {
+            if (isPlaying) return;
+            isPlaying = true;
+            document.getElementById('btn-play').textContent = '⏸️';
+            var slider = document.getElementById('time-slider');
+            if (parseInt(slider.value) >= CONFIG.maxT) {
+                slider.value = CONFIG.minT;
+            }
+            playInterval = setInterval(function() {
+                var val = parseInt(slider.value);
+                if (val >= CONFIG.maxT) {
+                    pausePlayback();
+                    return;
+                }
+                val++;
+                slider.value = val;
+                updateTimeDisplay();
+            }, playSpeed);
+        }
+
+        function pausePlayback() {
+            isPlaying = false;
+            document.getElementById('btn-play').textContent = '▶️';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function stepForward() {
+            pausePlayback();
+            var slider = document.getElementById('time-slider');
+            var val = parseInt(slider.value);
+            if (val < CONFIG.maxT) {
+                val++;
+                slider.value = val;
+                updateTimeDisplay();
+            }
+        }
+
+        function stepBackward() {
+            pausePlayback();
+            var slider = document.getElementById('time-slider');
+            var val = parseInt(slider.value);
+            if (val > CONFIG.minT) {
+                val--;
+                slider.value = val;
+                updateTimeDisplay();
+            }
+        }
+
+        function goToStart() {
+            pausePlayback();
+            document.getElementById('time-slider').value = CONFIG.minT;
+            updateTimeDisplay();
+        }
+
+        function goToEnd() {
+            pausePlayback();
+            document.getElementById('time-slider').value = CONFIG.maxT;
+            updateTimeDisplay();
+        }
+
+        function changeSpeed() {
+            playSpeed = parseInt(document.getElementById('speed-select').value);
+            if (isPlaying) {
+                pausePlayback();
+                startPlayback();
+            }
+        }
+
+        // ===== Layer Switcher =====
+        function switchLayer(layerName) {
+            if (currentLayer === layerName) return;
+            map.removeLayer(baseLayers[currentLayer]);
+            baseLayers[layerName].addTo(map);
+            currentLayer = layerName;
+            document.querySelectorAll('#layer-switcher button').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-layer') === layerName);
+            });
+        }
+
+        // ===== Left Panel =====
+        function toggleLeftPanel() {
+            document.getElementById('left-panel').classList.toggle('open');
+        }
+
+        function initLeftPanel() {
+            var tbody = document.getElementById('left-panel-tbody');
+            for (var i = 0; i < typhoonTrack.length; i++) {
+                var pt = typhoonTrack[i];
+                var cat = getWindCategory(pt.wind);
+                var tr = document.createElement('tr');
+                tr.setAttribute('data-t', pt.t);
+                tr.innerHTML =
+                    '<td>' + tToBeijingTime(pt.t) + '</td>' +
+                    '<td>' + pt.lat.toFixed(2) + '°</td>' +
+                    '<td>' + pt.lon.toFixed(2) + '°</td>' +
+                    '<td>' + pt.psfc.toFixed(1) + '</td>' +
+                    '<td>' + pt.wind.toFixed(1) + '</td>' +
+                    '<td><span style="color:' + cat.color + ';font-weight:bold;">' + cat.name + '</span></td>';
+                tbody.appendChild(tr);
+            }
+        }
+
+        function updateLeftPanelHighlight(t) {
+            var rows = document.querySelectorAll('#left-panel-tbody tr');
+            for (var i = 0; i < rows.length; i++) {
+                var rowT = parseInt(rows[i].getAttribute('data-t'));
+                if (rowT === t) {
+                    rows[i].classList.add('active');
+                    rows[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    rows[i].classList.remove('active');
+                }
+            }
+        }
+
+        // ===== Legend Modal =====
+        function toggleLegend() {
+            document.getElementById('legend-modal').classList.toggle('open');
+        }
+
+        function initLegendCategories() {
+            var container = document.getElementById('legend-categories');
+            container.innerHTML = WIND_CATEGORIES.map(function(cat) {
+                var maxText = cat.max === Infinity ? '41.4 m/s 以上' : '≤ ' + cat.max + ' m/s';
+                return '<div class="legend-item"><span class="color-dot" style="background:' + cat.color + '"></span><span>' + cat.name + ' (' + maxText + ')</span></div>';
+            }).join('');
+        }
+
+        // ===== Initialization =====
+        function init() {
+            initMap();
+            drawColorBar();
+            initLeftPanel();
+            initLegendCategories();
+
+            // Wire up controls
+            var slider = document.getElementById('time-slider');
+            slider.addEventListener('input', updateTimeDisplay);
+
+            document.getElementById('btn-play').addEventListener('click', togglePlay);
+            document.getElementById('btn-next').addEventListener('click', stepForward);
+            document.getElementById('btn-prev').addEventListener('click', stepBackward);
+            document.getElementById('btn-start').addEventListener('click', goToStart);
+            document.getElementById('btn-end').addEventListener('click', goToEnd);
+            document.getElementById('speed-select').addEventListener('change', changeSpeed);
+
+            document.querySelectorAll('#layer-switcher button').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    switchLayer(btn.getAttribute('data-layer'));
+                });
+            });
+
+            document.getElementById('left-panel-toggle').addEventListener('click', toggleLeftPanel);
+            document.getElementById('left-panel-close').addEventListener('click', toggleLeftPanel);
+            document.getElementById('legend').addEventListener('click', toggleLegend);
+            document.getElementById('legend-close').addEventListener('click', toggleLegend);
+            document.getElementById('legend-modal').addEventListener('click', function(e) {
+                if (e.target === document.getElementById('legend-modal')) toggleLegend();
+            });
+
+            // Keyboard controls
+            document.addEventListener('keydown', function(e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+                switch (e.key) {
+                    case 'ArrowLeft': stepBackward(); break;
+                    case 'ArrowRight': stepForward(); break;
+                    case ' ': e.preventDefault(); togglePlay(); break;
+                }
+            });
+
+            // Initial render
+            updateTimeDisplay();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    })();
     </script>
 </body>
 </html>
