@@ -67,7 +67,7 @@
             padding: 12px 20px; border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             display: flex; flex-direction: column; align-items: center;
-            gap: 8px; min-width: 400px;
+            gap: 8px; min-width: 400px; max-width: 95vw;
         }
         #time-display { font-size: 1rem; font-weight: bold; color: #333; }
         #time-slider { width: 100%; cursor: pointer; }
@@ -163,6 +163,24 @@
             backdrop-filter: blur(4px); transition: background 0.2s;
         }
         #left-panel-toggle:hover { background: rgba(0,0,0,0.8); }
+
+        @media (max-width: 768px) {
+            #info-panel { left: 8px; top: 8px; padding: 10px 12px; min-width: auto; font-size: 0.8rem; }
+            #time-panel { left: 8px; right: 8px; transform: none; min-width: auto; padding: 10px 12px; }
+            #left-panel { width: 85vw; }
+            #layer-switcher { top: auto; bottom: 170px; right: 8px; }
+            #legend { right: 8px; bottom: 38px; font-size: 0.75rem; padding: 8px 10px; }
+            #left-panel-toggle { bottom: 38px; left: 8px; }
+            #title { font-size: 1rem; padding: 6px 18px; }
+        }
+
+        @media (max-width: 480px) {
+            #info-panel { font-size: 0.75rem; }
+            #time-panel { bottom: 75px; padding: 8px 10px; gap: 6px; }
+            #playback-controls button { padding: 4px 7px; min-width: 28px; font-size: 0.85rem; }
+            #speed-select { font-size: 0.75rem; padding: 4px 6px; }
+            #news-ticker { max-width: 92%; min-width: auto; font-size: 0.75rem; padding: 4px 24px 4px 10px; }
+        }
 
         /* Legend Modal */
         #legend-modal {
@@ -898,18 +916,23 @@
             var segments = getPathSegments(t);
             for (var i = 0; i < segments.length; i++) {
                 var seg = segments[i];
+                var tooltipContent = '<b>' + seg.category + '</b><br>' +
+                    '时间: ' + tToBeijingTime(seg.points[0][0]) + ' → ' + tToBeijingTime(seg.points[seg.points.length - 1][0]) + '<br>' +
+                    '点数: ' + seg.points.length;
                 var layer = L.polyline(seg.points, {
                     color: seg.color, weight: 3, opacity: 0.85
                 }).addTo(map);
+                layer.bindTooltip(tooltipContent, { sticky: true, direction: 'top', offset: [0, -10] });
                 trackLineLayers.push(layer);
             }
 
             // Update typhoon marker
             spinAngle += 0.04;
             var markerDataUrl = drawTyphoonMarkerDataUrl(pt.psfc, pt.wind, spinAngle);
+            var markerHtml = '<div class="typhoon-marker-pulse" title="点击查看详情"><img src="' + markerDataUrl + '" width="' + CONFIG.markerSize + '" height="' + CONFIG.markerSize + '" style="pointer-events:none;"></div>';
             var markerIcon = L.divIcon({
                 className: 'typhoon-marker-container',
-                html: '<div class="typhoon-marker-pulse"><img src="' + markerDataUrl + '" width="' + CONFIG.markerSize + '" height="' + CONFIG.markerSize + '" style="pointer-events:none;"></div>',
+                html: markerHtml,
                 iconSize: [CONFIG.markerSize, CONFIG.markerSize],
                 iconAnchor: [CONFIG.markerSize / 2, CONFIG.markerSize / 2]
             });
@@ -922,7 +945,7 @@
                     '气压: ' + pt.psfc.toFixed(1) + ' hPa<br>' +
                     '风速: ' + pt.wind.toFixed(1) + ' m/s<br>' +
                     '位置: ' + pt.lat.toFixed(2) + '°N, ' + pt.lon.toFixed(2) + '°E'
-                );
+                ).openPopup();
             } else {
                 currentMarker.setLatLng([pt.lat, pt.lon]);
                 currentMarker.setIcon(markerIcon);
@@ -1033,6 +1056,23 @@
             pausePlayback();
             document.getElementById('time-slider').value = CONFIG.maxT;
             updateTimeDisplay();
+        }
+
+        function changeSpeed(delta) {
+            var speeds = [400, 200, 100];
+            var currentIndex = speeds.indexOf(playSpeed);
+            if (currentIndex === -1) {
+                if (playSpeed < 100) currentIndex = 2;
+                else if (playSpeed < 200) currentIndex = 1;
+                else currentIndex = 0;
+            }
+            var newIndex = Math.max(0, Math.min(speeds.length - 1, currentIndex + delta));
+            playSpeed = speeds[newIndex];
+            document.getElementById('speed-select').value = String(playSpeed);
+            if (isPlaying) {
+                pausePlayback();
+                startPlayback();
+            }
         }
 
         function changeSpeed() {
@@ -1148,6 +1188,8 @@
                 switch (e.key) {
                     case 'ArrowLeft': stepBackward(); break;
                     case 'ArrowRight': stepForward(); break;
+                    case 'ArrowUp': changeSpeed(-1); break;
+                    case 'ArrowDown': changeSpeed(1); break;
                     case ' ': e.preventDefault(); togglePlay(); break;
                 }
             });
