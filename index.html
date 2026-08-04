@@ -221,7 +221,6 @@
         }
 
         .typhoon-marker-pulse { animation: pulse 2s ease-in-out infinite; transform-origin: center center; }
-        .vortex-container { animation: spin-cw 15s linear infinite; will-change: transform; }
     </style>
 </head>
 <body>
@@ -513,8 +512,7 @@
             maxT: 263,
             defaultT: 79,
             playSpeed: 400,
-            markerSize: 80,
-            vortexSize: 160
+            markerSize: 200,
         };
 
         // ===== Wind Categories (China Standard) =====
@@ -637,7 +635,7 @@
         }
 
         // ===== Drawing Functions =====
-        function drawTyphoonMarkerDataUrl(psfc, wind) {
+        function drawTyphoonMarkerDataUrl(psfc, wind, spinAngle) {
             var dpr = window.devicePixelRatio || 1;
             var size = CONFIG.markerSize;
             var canvas = document.createElement('canvas');
@@ -647,48 +645,98 @@
             ctx.scale(dpr, dpr);
 
             var cx = size / 2, cy = size / 2;
-            var baseRadius = 13;
-            var radius = baseRadius + Math.max(0, (101000 - psfc) / 800);
+            var baseRadius = 13 + Math.max(0, (101000 - psfc) / 800);
             var color = getTyphoonColor(psfc);
             var rgb = color.match(/\d+/g);
+            var maxR = size / 2 - 10;
 
-            // Outer glow
-            var glow = ctx.createRadialGradient(cx, cy, radius * 0.5, cx, cy, radius * 2);
+            // 1. Background disk (behind spiral)
+            var bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+            bgGrad.addColorStop(0, 'rgba(15, 25, 45, 0.25)');
+            bgGrad.addColorStop(0.5, 'rgba(25, 35, 55, 0.12)');
+            bgGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = bgGrad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, maxR, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 2. Spiral arms (rotated, drawn behind core)
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(spinAngle);
+            for (var arm = 0; arm < 3; arm++) {
+                var armOffset = (arm / 3) * Math.PI * 2;
+                ctx.save();
+                ctx.rotate(armOffset);
+                var a = 7, b = maxR / (Math.PI * 3.2);
+                var steps = 180;
+                for (var i = 0; i < steps; i++) {
+                    var t = i / steps;
+                    var theta = t * Math.PI * 3.2;
+                    var r = a + b * theta;
+                    if (r > maxR - 3) break;
+                    var nextT = (i + 1) / steps;
+                    var nextTheta = nextT * Math.PI * 3.2;
+                    var nextR = a + b * nextTheta;
+                    var alpha = 0.4 * Math.pow(1 - t, 0.6);
+                    if (r < 38) alpha *= Math.max(0, (r - 30) / 8);
+                    var lineWidth = Math.max(1.2, 5.5 * (1 - t * 0.75));
+                    ctx.beginPath();
+                    ctx.moveTo(r * Math.cos(theta), r * Math.sin(theta));
+                    ctx.lineTo(nextR * Math.cos(nextTheta), nextR * Math.sin(nextTheta));
+                    ctx.strokeStyle = 'rgba(210, 225, 255, ' + alpha + ')';
+                    ctx.lineWidth = lineWidth;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+            ctx.restore();
+
+            // 3. Outer glow
+            var glow = ctx.createRadialGradient(cx, cy, baseRadius * 0.5, cx, cy, baseRadius * 2);
             glow.addColorStop(0, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.35)');
             glow.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = glow;
             ctx.beginPath();
-            ctx.arc(cx, cy, radius * 2, 0, Math.PI * 2);
+            ctx.arc(cx, cy, baseRadius * 2, 0, Math.PI * 2);
             ctx.fill();
 
-            // Main circle
+            // 4. Secondary eye wall
             ctx.beginPath();
-            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.arc(cx, cy, baseRadius * 1.35, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(140, 160, 200, 0.35)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 5. Bright eye wall
+            ctx.beginPath();
+            ctx.arc(cx, cy, baseRadius * 1.6, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.lineWidth = 4.5;
+            ctx.stroke();
+
+            // 6. Main circle
+            ctx.beginPath();
+            ctx.arc(cx, cy, baseRadius, 0, Math.PI * 2);
             ctx.fillStyle = color;
             ctx.fill();
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Eye wall
+            // 7. Eye (dark center)
             ctx.beginPath();
-            ctx.arc(cx, cy, radius * 0.55, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Eye
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius * 0.28, 0, Math.PI * 2);
+            ctx.arc(cx, cy, baseRadius * 0.4, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(255,255,255,0.85)';
             ctx.fill();
 
-            // Wind barbs
+            // 8. Wind barbs (fixed direction, not rotated)
             var barbCount = Math.min(10, Math.max(4, Math.floor(wind / 3) + 3));
             for (var i = 0; i < barbCount; i++) {
                 var angle = (i / barbCount) * Math.PI * 2;
-                var innerR = radius + 2;
-                var outerR = radius + 10;
+                var innerR = baseRadius + 3;
+                var outerR = baseRadius + 13;
                 var x1 = cx + Math.cos(angle) * innerR;
                 var y1 = cy + Math.sin(angle) * innerR;
                 var x2 = cx + Math.cos(angle) * outerR;
@@ -700,7 +748,6 @@
                 ctx.lineWidth = 2;
                 ctx.lineCap = 'round';
                 ctx.stroke();
-                // Small flag
                 var flagLen = 4;
                 var perpAngle = angle + Math.PI / 2;
                 ctx.beginPath();
@@ -709,88 +756,6 @@
                 ctx.stroke();
             }
 
-            return canvas.toDataURL();
-        }
-
-        function drawVortexDataUrl() {
-            var dpr = window.devicePixelRatio || 1;
-            var size = CONFIG.vortexSize;
-            var canvas = document.createElement('canvas');
-            canvas.width = size * dpr;
-            canvas.height = size * dpr;
-            var ctx = canvas.getContext('2d');
-            ctx.scale(dpr, dpr);
-
-            var cx = size / 2, cy = size / 2;
-            var maxR = size / 2 - 15;
-
-            ctx.clearRect(0, 0, size, size);
-            ctx.save();
-            ctx.translate(cx, cy);
-
-            // Dark background disk
-            var bgGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, maxR);
-            bgGrad.addColorStop(0, 'rgba(15, 25, 45, 0.35)');
-            bgGrad.addColorStop(0.6, 'rgba(25, 35, 55, 0.2)');
-            bgGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = bgGrad;
-            ctx.beginPath();
-            ctx.arc(0, 0, maxR, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 3 spiral arms
-            for (var arm = 0; arm < 3; arm++) {
-                var armOffset = (arm / 3) * Math.PI * 2;
-                ctx.save();
-                ctx.rotate(armOffset);
-
-                var a = 7, b = maxR / (Math.PI * 3.2);
-                var steps = 180;
-                for (var i = 0; i < steps; i++) {
-                    var t = i / steps;
-                    var theta = t * Math.PI * 3.2;
-                    var r = a + b * theta;
-                    if (r > maxR - 3) break;
-
-                    var nextT = (i + 1) / steps;
-                    var nextTheta = nextT * Math.PI * 3.2;
-                    var nextR = a + b * nextTheta;
-
-                    var alpha = 0.45 * Math.pow(1 - t, 0.55);
-                    var lineWidth = Math.max(1.2, 5.5 * (1 - t * 0.75));
-
-                    ctx.beginPath();
-                    ctx.moveTo(r * Math.cos(theta), r * Math.sin(theta));
-                    ctx.lineTo(nextR * Math.cos(nextTheta), nextR * Math.sin(nextTheta));
-                    ctx.strokeStyle = 'rgba(210, 225, 255, ' + alpha + ')';
-                    ctx.lineWidth = lineWidth;
-                    ctx.lineCap = 'round';
-                    ctx.stroke();
-                }
-                ctx.restore();
-            }
-
-            // Eye wall (bright ring)
-            ctx.beginPath();
-            ctx.arc(0, 0, 23, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-            ctx.lineWidth = 4.5;
-            ctx.stroke();
-
-            // Secondary eye wall
-            ctx.beginPath();
-            ctx.arc(0, 0, 19, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(140, 160, 200, 0.3)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Eye (dark center)
-            ctx.beginPath();
-            ctx.arc(0, 0, 15, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(5, 10, 25, 0.45)';
-            ctx.fill();
-
-            ctx.restore();
             return canvas.toDataURL();
         }
 
@@ -819,7 +784,7 @@
         var baseLayers = {};
         var trackLineLayers = [];
         var currentMarker = null;
-        var vortexMarker = null;
+        var spinAngle = 0;
         var isPlaying = false;
         var playInterval = null;
         var playSpeed = CONFIG.playSpeed;
@@ -892,7 +857,6 @@
 
             if (validPoints.length === 0) {
                 if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
-                if (vortexMarker) { map.removeLayer(vortexMarker); vortexMarker = null; }
                 document.getElementById('time-display').textContent = tToBeijingTime(t) + ' (台风尚未生成)';
                 return;
             }
@@ -910,7 +874,8 @@
             }
 
             // Update typhoon marker
-            var markerDataUrl = drawTyphoonMarkerDataUrl(pt.psfc, pt.wind);
+            spinAngle += 0.04;
+            var markerDataUrl = drawTyphoonMarkerDataUrl(pt.psfc, pt.wind, spinAngle);
             var markerIcon = L.divIcon({
                 className: 'typhoon-marker-container',
                 html: '<div class="typhoon-marker-pulse"><img src="' + markerDataUrl + '" width="' + CONFIG.markerSize + '" height="' + CONFIG.markerSize + '" style="pointer-events:none;"></div>',
@@ -937,20 +902,6 @@
                     '风速: ' + pt.wind.toFixed(1) + ' m/s<br>' +
                     '位置: ' + pt.lat.toFixed(2) + '°N, ' + pt.lon.toFixed(2) + '°E'
                 );
-            }
-
-            // Update vortex (persistent, just move)
-            if (!vortexMarker) {
-                var vortexDataUrl = drawVortexDataUrl();
-                var vortexIcon = L.divIcon({
-                    className: 'vortex-container',
-                    html: '<img src="' + vortexDataUrl + '" width="' + CONFIG.vortexSize + '" height="' + CONFIG.vortexSize + '" style="pointer-events:none;">',
-                    iconSize: [CONFIG.vortexSize, CONFIG.vortexSize],
-                    iconAnchor: [CONFIG.vortexSize / 2, CONFIG.vortexSize / 2]
-                });
-                vortexMarker = L.marker([pt.lat, pt.lon], { icon: vortexIcon, interactive: false }).addTo(map);
-            } else {
-                vortexMarker.setLatLng([pt.lat, pt.lon]);
             }
 
             // Update info panel
