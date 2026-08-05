@@ -383,8 +383,15 @@
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="https://unpkg.com/topojson-client@3"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@msgpack/msgpack@2.8.0/dist/msgpack.min.js"></script>
-    <script>
+        <script type="importmap">
+        {
+            "imports": {
+                "@msgpack/msgpack": "https://cdn.jsdelivr.net/npm/@msgpack/msgpack@3.0.0/dist/msgpack.esm.js"
+            }
+        }
+        </script>
+    <script type="module">
+    import * as msgpack from '@msgpack/msgpack';
     (function() {
         'use strict';
 
