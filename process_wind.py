@@ -19,7 +19,7 @@ def ensure_dir(path):
 
 def wind_speed_dir(u, v):
     speed = float(np.sqrt(u ** 2 + v ** 2))
-    direction = float(np.degrees(np.arctan2(v, u)))
+    direction = float(np.degrees(np.arctan2(u, v)))
     direction = (direction + 180) % 360
     return speed, direction
 
