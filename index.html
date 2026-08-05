@@ -770,7 +770,7 @@
         var windLayerActive = true;
         var windFieldCache = {};
         var windCurrentT = -1;
-        var windLoadPromise = null;
+        var windRequestSeq = 0;
         var windCanvasLayer = null;
         var windCanvasCtx = null;
         var windCanvasSize = 0;
@@ -807,22 +807,6 @@
             windCanvas.style.display = 'block';
             document.getElementById('map').appendChild(windCanvas);
             windCanvasCtx = windCanvas.getContext('2d');
-
-            initWindPanelPosition();
-
-            function initWindPanelPosition() {
-                var panel = document.getElementById('wind-panel');
-                var tp = document.getElementById('time-panel');
-                var tpRect = tp.getBoundingClientRect();
-                var pr = panel.getBoundingClientRect();
-                var left = tpRect.left + (tpRect.width - pr.width) / 2;
-                var top = tpRect.top - pr.height - 10;
-                left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, left));
-                top = Math.max(8, Math.min(window.innerHeight - pr.height - 8, top));
-                panel.style.left = left + 'px';
-                panel.style.top = top + 'px';
-                panel.style.transform = 'none';
-            }
 
             window.addEventListener('resize', function() {
                 var panel = document.getElementById('wind-panel');
@@ -1159,10 +1143,6 @@
 
         // ===== Layer Switcher =====
         function switchLayer(layerName) {
-            if (layerName === 'wind') {
-                toggleWindLayer();
-                return;
-            }
             if (currentLayer === layerName) return;
             map.removeLayer(baseLayers[currentLayer]);
             baseLayers[layerName].addTo(map);
@@ -1192,13 +1172,13 @@
         function loadWindField(t) {
             if (!windLayerActive) return;
             windCurrentT = t;
+            var seq = ++windRequestSeq;
             var key = 'wind_field_' + String(t).padStart(4, '0') + '.bin';
             if (windFieldCache[key]) {
                 drawWindFieldOnCanvas(windFieldCache[key]);
                 return;
             }
-            if (windLoadPromise) return;
-            windLoadPromise = fetch('wind_field/' + key)
+            fetch('wind_field/' + key)
                 .then(function(res) {
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return res.arrayBuffer();
@@ -1206,13 +1186,12 @@
                 .then(function(buf) {
                     var data = msgpack.decode(new Uint8Array(buf));
                     windFieldCache[key] = data;
-                    drawWindFieldOnCanvas(data);
+                    if (seq === windRequestSeq && windCurrentT === t) {
+                        drawWindFieldOnCanvas(data);
+                    }
                 })
                 .catch(function(err) {
                     console.error('Failed to load wind field:', err);
-                })
-                .finally(function() {
-                    windLoadPromise = null;
                 });
         }
 
@@ -1469,6 +1448,23 @@
             // Initial render
             document.getElementById('wind-toggle').classList.add('active');
             updateTimeDisplay();
+            initWindPanelPosition();
+        }
+
+        function initWindPanelPosition() {
+            var panel = document.getElementById('wind-panel');
+            if (!panel) return;
+            var tp = document.getElementById('time-panel');
+            var tpRect = tp.getBoundingClientRect();
+            var pr = panel.getBoundingClientRect();
+            if (pr.width === 0 || pr.height === 0) return;
+            var left = tpRect.left + (tpRect.width - pr.width) / 2;
+            var top = tpRect.top - pr.height - 10;
+            left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, left));
+            top = Math.max(8, Math.min(window.innerHeight - pr.height - 8, top));
+            panel.style.left = left + 'px';
+            panel.style.top = top + 'px';
+            panel.style.transform = 'none';
         }
 
         document.addEventListener('DOMContentLoaded', init);
