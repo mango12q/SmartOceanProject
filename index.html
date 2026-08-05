@@ -34,7 +34,6 @@
 
         /* Layer Switcher */
         #layer-switcher {
-            position: absolute; top: 15px; right: 15px; z-index: 1000;
             display: flex; gap: 4px;
             background: rgba(0,0,0,0.6); padding: 5px;
             border-radius: 8px; backdrop-filter: blur(4px);
@@ -47,6 +46,22 @@
         }
         #layer-switcher button:hover,
         #layer-switcher button.active {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        #top-controls {
+            position: absolute; top: 15px; right: 15px; z-index: 1000;
+            display: flex; gap: 8px; align-items: center;
+        }
+        #wind-toggle {
+            background: transparent; color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 5px 11px; border-radius: 6px;
+            cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+        }
+        #wind-toggle:hover,
+        #wind-toggle.active {
             background: rgba(255,255,255,0.2);
             border-color: rgba(255,255,255,0.6);
         }
@@ -173,7 +188,9 @@
             #info-panel { left: 8px; top: 8px; padding: 10px 12px; min-width: auto; font-size: 0.8rem; }
             #time-panel { left: 8px; right: 8px; transform: none; min-width: auto; padding: 10px 12px; }
             #left-panel { width: 85vw; }
-            #layer-switcher { top: auto; bottom: 170px; right: 8px; }
+            #top-controls { top: auto; bottom: 170px; right: 8px; flex-direction: row; }
+            #layer-switcher { position: static; }
+            #wind-toggle { align-self: center; }
             #legend { right: 8px; bottom: 38px; font-size: 0.75rem; padding: 8px 10px; }
             #left-panel-toggle { bottom: 38px; left: 8px; }
             #title { font-size: 1rem; padding: 6px 18px; }
@@ -268,10 +285,13 @@
         <div id="info-category">--</div>
     </div>
 
-    <div id="layer-switcher">
-        <button data-layer="osm" class="active">行政地图</button>
-        <button data-layer="satellite">卫星地图</button>
-        <button data-layer="terrain">地形图</button>
+    <div id="top-controls">
+        <div id="layer-switcher">
+            <button data-layer="osm" class="active">行政地图</button>
+            <button data-layer="satellite">卫星地图</button>
+            <button data-layer="terrain">地形图</button>
+        </div>
+        <button id="wind-toggle" data-layer="wind">风场</button>
     </div>
 
     <div id="title">桦加沙</div>
@@ -306,6 +326,7 @@
         <div><span class="vortex-sample"></span>气流漩涡</div>
         <div><span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #ff9800;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>7级风圈</div>
         <div><span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #f44336;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>10级风圈</div>
+        <div><span style="display:inline-block;width:20px;height:2px;background:#222;vertical-align:middle;margin-right:7px;"></span>风羽（风速m/s）</div>
     </div>
 
     <button id="left-panel-toggle" title="路径数据">☰</button>
@@ -356,8 +377,9 @@
         <button id="news-ticker-close" title="关闭快讯">✕</button>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/topojson-client@3"></script>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/topojson-client@3"></script>
+        <script src="https://cdn.jsdelivr.net/npm/msgpack-lite@0.1.26/dist/msgpack.min.js"></script>
     <script>
     (function() {
         'use strict';
@@ -375,6 +397,7 @@
             defaultT: 79,
             playSpeed: 400,
             markerSize: 200,
+            minWind: 5.0,
         };
 
         // ===== Wind Categories (China Standard) =====
@@ -683,6 +706,13 @@
         var isPlaying = false;
         var playInterval = null;
         var playSpeed = CONFIG.playSpeed;
+        var windLayerActive = false;
+        var windFieldCache = {};
+        var windCurrentT = -1;
+        var windLoadPromise = null;
+        var windCanvasLayer = null;
+        var windCanvasCtx = null;
+        var windCanvasSize = 0;
 
         function initMap() {
             map = L.map('map', {
@@ -704,6 +734,40 @@
 
             baseLayers.osm.addTo(map);
             currentLayer = 'osm';
+
+            var windCanvas = document.createElement('canvas');
+            windCanvas.id = 'wind-canvas';
+            windCanvas.style.position = 'absolute';
+            windCanvas.style.top = '0';
+            windCanvas.style.left = '0';
+            windCanvas.style.pointerEvents = 'none';
+            windCanvas.style.zIndex = '450';
+            windCanvas.style.opacity = '0.85';
+            document.getElementById('map').appendChild(windCanvas);
+            windCanvasCtx = windCanvas.getContext('2d');
+
+            map.on('moveend zoomend resize', resizeWindCanvas);
+            map.on('moveend zoomend', function() {
+                if (windLayerActive) {
+                    var val = parseInt(document.getElementById('time-slider').value);
+                    drawWindFieldOnCanvas(windCurrentT >= 0 ? windFieldCache['wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin'] : null);
+                }
+            });
+
+            function resizeWindCanvas() {
+                var size = map.getSize();
+                var dpr = window.devicePixelRatio || 1;
+                windCanvas.width = size.x * dpr;
+                windCanvas.height = size.y * dpr;
+                windCanvas.style.width = size.x + 'px';
+                windCanvas.style.height = size.y + 'px';
+                windCanvasCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                windCanvasSize = size;
+                if (windLayerActive && windCurrentT >= 0) {
+                    drawWindFieldOnCanvas(windFieldCache['wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin']);
+                }
+            }
+            resizeWindCanvas();
 
             // Fit map to track bounds
             var bounds = L.latLngBounds([]);
@@ -828,6 +892,7 @@
             updateLeftPanelHighlight(t);
             updateNewsTicker(pt);
             updateWindCircles(pt);
+            if (windLayerActive) loadWindField(t);
         }
 
         function getWindRadius(wind, threshold) {
@@ -1005,6 +1070,13 @@
 
         // ===== Layer Switcher =====
         function switchLayer(layerName) {
+            if (layerName === 'wind') {
+                toggleWindLayer();
+                return;
+            }
+            if (windLayerActive) {
+                toggleWindLayer();
+            }
             if (currentLayer === layerName) return;
             map.removeLayer(baseLayers[currentLayer]);
             baseLayers[layerName].addTo(map);
@@ -1012,6 +1084,137 @@
             document.querySelectorAll('#layer-switcher button').forEach(function(btn) {
                 btn.classList.toggle('active', btn.getAttribute('data-layer') === layerName);
             });
+        }
+
+        function toggleWindLayer() {
+            windLayerActive = !windLayerActive;
+            var windBtn = document.getElementById('wind-toggle');
+            windBtn.classList.toggle('active', windLayerActive);
+            var windCanvas = document.getElementById('wind-canvas');
+            windCanvas.style.display = windLayerActive ? 'block' : 'none';
+            if (windLayerActive) {
+                var val = parseInt(document.getElementById('time-slider').value);
+                loadWindField(val);
+            } else {
+                windFieldCache = {};
+                windCurrentT = -1;
+                windCanvasCtx.clearRect(0, 0, windCanvasSize.x, windCanvasSize.y);
+            }
+        }
+
+        function loadWindField(t) {
+            if (!windLayerActive) return;
+            windCurrentT = t;
+            var key = 'wind_field_' + String(t).padStart(4, '0') + '.bin';
+            if (windFieldCache[key]) {
+                drawWindFieldOnCanvas(windFieldCache[key]);
+                return;
+            }
+            if (windLoadPromise) return;
+            windLoadPromise = fetch('wind_field/' + key)
+                .then(function(res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.arrayBuffer();
+                })
+                .then(function(buf) {
+                    var data = msgpack.decode(new Uint8Array(buf));
+                    windFieldCache[key] = data;
+                    drawWindFieldOnCanvas(data);
+                })
+                .catch(function(err) {
+                    console.error('Failed to load wind field:', err);
+                })
+                .finally(function() {
+                    windLoadPromise = null;
+                });
+        }
+
+        function drawWindBarb(ctx, x, y, speed, direction, size) {
+            var cx = x;
+            var cy = y;
+            var poleLen = size * 0.35;
+            var lineLen = size * 0.45;
+            var shaftDir = (90 - direction) * Math.PI / 180;
+            var dx = Math.cos(shaftDir);
+            var dy = -Math.sin(shaftDir);
+            var x0 = cx - dx * poleLen;
+            var y0 = cy - dy * poleLen;
+            var x1 = cx + dx * lineLen;
+            var y1 = cy + dy * lineLen;
+            var perpX = -dy;
+            var perpY = dx;
+
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            ctx.lineTo(x1, y1);
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1.8;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            var remaining = speed;
+            var featherLen = 6;
+            var halfFeather = 4;
+            var spacing = 5;
+
+            ctx.lineWidth = 1.8;
+            while (remaining >= 50) {
+                var fx = x1 - perpX * featherLen;
+                var fy = y1 - perpY * featherLen;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(fx, fy);
+                ctx.stroke();
+                remaining -= 50;
+            }
+            while (remaining >= 10) {
+                var fx = x1 - perpX * featherLen;
+                var fy = y1 - perpY * featherLen;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(fx, fy);
+                ctx.stroke();
+                remaining -= 10;
+            }
+            while (remaining >= 5) {
+                var hx = x1 - perpX * halfFeather;
+                var hy = y1 - perpY * halfFeather;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(hx, hy);
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.lineWidth = 1.8;
+                remaining -= 5;
+            }
+        }
+
+        function drawWindFieldOnCanvas(data) {
+            if (!windCanvasCtx || !windCanvasSize) return;
+            var ctx = windCanvasCtx;
+            var size = windCanvasSize;
+            ctx.clearRect(0, 0, size.x, size.y);
+            if (!data || !data.length) return;
+
+            var pointsDrawn = 0;
+            var mapBounds = map.getBounds();
+            var padding = 0.05;
+
+            for (var i = 0; i < data.length; i++) {
+                var lo = data[i][0];
+                var la = data[i][1];
+                var spd = data[i][2];
+                var dire = data[i][3];
+
+                if (spd < CONFIG.minWind) continue;
+                if (la < mapBounds.getSouth() - padding || la > mapBounds.getNorth() + padding) continue;
+                if (lo < mapBounds.getWest() - padding || lo > mapBounds.getEast() + padding) continue;
+
+                var pt = map.latLngToContainerPoint([la, lo]);
+                if (pt.x < -50 || pt.x > size.x + 50 || pt.y < -50 || pt.y > size.y + 50) continue;
+                drawWindBarb(ctx, pt.x, pt.y, spd, dire, 28);
+                pointsDrawn++;
+            }
         }
 
         // ===== Left Panel =====
@@ -1105,6 +1308,7 @@
                     switchLayer(btn.getAttribute('data-layer'));
                 });
             });
+            document.getElementById('wind-toggle').addEventListener('click', toggleWindLayer);
 
             document.getElementById('left-panel-toggle').addEventListener('click', toggleLeftPanel);
             document.getElementById('left-panel-close').addEventListener('click', toggleLeftPanel);
