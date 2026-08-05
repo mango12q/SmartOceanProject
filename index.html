@@ -963,24 +963,10 @@
             });
 
             if (!currentMarker) {
-                currentMarker = L.marker([pt.lat, pt.lon], { icon: markerIcon, interactive: true, zIndexOffset: 1000 }).addTo(map);
-                currentMarker.bindPopup(
-                    '<b>桦加沙</b><br>' +
-                    '时间: ' + tToBeijingTime(t) + '<br>' +
-                    '气压: ' + pt.psfc.toFixed(1) + ' hPa<br>' +
-                    '风速: ' + pt.wind.toFixed(1) + ' m/s<br>' +
-                    '位置: ' + pt.lat.toFixed(2) + '°N, ' + pt.lon.toFixed(2) + '°E'
-                ).openPopup();
+                currentMarker = L.marker([pt.lat, pt.lon], { icon: markerIcon, interactive: false, zIndexOffset: 1000 }).addTo(map);
             } else {
                 currentMarker.setLatLng([pt.lat, pt.lon]);
                 currentMarker.setIcon(markerIcon);
-                currentMarker.setPopupContent(
-                    '<b>桦加沙</b><br>' +
-                    '时间: ' + tToBeijingTime(t) + '<br>' +
-                    '气压: ' + pt.psfc.toFixed(1) + ' hPa<br>' +
-                    '风速: ' + pt.wind.toFixed(1) + ' m/s<br>' +
-                    '位置: ' + pt.lat.toFixed(2) + '°N, ' + pt.lon.toFixed(2) + '°E'
-                );
             }
 
             // Update info panel
