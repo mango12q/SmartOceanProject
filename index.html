@@ -1163,9 +1163,6 @@
                 toggleWindLayer();
                 return;
             }
-            if (windLayerActive) {
-                toggleWindLayer();
-            }
             if (currentLayer === layerName) return;
             map.removeLayer(baseLayers[currentLayer]);
             baseLayers[layerName].addTo(map);
@@ -1424,6 +1421,7 @@
             windPanel.addEventListener('pointerdown', function(e) {
                 if (e.target === document.getElementById('wind-opacity')) return;
                 if (e.target.closest('#wind-opacity-control')) return;
+                if (e.target.closest('#wind-toggle')) return;
                 panelDragging = true;
                 windPanel.classList.add('dragging');
                 panelStartX = e.clientX;
