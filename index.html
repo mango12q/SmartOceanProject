@@ -123,6 +123,18 @@
         .color-label { display: flex; align-items: center; gap: 3px; font-size: 0.7rem; color: #444; }
         .color-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
+        /* Wind Opacity Control */
+        #wind-opacity-control {
+            position: absolute; bottom: 78px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: rgba(0,0,0,0.6); color: #fff;
+            padding: 5px 14px; border-radius: 8px;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.78rem; backdrop-filter: blur(4px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        #wind-opacity { width: 100px; cursor: pointer; accent-color: #2196f3; }
+        #wind-opacity-value { min-width: 34px; text-align: center; color: #fff; font-weight: bold; }
+
         /* Legend */
         #legend {
             position: absolute; bottom: 38px; right: 15px; z-index: 1000;
@@ -198,6 +210,8 @@
             #legend { right: 8px; bottom: 38px; font-size: 0.75rem; padding: 8px 10px; }
             #left-panel-toggle { bottom: 38px; left: 8px; }
             #title { font-size: 1rem; padding: 6px 18px; }
+            #wind-opacity-control { bottom: 78px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; padding: 4px 10px; }
+            #wind-opacity { width: 80px; }
         }
 
         @media (max-width: 480px) {
@@ -321,6 +335,12 @@
     <div id="color-bar">
         <canvas id="color-bar-canvas" width="200" height="14"></canvas>
         <div id="color-bar-labels"></div>
+    </div>
+
+    <div id="wind-opacity-control" style="display:none;">
+        <span>风场透明度</span>
+        <input type="range" id="wind-opacity" min="10" max="100" value="85" title="风场透明度">
+        <span id="wind-opacity-value">85%</span>
     </div>
 
     <div id="legend">
@@ -717,7 +737,7 @@
         var isPlaying = false;
         var playInterval = null;
         var playSpeed = CONFIG.playSpeed;
-        var windLayerActive = false;
+        var windLayerActive = true;
         var windFieldCache = {};
         var windCurrentT = -1;
         var windLoadPromise = null;
@@ -754,6 +774,7 @@
             windCanvas.style.pointerEvents = 'none';
             windCanvas.style.zIndex = '450';
             windCanvas.style.opacity = '0.85';
+            windCanvas.style.display = 'block';
             document.getElementById('map').appendChild(windCanvas);
             windCanvasCtx = windCanvas.getContext('2d');
 
@@ -1103,6 +1124,7 @@
             windBtn.classList.toggle('active', windLayerActive);
             var windCanvas = document.getElementById('wind-canvas');
             windCanvas.style.display = windLayerActive ? 'block' : 'none';
+            document.getElementById('wind-opacity-control').style.display = windLayerActive ? 'flex' : 'none';
             if (windLayerActive) {
                 var val = parseInt(document.getElementById('time-slider').value);
                 loadWindField(val);
@@ -1330,6 +1352,12 @@
             });
             document.getElementById('news-ticker-close').addEventListener('click', closeNewsTicker);
 
+            document.getElementById('wind-opacity').addEventListener('input', function(e) {
+                var v = parseInt(e.target.value);
+                document.getElementById('wind-opacity-value').textContent = v + '%';
+                document.getElementById('wind-canvas').style.opacity = (v / 100);
+            });
+
             // Keyboard controls
             document.addEventListener('keydown', function(e) {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -1343,6 +1371,8 @@
             });
 
             // Initial render
+            document.getElementById('wind-toggle').classList.add('active');
+            document.getElementById('wind-opacity-control').style.display = 'flex';
             updateTimeDisplay();
         }
 
