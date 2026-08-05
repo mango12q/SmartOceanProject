@@ -1,6 +1,10 @@
 # WRF model binary output (large data files)
 wind_wrfout_d02_*
 
+# Self-hosted map tiles (large, downloaded separately)
+tiles/
+tiles.tar.gz
+
 # Python cache
 __pycache__/
 *.pyc
