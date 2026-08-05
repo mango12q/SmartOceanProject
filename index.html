@@ -745,7 +745,7 @@
             windCanvas.style.top = '0';
             windCanvas.style.left = '0';
             windCanvas.style.pointerEvents = 'none';
-            windCanvas.style.zIndex = '450';
+            windCanvas.style.zIndex = '200';
             windCanvas.style.opacity = '0.85';
             document.getElementById('map').appendChild(windCanvas);
             windCanvasCtx = windCanvas.getContext('2d');
@@ -871,7 +871,7 @@
             });
 
             if (!currentMarker) {
-                currentMarker = L.marker([pt.lat, pt.lon], { icon: markerIcon, interactive: true }).addTo(map);
+                currentMarker = L.marker([pt.lat, pt.lon], { icon: markerIcon, interactive: true, zIndexOffset: 1000 }).addTo(map);
                 currentMarker.bindPopup(
                     '<b>桦加沙</b><br>' +
                     '时间: ' + tToBeijingTime(t) + '<br>' +
