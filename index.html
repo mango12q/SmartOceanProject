@@ -775,6 +775,7 @@
         var windCanvasLayer = null;
         var windCanvasCtx = null;
         var windCanvasSize = 0;
+        var windBarbColor = '#222';
 
         function initMap() {
             map = L.map('map', {
@@ -1180,12 +1181,22 @@
         }
 
         // ===== Layer Switcher =====
+        var WIND_BARB_COLORS = {
+            'osm': '#222',
+            'satellite': '#ffffff',
+            'terrain': '#222'
+        };
         function switchLayer(layerName) {
             if (currentLayer === layerName) return;
             map.removeLayer(baseLayers[currentLayer]);
             baseLayers[layerName].addTo(map);
             currentLayer = layerName;
             updateLegend(layerName);
+            windBarbColor = WIND_BARB_COLORS[layerName] || '#222';
+            if (windLayerActive && windCurrentT >= 0) {
+                var key = 'wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin';
+                if (windFieldCache[key]) drawWindFieldOnCanvas(windFieldCache[key]);
+            }
             document.querySelectorAll('#layer-switcher button').forEach(function(btn) {
                 btn.classList.toggle('active', btn.getAttribute('data-layer') === layerName);
             });
@@ -1247,12 +1258,22 @@
             var y1 = cy + dy * lineLen;
             var perpX = -dy;
             var perpY = dx;
+            var halo = (windBarbColor === '#ffffff') ? 'rgba(0,0,0,0.55)' : '#ffffff';
+
+            // White/dark halo underlay for contrast
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            ctx.lineTo(x1, y1);
+            ctx.strokeStyle = halo;
+            ctx.lineWidth = 4.5;
+            ctx.lineCap = 'round';
+            ctx.stroke();
 
             ctx.beginPath();
             ctx.moveTo(x0, y0);
             ctx.lineTo(x1, y1);
-            ctx.strokeStyle = '#222';
-            ctx.lineWidth = 1.8;
+            ctx.strokeStyle = windBarbColor;
+            ctx.lineWidth = 2;
             ctx.lineCap = 'round';
             ctx.stroke();
 
@@ -1261,13 +1282,21 @@
             var halfFeather = 4;
             var spacing = 5;
 
-            ctx.lineWidth = 1.8;
             while (remaining >= 50) {
                 var fx = x1 - perpX * featherLen;
                 var fy = y1 - perpY * featherLen;
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(fx, fy);
+                ctx.strokeStyle = halo;
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(fx, fy);
+                ctx.strokeStyle = windBarbColor;
+                ctx.lineWidth = 2;
                 ctx.stroke();
                 remaining -= 50;
             }
@@ -1277,6 +1306,15 @@
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(fx, fy);
+                ctx.strokeStyle = halo;
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(fx, fy);
+                ctx.strokeStyle = windBarbColor;
+                ctx.lineWidth = 2;
                 ctx.stroke();
                 remaining -= 10;
             }
@@ -1286,9 +1324,16 @@
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(hx, hy);
-                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = halo;
+                ctx.lineWidth = 3.5;
+                ctx.lineCap = 'round';
                 ctx.stroke();
-                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(hx, hy);
+                ctx.strokeStyle = windBarbColor;
+                ctx.lineWidth = 2;
+                ctx.stroke();
                 remaining -= 5;
             }
         }
