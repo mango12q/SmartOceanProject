@@ -3,6 +3,8 @@
 Serves static files for all other paths (index.html, wind_field, etc)."""
 import os
 import re
+import threading
+import time
 import urllib.request
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
@@ -15,7 +17,11 @@ UPSTREAM = {
 }
 SUB = ["a", "b", "c"]
 TILE_RE = re.compile(r"^/tiles/(osm|satellite|terrain)/(\d+)/(\d+)/(\d+)\.png$")
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+# Compliant UA per OSM tile usage policy
+USER_AGENT = "typhoon-track-map/1.0 (typhoon visualization; contact: mango12q@163.com)"
+REFERER = "http://43.154.210.202:8899/"
+UPSTREAM_SEM = threading.Semaphore(3)  # max concurrent upstream fetches
+FETCH_DELAY = 0.15  # seconds between upstream fetches
 
 
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
@@ -51,12 +57,15 @@ class Handler(SimpleHTTPRequestHandler):
             url = tpl.format(z=z, x=x, y=y)
         else:
             url = tpl.format(s=SUB[(int(x) + int(y) + int(z)) % 3], z=z, x=x, y=y)
-        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-        try:
-            with urllib.request.urlopen(req, timeout=15) as r:
-                return r.read()
-        except Exception:
-            return None
+        headers = {"User-Agent": USER_AGENT, "Referer": REFERER}
+        req = urllib.request.Request(url, headers=headers)
+        with UPSTREAM_SEM:
+            try:
+                time.sleep(FETCH_DELAY)
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    return r.read()
+            except Exception:
+                return None
 
     def _serve_file(self, path, ctype):
         try:
