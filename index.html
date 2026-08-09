@@ -169,6 +169,41 @@
             border: 2px solid rgba(100,150,255,0.5); border-radius: 50%;
             vertical-align: middle; margin-right: 7px;
         }
+        #legend .wind-speed-scale {
+            margin-top: 5px; padding-top: 6px;
+            border-top: 1px solid rgba(0,0,0,0.12);
+            line-height: 1.2;
+        }
+        #legend .wind-speed-title { margin-bottom: 4px; font-weight: 600; }
+        #legend .wind-speed-grid {
+            display: grid; grid-template-columns: repeat(2, minmax(68px, 1fr));
+            gap: 3px 8px;
+        }
+        #legend .wind-speed-item {
+            display: flex; align-items: center; gap: 3px; white-space: nowrap;
+        }
+        #legend .wind-speed-item canvas { width: 42px; height: 22px; flex: 0 0 42px; }
+        #legend .wind-speed-value { font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+        #legend .port-risk-legend {
+            margin-top: 5px; padding-top: 6px;
+            border-top: 1px solid rgba(0,0,0,0.12); line-height: 1.35;
+        }
+        #legend .port-risk-title { margin-bottom: 3px; font-weight: 600; }
+        #legend .port-risk-grid { display: flex; flex-wrap: wrap; gap: 3px 8px; max-width: 175px; }
+        #legend .port-risk-key { display: flex; align-items: center; gap: 3px; white-space: nowrap; font-size: 0.7rem; }
+        #legend .port-risk-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; }
+        .port-name-label {
+            background: rgba(255,255,255,0.94); border: 1px solid rgba(0,0,0,0.2);
+            border-radius: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+            color: #222; font-size: 11px; font-weight: 600; padding: 2px 5px;
+        }
+        .port-name-label::before { display: none; }
+        .port-risk-popup { min-width: 180px; color: #222; line-height: 1.55; }
+        .port-risk-popup strong { font-size: 0.92rem; }
+        .port-risk-level { font-weight: 700; }
+        .port-risk-note { margin-top: 4px; color: #666; font-size: 0.7rem; }
+        .port-risk-summary { margin-top: 5px; }
+        .port-risk-row { display: flex; justify-content: space-between; gap: 12px; }
 
         /* Left Panel */
         #left-panel {
@@ -227,7 +262,13 @@
             #speed-select { font-size: 0.75rem; padding: 4px 6px; }
             #news-ticker { max-width: 92%; min-width: auto; font-size: 0.75rem; padding: 4px 24px 4px 10px; }
             #color-bar { display: none; }
-            #legend { bottom: 6px; }
+            #legend {
+                bottom: 6px; width: 42px; height: 42px; padding: 0;
+                border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                overflow: hidden; font-size: 0; line-height: 1;
+            }
+            #legend > div { display: none; }
+            #legend::before { content: '图例'; color: #333; font-size: 0.72rem; font-weight: 700; }
         }
 
         /* Legend Modal */
@@ -325,8 +366,8 @@
         <button id="wind-toggle" data-layer="wind">风场</button>
         <div id="wind-opacity-control">
             <span>透明度</span>
-            <input type="range" id="wind-opacity" min="10" max="100" value="85" title="风场透明度">
-            <span id="wind-opacity-value">85%</span>
+            <input type="range" id="wind-opacity" min="0" max="100" value="15" title="风场透明度">
+            <span id="wind-opacity-value">15%</span>
         </div>
     </div>
 
@@ -426,24 +467,47 @@
         'use strict';
 
         // ===== Legend Content per Base Layer =====
+        var WIND_SPEED_SCALE_HTML =
+            '<div class="wind-speed-scale">' +
+                '<div class="wind-speed-title">风速比例尺（m/s）</div>' +
+                '<div class="wind-speed-grid">' +
+                    '<div class="wind-speed-item"><canvas width="42" height="22" data-wind-speed="5"></canvas><span class="wind-speed-value">5</span></div>' +
+                    '<div class="wind-speed-item"><canvas width="42" height="22" data-wind-speed="10"></canvas><span class="wind-speed-value">10</span></div>' +
+                    '<div class="wind-speed-item"><canvas width="42" height="22" data-wind-speed="20"></canvas><span class="wind-speed-value">20</span></div>' +
+                    '<div class="wind-speed-item"><canvas width="42" height="22" data-wind-speed="30"></canvas><span class="wind-speed-value">30</span></div>' +
+                '</div>' +
+            '</div>';
+        var PORT_RISK_LEGEND_HTML =
+            '<div class="port-risk-legend">' +
+                '<div class="port-risk-title">港口危险等级</div>' +
+                '<div class="port-risk-grid">' +
+                    '<span class="port-risk-key"><i class="port-risk-dot" style="background:#2e7d32"></i>I 低</span>' +
+                    '<span class="port-risk-key"><i class="port-risk-dot" style="background:#f9a825"></i>II 一般</span>' +
+                    '<span class="port-risk-key"><i class="port-risk-dot" style="background:#ef6c00"></i>III 较高</span>' +
+                    '<span class="port-risk-key"><i class="port-risk-dot" style="background:#d32f2f"></i>IV 高</span>' +
+                    '<span class="port-risk-key"><i class="port-risk-dot" style="background:#7b1fa2"></i>V 极高</span>' +
+                '</div>' +
+            '</div>';
         var LEGEND_ITEMS = {
             'circle7': '<span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #ff9800;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>7级风圈',
             'circle10': '<span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #f44336;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>10级风圈',
-            'barb': '<span style="display:inline-block;width:20px;height:2px;background:#222;vertical-align:middle;margin-right:7px;"></span>风羽（风速m/s）',
+            'barb': WIND_SPEED_SCALE_HTML,
             'coast': '<span class="line-sample" style="background:#555;"></span>国界/海岸线',
             'province': '<span class="dashed-sample"></span>省界',
             'typhoon': '<span class="typhoon-sample"></span>台风中心',
-            'vortex': '<span class="vortex-sample"></span>气流漩涡'
+            'vortex': '<span class="vortex-sample"></span>气流漩涡',
+            'portRisk': PORT_RISK_LEGEND_HTML
         };
         var LEGEND_LAYERS = {
-            'osm': ['coast', 'province', 'typhoon', 'vortex', 'circle7', 'circle10', 'barb'],
-            'satellite': ['typhoon', 'vortex', 'circle7', 'circle10', 'barb'],
-            'terrain': ['typhoon', 'vortex', 'circle7', 'circle10', 'barb']
+            'osm': ['coast', 'province', 'typhoon', 'vortex', 'circle7', 'circle10', 'portRisk', 'barb'],
+            'satellite': ['typhoon', 'vortex', 'circle7', 'circle10', 'portRisk', 'barb'],
+            'terrain': ['typhoon', 'vortex', 'circle7', 'circle10', 'portRisk', 'barb']
         };
         function updateLegend(layerName) {
             var keys = LEGEND_LAYERS[layerName] || LEGEND_LAYERS.osm;
             var html = keys.map(function(k) { return '<div>' + LEGEND_ITEMS[k] + '</div>'; }).join('');
             document.getElementById('legend').innerHTML = html;
+            renderWindSpeedScale();
         }
 
 
@@ -462,6 +526,22 @@
             markerSize: 200,
             minWind: 5.0,
         };
+
+        const PORTS = [
+            { id: 'yantian', name: '盐田港', lat: 22.58, lon: 114.28, direction: 'right' },
+            { id: 'shekou', name: '蛇口港', lat: 22.48, lon: 113.91, direction: 'bottom' },
+            { id: 'chiwan', name: '赤湾港', lat: 22.47, lon: 113.88, direction: 'left' },
+            { id: 'dachanbay', name: '大铲湾港', lat: 22.54, lon: 113.82, direction: 'top' },
+            { id: 'mawan', name: '妈湾港', lat: 22.49, lon: 113.86, direction: 'left' },
+            { id: 'kwai-tsing', name: '香港葵青港', lat: 22.34, lon: 114.12, direction: 'right' }
+        ];
+        const PORT_RISK_LEVELS = [
+            { level: 'I', name: '低', max: 10.8, color: '#2e7d32' },
+            { level: 'II', name: '一般', max: 17.1, color: '#f9a825' },
+            { level: 'III', name: '较高', max: 24.4, color: '#ef6c00' },
+            { level: 'IV', name: '高', max: 32.6, color: '#d32f2f' },
+            { level: 'V', name: '极高', max: Infinity, color: '#7b1fa2' }
+        ];
 
         // ===== Wind Categories (China Standard) =====
         const WIND_CATEGORIES = [
@@ -778,6 +858,126 @@
         var windCanvasCtx = null;
         var windCanvasSize = 0;
         var windBarbColor = '#222';
+        var portMarkers = [];
+        var portGroupMarker = null;
+
+        function getPortRisk(speed) {
+            if (!Number.isFinite(speed)) return { level: '--', name: '暂无数据', color: '#757575', index: -1 };
+            for (var i = 0; i < PORT_RISK_LEVELS.length; i++) {
+                if (speed <= PORT_RISK_LEVELS[i].max) {
+                    return Object.assign({ index: i }, PORT_RISK_LEVELS[i]);
+                }
+            }
+            return Object.assign({ index: PORT_RISK_LEVELS.length - 1 }, PORT_RISK_LEVELS[PORT_RISK_LEVELS.length - 1]);
+        }
+
+        function distanceKm(lat1, lon1, lat2, lon2) {
+            var rad = Math.PI / 180;
+            var dLat = (lat2 - lat1) * rad;
+            var dLon = (lon2 - lon1) * rad;
+            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function getTyphoonPointAt(t) {
+            if (t < typhoonTrack[0].t || t > typhoonTrack[typhoonTrack.length - 1].t) return null;
+            var point = null;
+            for (var i = 0; i < typhoonTrack.length && typhoonTrack[i].t <= t; i++) point = typhoonTrack[i];
+            return point;
+        }
+
+        function findNearestPortWind(port, data) {
+            if (!data || !data.length) return null;
+            var cosLat = Math.cos(port.lat * Math.PI / 180);
+            var best = null;
+            var bestScore = Infinity;
+            for (var i = 0; i < data.length; i++) {
+                var dx = (data[i][0] - port.lon) * cosLat;
+                var dy = data[i][1] - port.lat;
+                var score = dx * dx + dy * dy;
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = data[i];
+                }
+            }
+            var gridDistance = Math.sqrt(bestScore) * 111;
+            if (!best || gridDistance > 80) return null;
+            return { speed: Number(best[2]), direction: Number(best[3]), gridDistance: gridDistance };
+        }
+
+        function portPopupHtml(port, sample, risk, typhoonPoint) {
+            var centerDistance = typhoonPoint ? distanceKm(port.lat, port.lon, typhoonPoint.lat, typhoonPoint.lon) : null;
+            var html = '<div class="port-risk-popup"><strong>' + port.name + '</strong>' +
+                '<div>危险等级：<span class="port-risk-level" style="color:' + risk.color + '">' + risk.level + ' ' + risk.name + '</span></div>';
+            if (sample) {
+                html += '<div>附近风速：' + sample.speed.toFixed(1) + ' m/s</div>' +
+                    '<div>风向：' + sample.direction.toFixed(0) + '°</div>';
+            } else {
+                html += '<div>附近风速：暂无数据</div>';
+            }
+            html += '<div>距台风中心：' + (centerDistance === null ? '暂无' : centerDistance.toFixed(0) + ' km') + '</div>' +
+                '<div class="port-risk-note">基于最近风场网格的参考评估</div></div>';
+            return html;
+        }
+
+        function updatePortVisibility() {
+            if (!portGroupMarker) return;
+            var showDetails = map.getZoom() >= 8;
+            portMarkers.forEach(function(entry) {
+                if (showDetails && !map.hasLayer(entry.marker)) entry.marker.addTo(map);
+                if (!showDetails && map.hasLayer(entry.marker)) map.removeLayer(entry.marker);
+            });
+            if (showDetails && map.hasLayer(portGroupMarker)) map.removeLayer(portGroupMarker);
+            if (!showDetails && !map.hasLayer(portGroupMarker)) portGroupMarker.addTo(map);
+        }
+
+        function initPortMarkers() {
+            PORTS.forEach(function(port) {
+                var marker = L.circleMarker([port.lat, port.lon], {
+                    pane: 'portPane', radius: 7, color: '#fff', weight: 2,
+                    fillColor: '#757575', fillOpacity: 0.95
+                });
+                marker.bindTooltip(port.name + ' · --', {
+                    permanent: true, direction: port.direction, offset: [0, -2], className: 'port-name-label'
+                });
+                marker.bindPopup(portPopupHtml(port, null, getPortRisk(NaN), null));
+                portMarkers.push({ port: port, marker: marker, risk: getPortRisk(NaN) });
+            });
+            portGroupMarker = L.circleMarker([22.49, 114.00], {
+                pane: 'portPane', radius: 10, color: '#fff', weight: 3,
+                fillColor: '#757575', fillOpacity: 0.95
+            });
+            portGroupMarker.bindTooltip('深圳港口群 · --', {
+                permanent: true, direction: 'top', offset: [0, -6], className: 'port-name-label'
+            });
+            portGroupMarker.bindPopup('<div class="port-risk-popup"><strong>深圳附近重要港口</strong><div>危险等级：暂无数据</div></div>');
+            map.on('zoomend', updatePortVisibility);
+            updatePortVisibility();
+        }
+
+        function updatePortRisks(data, t) {
+            var typhoonPoint = getTyphoonPointAt(t);
+            var maxRisk = getPortRisk(NaN);
+            var rows = '';
+            portMarkers.forEach(function(entry) {
+                var sample = findNearestPortWind(entry.port, data);
+                var risk = getPortRisk(sample ? sample.speed : NaN);
+                entry.risk = risk;
+                entry.marker.setStyle({ fillColor: risk.color });
+                entry.marker.setTooltipContent(entry.port.name + ' · ' + risk.level);
+                entry.marker.setPopupContent(portPopupHtml(entry.port, sample, risk, typhoonPoint));
+                if (risk.index > maxRisk.index) maxRisk = risk;
+                rows += '<div class="port-risk-row"><span>' + entry.port.name + '</span><span style="color:' + risk.color + ';font-weight:700">' + risk.level + ' ' + risk.name + '</span></div>';
+            });
+            portGroupMarker.setStyle({ fillColor: maxRisk.color });
+            portGroupMarker.setTooltipContent('深圳港口群 · ' + maxRisk.level);
+            portGroupMarker.setPopupContent('<div class="port-risk-popup"><strong>深圳附近重要港口</strong>' +
+                '<div>综合危险等级：<span class="port-risk-level" style="color:' + maxRisk.color + '">' + maxRisk.level + ' ' + maxRisk.name + '</span></div>' +
+                '<div class="port-risk-summary">' + rows + '</div>' +
+                '<div class="port-risk-note">综合等级取各港口最高值，仅供参考</div></div>');
+        }
 
         function initMap() {
             map = L.map('map', {
@@ -800,16 +1000,22 @@
             baseLayers.osm.addTo(map);
             currentLayer = 'osm';
 
+            var windPane = map.createPane('windPane');
+            windPane.style.zIndex = '350';
+            windPane.style.pointerEvents = 'none';
+
+            var portPane = map.createPane('portPane');
+            portPane.style.zIndex = '550';
+
             var windCanvas = document.createElement('canvas');
             windCanvas.id = 'wind-canvas';
             windCanvas.style.position = 'absolute';
             windCanvas.style.top = '0';
             windCanvas.style.left = '0';
             windCanvas.style.pointerEvents = 'none';
-            windCanvas.style.zIndex = '450';
             windCanvas.style.opacity = '0.85';
             windCanvas.style.display = 'block';
-            document.getElementById('map').appendChild(windCanvas);
+            windPane.appendChild(windCanvas);
             windCanvasCtx = windCanvas.getContext('2d');
 
             window.addEventListener('resize', function() {
@@ -834,6 +1040,7 @@
             function resizeWindCanvas() {
                 var size = map.getSize();
                 var dpr = window.devicePixelRatio || 1;
+                L.DomUtil.setPosition(windCanvas, map.containerPointToLayerPoint([0, 0]));
                 windCanvas.width = size.x * dpr;
                 windCanvas.height = size.y * dpr;
                 windCanvas.style.width = size.x + 'px';
@@ -856,6 +1063,8 @@
             map.on('moveend zoomend', function() {
                 autoFit = false;
             });
+
+            initPortMarkers();
 
             // Load country boundaries
             fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json')
@@ -908,7 +1117,7 @@
                 updateInfoPanel(null);
                 updateNewsTicker(null);
                 updateLeftPanelHighlight(-1);
-                if (windLayerActive) loadWindField(t);
+                loadWindField(t);
                 return;
             }
 
@@ -936,7 +1145,7 @@
                 updateInfoPanel(null);
                 updateNewsTicker(null);
                 updateLeftPanelHighlight(-1);
-                if (windLayerActive) loadWindField(t);
+                loadWindField(t);
                 return;
             }
 
@@ -976,7 +1185,7 @@
             updateLeftPanelHighlight(t);
             updateNewsTicker(pt);
             updateWindCircles(pt);
-            if (windLayerActive) loadWindField(t);
+            loadWindField(t);
         }
 
         function getWindRadius(wind, threshold) {
@@ -1200,19 +1409,17 @@
                 var val = parseInt(document.getElementById('time-slider').value);
                 loadWindField(val);
             } else {
-                windFieldCache = {};
-                windCurrentT = -1;
                 windCanvasCtx.clearRect(0, 0, windCanvasSize.x, windCanvasSize.y);
             }
         }
 
         function loadWindField(t) {
-            if (!windLayerActive) return;
             windCurrentT = t;
             var seq = ++windRequestSeq;
             var key = 'wind_field_' + String(t).padStart(4, '0') + '.bin';
             if (windFieldCache[key]) {
-                drawWindFieldOnCanvas(windFieldCache[key]);
+                updatePortRisks(windFieldCache[key], t);
+                if (windLayerActive) drawWindFieldOnCanvas(windFieldCache[key]);
                 return;
             }
             fetch('wind_field/' + key)
@@ -1224,15 +1431,17 @@
                     var data = msgpack.decode(new Uint8Array(buf));
                     windFieldCache[key] = data;
                     if (seq === windRequestSeq && windCurrentT === t) {
-                        drawWindFieldOnCanvas(data);
+                        updatePortRisks(data, t);
+                        if (windLayerActive) drawWindFieldOnCanvas(data);
                     }
                 })
                 .catch(function(err) {
                     console.error('Failed to load wind field:', err);
+                    if (seq === windRequestSeq && windCurrentT === t) updatePortRisks(null, t);
                 });
         }
 
-        function drawWindBarb(ctx, x, y, speed, direction, size) {
+        function drawWindBarb(ctx, x, y, speed, direction, size, color) {
             var cx = x;
             var cy = y;
             var poleLen = size * 0.35;
@@ -1246,7 +1455,8 @@
             var y1 = cy + dy * lineLen;
             var perpX = -dy;
             var perpY = dx;
-            var halo = (windBarbColor === '#ffffff') ? 'rgba(0,0,0,0.55)' : '#ffffff';
+            var barbColor = color || windBarbColor;
+            var halo = (barbColor === '#ffffff') ? 'rgba(0,0,0,0.55)' : '#ffffff';
 
             // White/dark halo underlay for contrast
             ctx.beginPath();
@@ -1260,7 +1470,7 @@
             ctx.beginPath();
             ctx.moveTo(x0, y0);
             ctx.lineTo(x1, y1);
-            ctx.strokeStyle = windBarbColor;
+            ctx.strokeStyle = barbColor;
             ctx.lineWidth = 2;
             ctx.lineCap = 'round';
             ctx.stroke();
@@ -1269,61 +1479,80 @@
             var featherLen = 6;
             var halfFeather = 4;
             var spacing = 5;
+            var featherOffset = 0;
 
             while (remaining >= 50) {
-                var fx = x1 - perpX * featherLen;
-                var fy = y1 - perpY * featherLen;
+                var bx = x1 - dx * featherOffset;
+                var by = y1 - dy * featherOffset;
+                var fx = bx - perpX * featherLen;
+                var fy = by - perpY * featherLen;
                 ctx.beginPath();
-                ctx.moveTo(x1, y1);
+                ctx.moveTo(bx, by);
                 ctx.lineTo(fx, fy);
                 ctx.strokeStyle = halo;
                 ctx.lineWidth = 4;
                 ctx.lineCap = 'round';
                 ctx.stroke();
                 ctx.beginPath();
-                ctx.moveTo(x1, y1);
+                ctx.moveTo(bx, by);
                 ctx.lineTo(fx, fy);
-                ctx.strokeStyle = windBarbColor;
+                ctx.strokeStyle = barbColor;
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 remaining -= 50;
+                featherOffset += spacing;
             }
             while (remaining >= 10) {
-                var fx = x1 - perpX * featherLen;
-                var fy = y1 - perpY * featherLen;
+                var bx = x1 - dx * featherOffset;
+                var by = y1 - dy * featherOffset;
+                var fx = bx - perpX * featherLen;
+                var fy = by - perpY * featherLen;
                 ctx.beginPath();
-                ctx.moveTo(x1, y1);
+                ctx.moveTo(bx, by);
                 ctx.lineTo(fx, fy);
                 ctx.strokeStyle = halo;
                 ctx.lineWidth = 4;
                 ctx.lineCap = 'round';
                 ctx.stroke();
                 ctx.beginPath();
-                ctx.moveTo(x1, y1);
+                ctx.moveTo(bx, by);
                 ctx.lineTo(fx, fy);
-                ctx.strokeStyle = windBarbColor;
+                ctx.strokeStyle = barbColor;
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 remaining -= 10;
+                featherOffset += spacing;
             }
             while (remaining >= 5) {
-                var hx = x1 - perpX * halfFeather;
-                var hy = y1 - perpY * halfFeather;
+                var bx = x1 - dx * featherOffset;
+                var by = y1 - dy * featherOffset;
+                var hx = bx - perpX * halfFeather;
+                var hy = by - perpY * halfFeather;
                 ctx.beginPath();
-                ctx.moveTo(x1, y1);
+                ctx.moveTo(bx, by);
                 ctx.lineTo(hx, hy);
                 ctx.strokeStyle = halo;
                 ctx.lineWidth = 3.5;
                 ctx.lineCap = 'round';
                 ctx.stroke();
                 ctx.beginPath();
-                ctx.moveTo(x1, y1);
+                ctx.moveTo(bx, by);
                 ctx.lineTo(hx, hy);
-                ctx.strokeStyle = windBarbColor;
+                ctx.strokeStyle = barbColor;
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 remaining -= 5;
+                featherOffset += spacing;
             }
+        }
+
+        function renderWindSpeedScale() {
+            document.querySelectorAll('#legend canvas[data-wind-speed]').forEach(function(canvas) {
+                var ctx = canvas.getContext('2d');
+                var speed = parseInt(canvas.getAttribute('data-wind-speed'));
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawWindBarb(ctx, 20, 11, speed, 90, 30, '#222');
+            });
         }
 
         function drawWindFieldOnCanvas(data) {
@@ -1423,6 +1652,7 @@
         // ===== Initialization =====
         function init() {
             initMap();
+            updateLegend(currentLayer);
             drawColorBar();
             initLeftPanel();
             initLegendCategories();
@@ -1458,7 +1688,7 @@
             document.getElementById('wind-opacity').addEventListener('input', function(e) {
                 var v = parseInt(e.target.value);
                 document.getElementById('wind-opacity-value').textContent = v + '%';
-                document.getElementById('wind-canvas').style.opacity = (v / 100);
+                document.getElementById('wind-canvas').style.opacity = ((100 - v) / 100);
             });
 
             // Draggable wind panel (mouse + touch)
