@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -89,6 +89,75 @@
         #wind-opacity { width: 100px; cursor: pointer; accent-color: #2196f3; }
         #wind-opacity-value { min-width: 34px; text-align: center; color: #fff; font-weight: bold; }
 
+        /* Tool Controls (measure / focus area) */
+        #tool-controls {
+            display: flex; gap: 4px;
+            background: rgba(0,0,0,0.6); padding: 5px;
+            border-radius: 8px; backdrop-filter: blur(4px);
+        }
+        #tool-controls button {
+            background: transparent; color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 5px 11px; border-radius: 6px;
+            cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+        }
+        #tool-controls button:hover,
+        #tool-controls button.active {
+            background: rgba(255,82,82,0.45);
+            border-color: rgba(255,120,120,0.8);
+        }
+
+        /* Measure info bar */
+        #measure-info {
+            position: absolute; bottom: 38px; left: 15px; z-index: 1100;
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.95);
+            padding: 7px 12px; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+            font-size: 0.8rem; color: #333;
+        }
+        #measure-info button {
+            background: #f0f0f0; border: 1px solid #ddd; border-radius: 5px;
+            padding: 3px 9px; cursor: pointer; font-size: 0.76rem; color: #444;
+        }
+        #measure-info button:hover { background: #e0e0e0; }
+        #measure-info button.primary { background: #ff5722; border-color: #ff5722; color: #fff; }
+        #measure-info button.primary:hover { background: #e64a19; }
+        #measure-text { font-variant-numeric: tabular-nums; }
+
+        /* Focus area mini window */
+        #focus-window {
+            position: absolute; right: 15px; bottom: 38px; z-index: 1100;
+            width: 320px; height: 240px; min-width: 200px; min-height: 150px;
+            display: none; flex-direction: column;
+            background: #fff; border-radius: 10px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+            overflow: hidden;
+        }
+        #focus-window-header {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #ff5722; color: #fff;
+            padding: 6px 10px; font-size: 0.8rem; font-weight: 600;
+            cursor: move; user-select: none; flex: 0 0 auto;
+        }
+        #focus-window-close {
+            background: transparent; border: none; color: #fff;
+            font-size: 1rem; cursor: pointer; line-height: 1; padding: 2px 6px;
+        }
+        #focus-window-close:hover { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        #focus-window-map { flex: 1 1 auto; position: relative; }
+        #focus-window-resize {
+            position: absolute; right: 0; bottom: 0; width: 16px; height: 16px;
+            cursor: nwse-resize; z-index: 1200;
+            background: linear-gradient(135deg, transparent 45%, #ff5722 45%, #ff5722 55%, transparent 55%);
+        }
+        .focus-draw-tip {
+            position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: rgba(0,0,0,0.7); color: #fff;
+            padding: 4px 12px; border-radius: 12px; font-size: 0.75rem;
+            pointer-events: none;
+        }
+
         /* Title */
         #title {
             position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
@@ -96,6 +165,28 @@
             padding: 8px 28px; border-radius: 20px; font-size: 1.2rem;
             font-weight: bold; letter-spacing: 0.15em;
             pointer-events: none; backdrop-filter: blur(4px);
+        }
+
+        /* History Chart */
+        #history-chart {
+            position: absolute; top: 70px; right: 15px; z-index: 1000;
+            background: rgba(15, 20, 28, 0.78); color: #fff;
+            padding: 9px 11px 7px; border-radius: 12px;
+            backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.14);
+            width: 352px; pointer-events: auto;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+        }
+        #history-chart-title {
+            font-size: 0.78rem; margin-bottom: 6px;
+            text-align: center; letter-spacing: 0.05em;
+            display: flex; justify-content: center; gap: 16px;
+        }
+        .hc-legend { display: inline-flex; align-items: center; gap: 5px; color: #ccc; }
+        .hc-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        #history-chart-canvas { display: block; width: 330px; height: 96px; margin: 0 auto; }
+        #history-chart-current {
+            font-size: 0.72rem; color: #ddd; text-align: center;
+            margin-top: 4px; white-space: nowrap;
         }
 
         /* Time Panel */
@@ -189,6 +280,7 @@
             border-top: 1px solid rgba(0,0,0,0.12); line-height: 1.35;
         }
         #legend .port-risk-title { margin-bottom: 3px; font-weight: 600; }
+        #legend .port-risk-types { margin-bottom: 3px; color: #666; font-size: 0.68rem; }
         #legend .port-risk-grid { display: flex; flex-wrap: wrap; gap: 3px 8px; max-width: 175px; }
         #legend .port-risk-key { display: flex; align-items: center; gap: 3px; white-space: nowrap; font-size: 0.7rem; }
         #legend .port-risk-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; }
@@ -329,6 +421,12 @@
 
         .typhoon-marker-pulse { animation: pulse 2s ease-in-out infinite; transform-origin: center center; }
 
+        .typhoon-label-icon span {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            color: #fff; font-size: 0.82rem; font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4); white-space: nowrap;
+        }
+
         /* Wind Circles */
         .wind-circle-label {
             background: rgba(0,0,0,0.65);
@@ -358,6 +456,35 @@
             <button data-layer="satellite">卫星地图</button>
             <button data-layer="terrain">地形图</button>
         </div>
+        <div id="tool-controls">
+            <button id="btn-measure" title="点击地图测距，双击结束">测距</button>
+            <button id="btn-focus-rect" title="拖拽绘制矩形关注区域">矩形</button>
+            <button id="btn-focus-poly" title="绘制多边形关注重点区域，双击闭合">多边形</button>
+        </div>
+    </div>
+
+    <div id="measure-info" style="display:none">
+        <span id="measure-text"></span>
+        <button id="measure-clear">清除</button>
+        <button id="measure-done" class="primary">完成</button>
+    </div>
+
+    <div id="focus-window">
+        <div id="focus-window-header">
+            <span>关注区域</span>
+            <button id="focus-window-close" title="关闭">✕</button>
+        </div>
+        <div id="focus-window-map"></div>
+        <div id="focus-window-resize"></div>
+    </div>
+
+    <div id="history-chart">
+        <div id="history-chart-title">
+            <span class="hc-legend"><i class="hc-dot" style="background:#ff6b6b"></i>中心气压</span>
+            <span class="hc-legend"><i class="hc-dot" style="background:#4fc3f7"></i>最大风速</span>
+        </div>
+        <canvas id="history-chart-canvas"></canvas>
+        <div id="history-chart-current">--</div>
     </div>
 
     <div id="title">桦加沙</div>
@@ -401,6 +528,7 @@
         <div><span class="vortex-sample"></span>气流漩涡</div>
         <div><span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #ff9800;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>7级风圈</div>
         <div><span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #f44336;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>10级风圈</div>
+        <div><span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #9c27b0;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>12级风圈</div>
         <div><span style="display:inline-block;width:20px;height:2px;background:#222;vertical-align:middle;margin-right:7px;"></span>风羽（风速m/s）</div>
     </div>
 
@@ -442,6 +570,16 @@
                 <h4>符号说明</h4>
                 <div class="legend-item"><span class="typhoon-sample"></span><span>台风中心（大小/颜色表示强度）</span></div>
                 <div class="legend-item"><span class="vortex-sample"></span><span>气流漩涡（螺旋云带+台风眼）</span></div>
+                <div class="legend-item"><span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #ff9800;border-radius:50%;vertical-align:middle;margin-right:7px;"></span><span>7级风圈（≥17.2 m/s，8级）</span></div>
+                <div class="legend-item"><span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #f44336;border-radius:50%;vertical-align:middle;margin-right:7px;"></span><span>10级风圈（≥24.5 m/s）</span></div>
+                <div class="legend-item"><span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #9c27b0;border-radius:50%;vertical-align:middle;margin-right:7px;"></span><span>12级风圈（≥32.7 m/s，停工停课阈值）</span></div>
+            </div>
+            <div class="legend-section">
+                <h4>气象预警级别（依据最大风速）</h4>
+                <div class="legend-item"><span class="color-dot" style="background:#2196f3;width:10px;height:10px;display:inline-block;border-radius:50%;margin-right:7px;"></span><span>蓝色预警（6-7级风，10.8-17.1 m/s）</span></div>
+                <div class="legend-item"><span class="color-dot" style="background:#ffeb3b;width:10px;height:10px;display:inline-block;border-radius:50%;margin-right:7px;"></span><span>黄色预警（8-9级风，17.2-24.4 m/s）</span></div>
+                <div class="legend-item"><span class="color-dot" style="background:#ff9800;width:10px;height:10px;display:inline-block;border-radius:50%;margin-right:7px;"></span><span>橙色预警（10-11级风，24.5-32.6 m/s）</span></div>
+                <div class="legend-item"><span class="color-dot" style="background:#d32f2f;width:10px;height:10px;display:inline-block;border-radius:50%;margin-right:7px;"></span><span>红色预警（12级以上风，≥32.7 m/s）</span></div>
             </div>
         </div>
         <button id="legend-close">✕</button>
@@ -477,9 +615,10 @@
                     '<div class="wind-speed-item"><canvas width="42" height="22" data-wind-speed="30"></canvas><span class="wind-speed-value">30</span></div>' +
                 '</div>' +
             '</div>';
-        var PORT_RISK_LEGEND_HTML =
+        var TARGET_RISK_LEGEND_HTML =
             '<div class="port-risk-legend">' +
-                '<div class="port-risk-title">港口危险等级</div>' +
+                '<div class="port-risk-title">重点目标危险等级</div>' +
+                '<div class="port-risk-types">实线港口 · 虚线重要设施</div>' +
                 '<div class="port-risk-grid">' +
                     '<span class="port-risk-key"><i class="port-risk-dot" style="background:#2e7d32"></i>I 低</span>' +
                     '<span class="port-risk-key"><i class="port-risk-dot" style="background:#f9a825"></i>II 一般</span>' +
@@ -491,17 +630,18 @@
         var LEGEND_ITEMS = {
             'circle7': '<span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #ff9800;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>7级风圈',
             'circle10': '<span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #f44336;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>10级风圈',
+            'circle12': '<span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #9c27b0;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>12级风圈',
             'barb': WIND_SPEED_SCALE_HTML,
             'coast': '<span class="line-sample" style="background:#555;"></span>国界/海岸线',
             'province': '<span class="dashed-sample"></span>省界',
             'typhoon': '<span class="typhoon-sample"></span>台风中心',
             'vortex': '<span class="vortex-sample"></span>气流漩涡',
-            'portRisk': PORT_RISK_LEGEND_HTML
+            'portRisk': TARGET_RISK_LEGEND_HTML
         };
         var LEGEND_LAYERS = {
-            'osm': ['coast', 'province', 'typhoon', 'vortex', 'circle7', 'circle10', 'portRisk', 'barb'],
-            'satellite': ['typhoon', 'vortex', 'circle7', 'circle10', 'portRisk', 'barb'],
-            'terrain': ['typhoon', 'vortex', 'circle7', 'circle10', 'portRisk', 'barb']
+            'osm': ['coast', 'province', 'typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'portRisk', 'barb'],
+            'satellite': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'portRisk', 'barb'],
+            'terrain': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'portRisk', 'barb']
         };
         function updateLegend(layerName) {
             var keys = LEGEND_LAYERS[layerName] || LEGEND_LAYERS.osm;
@@ -527,21 +667,44 @@
             minWind: 5.0,
         };
 
-        const PORTS = [
-            { id: 'yantian', name: '盐田港', lat: 22.58, lon: 114.28, direction: 'right' },
-            { id: 'shekou', name: '蛇口港', lat: 22.48, lon: 113.91, direction: 'bottom' },
-            { id: 'chiwan', name: '赤湾港', lat: 22.47, lon: 113.88, direction: 'left' },
-            { id: 'dachanbay', name: '大铲湾港', lat: 22.54, lon: 113.82, direction: 'top' },
-            { id: 'mawan', name: '妈湾港', lat: 22.49, lon: 113.86, direction: 'left' },
-            { id: 'kwai-tsing', name: '香港葵青港', lat: 22.34, lon: 114.12, direction: 'right' }
+        const RISK_SITES = [
+            { id: 'yantian', name: '盐田港', type: '港口', lat: 22.58, lon: 114.28, direction: 'right' },
+            { id: 'shekou', name: '蛇口港', type: '港口', lat: 22.48, lon: 113.91, direction: 'bottom' },
+            { id: 'chiwan', name: '赤湾港', type: '港口', lat: 22.47, lon: 113.88, direction: 'left' },
+            { id: 'dachanbay', name: '大铲湾港', type: '港口', lat: 22.54, lon: 113.82, direction: 'top' },
+            { id: 'mawan', name: '妈湾港', type: '港口', lat: 22.49, lon: 113.86, direction: 'left' },
+            { id: 'kwai-tsing', name: '香港葵青港', type: '港口', lat: 22.34, lon: 114.12, direction: 'right' },
+            { id: 'baoan-airport', name: '宝安国际机场', type: '重要设施', lat: 22.64, lon: 113.81, direction: 'top' },
+            { id: 'shenzhen-north', name: '深圳北站', type: '重要设施', lat: 22.61, lon: 114.03, direction: 'top' },
+            { id: 'futian-station', name: '福田站', type: '重要设施', lat: 22.54, lon: 114.05, direction: 'bottom' },
+            { id: 'shenzhen-bay-port', name: '深圳湾口岸', type: '重要设施', lat: 22.50, lon: 113.94, direction: 'left' },
+            { id: 'daya-bay-nuclear', name: '大亚湾核电基地', type: '重要设施', lat: 22.60, lon: 114.54, direction: 'right' },
+            { id: 'dapeng-lng', name: '大鹏LNG接收站', type: '重要设施', lat: 22.58, lon: 114.52, direction: 'bottom' }
         ];
-        const PORT_RISK_LEVELS = [
+        const RISK_LEVELS = [
             { level: 'I', name: '低', max: 10.8, color: '#2e7d32' },
             { level: 'II', name: '一般', max: 17.1, color: '#f9a825' },
             { level: 'III', name: '较高', max: 24.4, color: '#ef6c00' },
             { level: 'IV', name: '高', max: 32.6, color: '#d32f2f' },
             { level: 'V', name: '极高', max: Infinity, color: '#7b1fa2' }
         ];
+
+        // ===== National Warning Levels (China Meteorological Administration) =====
+        const WARNING_LEVELS = [
+            { level: '蓝色预警', max: 17.1, color: '#2196f3' },
+            { level: '黄色预警', max: 24.4, color: '#ffeb3b', text: '#333' },
+            { level: '橙色预警', max: 32.6, color: '#ff9800' },
+            { level: '红色预警', max: Infinity, color: '#d32f2f' }
+        ];
+        function getWarningLevel(speed) {
+            if (!Number.isFinite(speed) || speed < 10.8) return null;
+            for (var i = 0; i < WARNING_LEVELS.length; i++) {
+                if (speed <= WARNING_LEVELS[i].max) {
+                    return WARNING_LEVELS[i];
+                }
+            }
+            return WARNING_LEVELS[WARNING_LEVELS.length - 1];
+        }
 
         // ===== Wind Categories (China Standard) =====
         const WIND_CATEGORIES = [
@@ -841,11 +1004,178 @@
             }).join('');
         }
 
+        function drawHistoryChart(t) {
+            var canvas = document.getElementById('history-chart-canvas');
+            if (!canvas) return;
+
+            // High-DPI (retina) support — fixes blurriness
+            var dpr = window.devicePixelRatio || 1;
+            var cssW = 330, cssH = 96;
+            if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+                canvas.width = Math.round(cssW * dpr);
+                canvas.height = Math.round(cssH * dpr);
+            }
+            var ctx = canvas.getContext('2d');
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            var pad = { l: 30, r: 12, t: 10, b: 15 };
+            var plotW = cssW - pad.l - pad.r, plotH = cssH - pad.t - pad.b;
+
+            var minP = 94000, maxP = 101000;
+            var maxWind = 45;
+
+            function xPos(tt) { return pad.l + ((tt - CONFIG.minT) / (CONFIG.maxT - CONFIG.minT)) * plotW; }
+            function pY(p) { return pad.t + (1 - (p - minP) / (maxP - minP)) * plotH; }
+            function wY(w) { return pad.t + (1 - Math.min(maxWind, w) / maxWind) * plotH; }
+
+            ctx.clearRect(0, 0, cssW, cssH);
+
+            // Horizontal grid lines (subtle)
+            ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+            ctx.lineWidth = 1;
+            for (var g = 0; g <= 3; g++) {
+                var gy = pad.t + (g / 3) * plotH;
+                ctx.beginPath();
+                ctx.moveTo(pad.l, gy);
+                ctx.lineTo(cssW - pad.r, gy);
+                ctx.stroke();
+            }
+
+            // X axis baseline
+            ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+            ctx.beginPath();
+            ctx.moveTo(pad.l, pad.t + plotH);
+            ctx.lineTo(cssW - pad.r, pad.t + plotH);
+            ctx.stroke();
+
+            // Peak wind point (compute once)
+            var peakT = typhoonTrack[0].t, peakW = typhoonTrack[0].wind;
+            for (var k = 0; k < typhoonTrack.length; k++) {
+                if (typhoonTrack[k].wind > peakW) { peakW = typhoonTrack[k].wind; peakT = typhoonTrack[k].t; }
+            }
+
+            // Pressure area fill (red gradient)
+            var pGrad = ctx.createLinearGradient(0, pad.t, 0, pad.t + plotH);
+            pGrad.addColorStop(0, 'rgba(255,107,107,0.35)');
+            pGrad.addColorStop(1, 'rgba(255,107,107,0.02)');
+            ctx.beginPath();
+            ctx.moveTo(xPos(typhoonTrack[0].t), pY(typhoonTrack[0].psfc));
+            for (var i = 0; i < typhoonTrack.length; i++) {
+                ctx.lineTo(xPos(typhoonTrack[i].t), pY(typhoonTrack[i].psfc));
+            }
+            ctx.lineTo(xPos(typhoonTrack[typhoonTrack.length - 1].t), pad.t + plotH);
+            ctx.lineTo(xPos(typhoonTrack[0].t), pad.t + plotH);
+            ctx.closePath();
+            ctx.fillStyle = pGrad;
+            ctx.fill();
+
+            // Pressure line (red)
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            for (var pi = 0; pi < typhoonTrack.length; pi++) {
+                var pxx = xPos(typhoonTrack[pi].t), pyy = pY(typhoonTrack[pi].psfc);
+                if (pi === 0) ctx.moveTo(pxx, pyy); else ctx.lineTo(pxx, pyy);
+            }
+            ctx.stroke();
+
+            // Wind area fill (cyan gradient)
+            var wGrad = ctx.createLinearGradient(0, pad.t, 0, pad.t + plotH);
+            wGrad.addColorStop(0, 'rgba(79,195,247,0.30)');
+            wGrad.addColorStop(1, 'rgba(79,195,247,0.02)');
+            ctx.beginPath();
+            ctx.moveTo(xPos(typhoonTrack[0].t), wY(typhoonTrack[0].wind));
+            for (var wj = 0; wj < typhoonTrack.length; wj++) {
+                ctx.lineTo(xPos(typhoonTrack[wj].t), wY(typhoonTrack[wj].wind));
+            }
+            ctx.lineTo(xPos(typhoonTrack[typhoonTrack.length - 1].t), pad.t + plotH);
+            ctx.lineTo(xPos(typhoonTrack[0].t), pad.t + plotH);
+            ctx.closePath();
+            ctx.fillStyle = wGrad;
+            ctx.fill();
+
+            // Wind line (cyan)
+            ctx.strokeStyle = '#4fc3f7';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (var wi = 0; wi < typhoonTrack.length; wi++) {
+                var wx = xPos(typhoonTrack[wi].t), wy = wY(typhoonTrack[wi].wind);
+                if (wi === 0) ctx.moveTo(wx, wy); else ctx.lineTo(wx, wy);
+            }
+            ctx.stroke();
+
+            // Current time cursor
+            if (t >= CONFIG.minT && t <= CONFIG.maxT) {
+                var cx = xPos(t);
+                ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+                ctx.lineWidth = 1.3;
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(cx, pad.t - 2);
+                ctx.lineTo(cx, pad.t + plotH);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Current value dots
+                var curPt = null;
+                for (var ci = typhoonTrack.length - 1; ci >= 0; ci--) {
+                    if (typhoonTrack[ci].t <= t) { curPt = typhoonTrack[ci]; break; }
+                }
+                if (curPt) {
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.beginPath();
+                    ctx.arc(cx, pY(curPt.psfc), 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#4fc3f7';
+                    ctx.beginPath();
+                    ctx.arc(cx, wY(curPt.wind), 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Peak wind marker (gold ring)
+            var peakX = xPos(peakT), peakY = wY(peakW);
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(peakX, peakY, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffd54f';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.arc(peakX, peakY, 3.5, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Left axis labels (pressure hPa)
+            ctx.fillStyle = '#ff8a80';
+            ctx.font = '8px "Segoe UI", sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText((maxP / 1000).toFixed(0), pad.l - 4, pad.t);
+            ctx.fillText((minP / 1000).toFixed(0), pad.l - 4, pad.t + plotH);
+            // Right axis label (wind m/s)
+            ctx.fillStyle = '#80d8ff';
+            ctx.textAlign = 'left';
+            ctx.fillText(maxWind + 'm/s', cssW - pad.r + 3, pad.t);
+
+            // Peak annotation text
+            ctx.fillStyle = '#ffd54f';
+            ctx.font = '8.5px "Segoe UI", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText('峰值 ' + peakW.toFixed(1) + ' m/s', pad.l + 2, pad.t + plotH + 3);
+
+            var curTxt = t >= CONFIG.minT && t <= CONFIG.maxT ? ('t=' + t + '  ' + tToBeijingTime(t)) : '---';
+            document.getElementById('history-chart-current').textContent = curTxt;
+        }
+
         // ===== Map & State =====
         var map, currentLayer;
         var baseLayers = {};
         var trackLineLayers = [];
         var currentMarker = null;
+        var typhoonLabelMarker = null;
         var spinAngle = 0;
         var isPlaying = false;
         var playInterval = null;
@@ -858,17 +1188,18 @@
         var windCanvasCtx = null;
         var windCanvasSize = 0;
         var windBarbColor = '#222';
-        var portMarkers = [];
-        var portGroupMarker = null;
+        var landMaskFeatures = null;
+        var riskSiteMarkers = [];
+        var riskGroupMarker = null;
 
-        function getPortRisk(speed) {
+        function getSiteRisk(speed) {
             if (!Number.isFinite(speed)) return { level: '--', name: '暂无数据', color: '#757575', index: -1 };
-            for (var i = 0; i < PORT_RISK_LEVELS.length; i++) {
-                if (speed <= PORT_RISK_LEVELS[i].max) {
-                    return Object.assign({ index: i }, PORT_RISK_LEVELS[i]);
+            for (var i = 0; i < RISK_LEVELS.length; i++) {
+                if (speed <= RISK_LEVELS[i].max) {
+                    return Object.assign({ index: i }, RISK_LEVELS[i]);
                 }
             }
-            return Object.assign({ index: PORT_RISK_LEVELS.length - 1 }, PORT_RISK_LEVELS[PORT_RISK_LEVELS.length - 1]);
+            return Object.assign({ index: RISK_LEVELS.length - 1 }, RISK_LEVELS[RISK_LEVELS.length - 1]);
         }
 
         function distanceKm(lat1, lon1, lat2, lon2) {
@@ -888,14 +1219,14 @@
             return point;
         }
 
-        function findNearestPortWind(port, data) {
+        function findNearestSiteWind(site, data) {
             if (!data || !data.length) return null;
-            var cosLat = Math.cos(port.lat * Math.PI / 180);
+            var cosLat = Math.cos(site.lat * Math.PI / 180);
             var best = null;
             var bestScore = Infinity;
             for (var i = 0; i < data.length; i++) {
-                var dx = (data[i][0] - port.lon) * cosLat;
-                var dy = data[i][1] - port.lat;
+                var dx = (data[i][0] - site.lon) * cosLat;
+                var dy = data[i][1] - site.lat;
                 var score = dx * dx + dy * dy;
                 if (score < bestScore) {
                     bestScore = score;
@@ -907,10 +1238,15 @@
             return { speed: Number(best[2]), direction: Number(best[3]), gridDistance: gridDistance };
         }
 
-        function portPopupHtml(port, sample, risk, typhoonPoint) {
-            var centerDistance = typhoonPoint ? distanceKm(port.lat, port.lon, typhoonPoint.lat, typhoonPoint.lon) : null;
-            var html = '<div class="port-risk-popup"><strong>' + port.name + '</strong>' +
+        function sitePopupHtml(site, sample, risk, typhoonPoint) {
+            var centerDistance = typhoonPoint ? distanceKm(site.lat, site.lon, typhoonPoint.lat, typhoonPoint.lon) : null;
+            var warning = sample ? getWarningLevel(sample.speed) : null;
+            var html = '<div class="port-risk-popup"><strong>' + site.name + '</strong>' +
+                '<div>类型：' + site.type + '</div>' +
                 '<div>危险等级：<span class="port-risk-level" style="color:' + risk.color + '">' + risk.level + ' ' + risk.name + '</span></div>';
+            if (warning) {
+                html += '<div>预警级别：<span class="port-risk-level" style="color:' + warning.color + (warning.text ? ';background:' + warning.color + ';color:' + warning.text : '') + '">' + warning.level + '</span></div>';
+            }
             if (sample) {
                 html += '<div>附近风速：' + sample.speed.toFixed(1) + ' m/s</div>' +
                     '<div>风向：' + sample.direction.toFixed(0) + '°</div>';
@@ -922,61 +1258,70 @@
             return html;
         }
 
-        function updatePortVisibility() {
-            if (!portGroupMarker) return;
+        function updateRiskSiteVisibility() {
+            if (!riskGroupMarker) return;
             var showDetails = map.getZoom() >= 8;
-            portMarkers.forEach(function(entry) {
+            riskSiteMarkers.forEach(function(entry) {
                 if (showDetails && !map.hasLayer(entry.marker)) entry.marker.addTo(map);
                 if (!showDetails && map.hasLayer(entry.marker)) map.removeLayer(entry.marker);
             });
-            if (showDetails && map.hasLayer(portGroupMarker)) map.removeLayer(portGroupMarker);
-            if (!showDetails && !map.hasLayer(portGroupMarker)) portGroupMarker.addTo(map);
+            if (showDetails && map.hasLayer(riskGroupMarker)) map.removeLayer(riskGroupMarker);
+            if (!showDetails && !map.hasLayer(riskGroupMarker)) riskGroupMarker.addTo(map);
         }
 
-        function initPortMarkers() {
-            PORTS.forEach(function(port) {
-                var marker = L.circleMarker([port.lat, port.lon], {
+        function initRiskSiteMarkers() {
+            RISK_SITES.forEach(function(site) {
+                var isFacility = site.type === '重要设施';
+                var marker = L.circleMarker([site.lat, site.lon], {
                     pane: 'portPane', radius: 7, color: '#fff', weight: 2,
+                    dashArray: isFacility ? '3,2' : null,
                     fillColor: '#757575', fillOpacity: 0.95
                 });
-                marker.bindTooltip(port.name + ' · --', {
-                    permanent: true, direction: port.direction, offset: [0, -2], className: 'port-name-label'
+                marker.bindTooltip(site.name + ' · --', {
+                    permanent: true, direction: site.direction, offset: [0, -2], className: 'port-name-label'
                 });
-                marker.bindPopup(portPopupHtml(port, null, getPortRisk(NaN), null));
-                portMarkers.push({ port: port, marker: marker, risk: getPortRisk(NaN) });
+                marker.bindPopup(sitePopupHtml(site, null, getSiteRisk(NaN), null));
+                riskSiteMarkers.push({ site: site, marker: marker, risk: getSiteRisk(NaN) });
             });
-            portGroupMarker = L.circleMarker([22.49, 114.00], {
+            riskGroupMarker = L.circleMarker([22.54, 114.04], {
                 pane: 'portPane', radius: 10, color: '#fff', weight: 3,
                 fillColor: '#757575', fillOpacity: 0.95
             });
-            portGroupMarker.bindTooltip('深圳港口群 · --', {
+            riskGroupMarker.bindTooltip('深圳重点目标 · --', {
                 permanent: true, direction: 'top', offset: [0, -6], className: 'port-name-label'
             });
-            portGroupMarker.bindPopup('<div class="port-risk-popup"><strong>深圳附近重要港口</strong><div>危险等级：暂无数据</div></div>');
-            map.on('zoomend', updatePortVisibility);
-            updatePortVisibility();
+            riskGroupMarker.bindPopup('<div class="port-risk-popup"><strong>深圳重点目标</strong><div>危险等级：暂无数据</div></div>');
+            map.on('zoomend', updateRiskSiteVisibility);
+            updateRiskSiteVisibility();
         }
 
-        function updatePortRisks(data, t) {
+        function updateRiskSiteRisks(data, t) {
             var typhoonPoint = getTyphoonPointAt(t);
-            var maxRisk = getPortRisk(NaN);
+            var maxRisk = getSiteRisk(NaN);
+            var maxWarning = null;
             var rows = '';
-            portMarkers.forEach(function(entry) {
-                var sample = findNearestPortWind(entry.port, data);
-                var risk = getPortRisk(sample ? sample.speed : NaN);
+            riskSiteMarkers.forEach(function(entry) {
+                var sample = findNearestSiteWind(entry.site, data);
+                var risk = getSiteRisk(sample ? sample.speed : NaN);
                 entry.risk = risk;
                 entry.marker.setStyle({ fillColor: risk.color });
-                entry.marker.setTooltipContent(entry.port.name + ' · ' + risk.level);
-                entry.marker.setPopupContent(portPopupHtml(entry.port, sample, risk, typhoonPoint));
+                entry.marker.setTooltipContent(entry.site.name + ' · ' + risk.level);
+                entry.marker.setPopupContent(sitePopupHtml(entry.site, sample, risk, typhoonPoint));
                 if (risk.index > maxRisk.index) maxRisk = risk;
-                rows += '<div class="port-risk-row"><span>' + entry.port.name + '</span><span style="color:' + risk.color + ';font-weight:700">' + risk.level + ' ' + risk.name + '</span></div>';
+                var warning = sample ? getWarningLevel(sample.speed) : null;
+                if (warning && !maxWarning) maxWarning = warning;
+                rows += '<div class="port-risk-row"><span>' + entry.site.name + '</span><span style="color:' + risk.color + ';font-weight:700">' + risk.level + ' ' + risk.name + '</span></div>';
             });
-            portGroupMarker.setStyle({ fillColor: maxRisk.color });
-            portGroupMarker.setTooltipContent('深圳港口群 · ' + maxRisk.level);
-            portGroupMarker.setPopupContent('<div class="port-risk-popup"><strong>深圳附近重要港口</strong>' +
+            riskGroupMarker.setStyle({ fillColor: maxRisk.color });
+            riskGroupMarker.setTooltipContent('深圳重点目标 · ' + maxRisk.level);
+            var warningHtml = maxWarning ?
+                '<div>综合预警：<span class="port-risk-level" style="color:' + maxWarning.color + (maxWarning.text ? ';background:' + maxWarning.color + ';color:' + maxWarning.text : '') + '">' + maxWarning.level + '</span></div>' : '';
+            riskGroupMarker.setPopupContent('<div class="port-risk-popup"><strong>深圳重点目标</strong>' +
                 '<div>综合危险等级：<span class="port-risk-level" style="color:' + maxRisk.color + '">' + maxRisk.level + ' ' + maxRisk.name + '</span></div>' +
+                warningHtml +
                 '<div class="port-risk-summary">' + rows + '</div>' +
-                '<div class="port-risk-note">综合等级取各港口最高值，仅供参考</div></div>');
+                '<div class="port-risk-note">综合等级取全部重点目标最高值，仅供参考</div></div>');
+            if (focusMiniMap) syncMiniRisks(data, t);
         }
 
         function initMap() {
@@ -988,13 +1333,13 @@
             });
 
             baseLayers.osm = L.tileLayer('tiles/osm/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap', maxZoom: 18
+                attribution: '&copy; OpenStreetMap', maxZoom: 18, detectRetina: true
             });
             baseLayers.satellite = L.tileLayer('tiles/satellite/{z}/{x}/{y}.png', {
-                attribution: '&copy; Esri', maxZoom: 18
+                attribution: '&copy; Esri', maxZoom: 18, detectRetina: true
             });
             baseLayers.terrain = L.tileLayer('tiles/terrain/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenTopoMap', maxZoom: 18
+                attribution: '&copy; OpenTopoMap', maxZoom: 18, detectRetina: true
             });
 
             baseLayers.osm.addTo(map);
@@ -1064,21 +1409,26 @@
                 autoFit = false;
             });
 
-            initPortMarkers();
+            initRiskSiteMarkers();
 
             // Load country boundaries
-            fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json')
+            fetch('data/countries-50m.json')
                 .then(function(res) { return res.json(); })
                 .then(function(world) {
                     var countries = topojson.feature(world, world.objects.countries);
+                    buildLandMask(countries.features);
                     L.geoJSON(countries, {
                         style: { color: '#555555', weight: 1.5, fillColor: 'transparent', fillOpacity: 0 }
                     }).addTo(map);
+                    if (windLayerActive && windCurrentT >= 0) {
+                        var key = 'wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin';
+                        if (windFieldCache[key]) drawWindFieldOnCanvas(windFieldCache[key]);
+                    }
                 })
                 .catch(function(err) { console.error('Failed to load countries:', err); });
 
             // Load China provinces
-            fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_1_states_provinces.geojson')
+            fetch('data/ne_50m_admin_1_states_provinces.geojson')
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
                     var chinaFeatures = data.features.filter(function(f) {
@@ -1090,6 +1440,30 @@
                     }).addTo(map);
                 })
                 .catch(function(err) { console.error('Failed to load provinces:', err); });
+
+            // Click map to query wind speed/direction at that point
+            map.on('click', function(e) {
+                var lat = e.latlng.lat, lon = e.latlng.lng;
+                var t = parseInt(document.getElementById('time-slider').value);
+                var key = 'wind_field_' + String(t).padStart(4, '0') + '.bin';
+                var data = windFieldCache[key];
+                var html = '<div class="port-risk-popup"><strong>位置风速查询</strong>' +
+                    '<div>位置：' + lat.toFixed(2) + '°N, ' + lon.toFixed(2) + '°E</div>' +
+                    '<div>时间：' + tToBeijingTime(t) + '</div>';
+                var sample = findNearestSiteWind({ lat: lat, lon: lon }, data);
+                if (sample) {
+                    html += '<div>附近风速：<b>' + sample.speed.toFixed(1) + ' m/s</b></div>' +
+                        '<div>风向：' + sample.direction.toFixed(0) + '°</div>' +
+                        '<div class="port-risk-note">距最近网格点约 ' + sample.gridDistance.toFixed(0) + ' km</div>';
+                } else {
+                    html += '<div>附近风速：暂无数据</div>';
+                }
+                html += '</div>';
+                L.popup({ maxWidth: 260 })
+                    .setLatLng(e.latlng)
+                    .setContent(html)
+                    .openOn(map);
+            });
         }
 
         // ===== UI Updates =====
@@ -1097,6 +1471,7 @@
             var val = parseInt(document.getElementById('time-slider').value);
             document.getElementById('time-display').textContent = tToBeijingTime(val);
             updateTyphoonPosition(val);
+            drawHistoryChart(val);
         }
 
         function updateTyphoonPosition(t) {
@@ -1111,12 +1486,14 @@
 
             if (!typhoonBorn) {
                 if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
+                if (typhoonLabelMarker) { map.removeLayer(typhoonLabelMarker); typhoonLabelMarker = null; }
                 windCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
                 windCircleLayers = [];
                 document.getElementById('time-display').textContent = tToBeijingTime(t) + ' (台风尚未生成)';
                 updateInfoPanel(null);
                 updateNewsTicker(null);
                 updateLeftPanelHighlight(-1);
+                if (focusMiniMap) syncMiniTyphoon(t);
                 loadWindField(t);
                 return;
             }
@@ -1139,12 +1516,14 @@
 
             if (typhoonGone) {
                 if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
+                if (typhoonLabelMarker) { map.removeLayer(typhoonLabelMarker); typhoonLabelMarker = null; }
                 windCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
                 windCircleLayers = [];
                 document.getElementById('time-display').textContent = tToBeijingTime(t) + ' (台风已消散)';
                 updateInfoPanel(null);
                 updateNewsTicker(null);
                 updateLeftPanelHighlight(-1);
+                if (focusMiniMap) syncMiniTyphoon(t);
                 loadWindField(t);
                 return;
             }
@@ -1180,11 +1559,27 @@
                 currentMarker.setIcon(markerIcon);
             }
 
+            // Typhoon level label (e.g. 超强台风) next to marker
+            var catLabel = getWindCategory(pt.wind);
+            var labelIcon = L.divIcon({
+                className: 'typhoon-label-icon',
+                html: '<span style="background:' + catLabel.color + ';">' + catLabel.name + '</span>',
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+            });
+            if (!typhoonLabelMarker) {
+                typhoonLabelMarker = L.marker([pt.lat + 0.8, pt.lon], { icon: labelIcon, interactive: false, zIndexOffset: 1002 }).addTo(map);
+            } else {
+                typhoonLabelMarker.setLatLng([pt.lat + 0.8, pt.lon]);
+                typhoonLabelMarker.setIcon(labelIcon);
+            }
+
             // Update info panel
             updateInfoPanel(pt);
             updateLeftPanelHighlight(t);
             updateNewsTicker(pt);
             updateWindCircles(pt);
+            if (focusMiniMap) syncMiniTyphoon(t);
             loadWindField(t);
         }
 
@@ -1192,6 +1587,8 @@
             var radius;
             if (threshold === 17.2) {
                 radius = Math.max(80, Math.min(160, wind * 4.5));
+            } else if (threshold === 32.7) {
+                radius = Math.max(35, Math.min(120, wind * 3.0));
             } else {
                 radius = Math.max(35, Math.min(100, wind * 2.5));
             }
@@ -1208,6 +1605,7 @@
             var lat = pt.lat, lon = pt.lon;
             var r7 = getWindRadius(pt.wind, 17.2);
             var r10 = getWindRadius(pt.wind, 24.4);
+            var r12 = getWindRadius(pt.wind, 32.7);
 
             if (pt.wind >= 17.2) {
                 var circle7 = L.circle([lat, lon], {
@@ -1233,6 +1631,19 @@
                 }).addTo(map);
                 circle10.bindTooltip('10级风圈', { sticky: true, direction: 'top', offset: [0, -10] });
                 windCircleLayers.push(circle10);
+            }
+
+            if (pt.wind >= 32.7) {
+                var circle12 = L.circle([lat, lon], {
+                    radius: r12 * 111000,
+                    color: '#9c27b0',
+                    fillColor: '#9c27b0',
+                    fillOpacity: 0.12,
+                    weight: 2,
+                    dashArray: '2,2'
+                }).addTo(map);
+                circle12.bindTooltip('12级风圈', { sticky: true, direction: 'top', offset: [0, -10] });
+                windCircleLayers.push(circle12);
             }
         }
 
@@ -1394,6 +1805,9 @@
                 var key = 'wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin';
                 if (windFieldCache[key]) drawWindFieldOnCanvas(windFieldCache[key]);
             }
+            if (focusMiniMap && focusMiniLayer) {
+                focusMiniLayer.setUrl('tiles/' + layerName + '/{z}/{x}/{y}.png');
+            }
             document.querySelectorAll('#layer-switcher button').forEach(function(btn) {
                 btn.classList.toggle('active', btn.getAttribute('data-layer') === layerName);
             });
@@ -1410,6 +1824,7 @@
                 loadWindField(val);
             } else {
                 windCanvasCtx.clearRect(0, 0, windCanvasSize.x, windCanvasSize.y);
+                if (focusMiniMap) syncMiniWind(null);
             }
         }
 
@@ -1418,8 +1833,9 @@
             var seq = ++windRequestSeq;
             var key = 'wind_field_' + String(t).padStart(4, '0') + '.bin';
             if (windFieldCache[key]) {
-                updatePortRisks(windFieldCache[key], t);
+                updateRiskSiteRisks(windFieldCache[key], t);
                 if (windLayerActive) drawWindFieldOnCanvas(windFieldCache[key]);
+                syncMiniWind(windFieldCache[key]);
                 return;
             }
             fetch('wind_field/' + key)
@@ -1431,13 +1847,14 @@
                     var data = msgpack.decode(new Uint8Array(buf));
                     windFieldCache[key] = data;
                     if (seq === windRequestSeq && windCurrentT === t) {
-                        updatePortRisks(data, t);
+                        updateRiskSiteRisks(data, t);
                         if (windLayerActive) drawWindFieldOnCanvas(data);
+                        syncMiniWind(data);
                     }
                 })
                 .catch(function(err) {
                     console.error('Failed to load wind field:', err);
-                    if (seq === windRequestSeq && windCurrentT === t) updatePortRisks(null, t);
+                    if (seq === windRequestSeq && windCurrentT === t) updateRiskSiteRisks(null, t);
                 });
         }
 
@@ -1555,6 +1972,67 @@
             });
         }
 
+        function buildLandMask(features) {
+            landMaskFeatures = [];
+            for (var i = 0; i < features.length; i++) {
+                var geom = features[i].geometry;
+                if (!geom) continue;
+                var polys = [];
+                if (geom.type === 'Polygon') polys.push(geom.coordinates);
+                else if (geom.type === 'MultiPolygon') polys = geom.coordinates;
+                else continue;
+                var minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+                for (var p = 0; p < polys.length; p++) {
+                    for (var r = 0; r < polys[p].length; r++) {
+                        var ring = polys[p][r];
+                        for (var k = 0; k < ring.length; k++) {
+                            var c = ring[k];
+                            if (c[0] < minLon) minLon = c[0];
+                            if (c[0] > maxLon) maxLon = c[0];
+                            if (c[1] < minLat) minLat = c[1];
+                            if (c[1] > maxLat) maxLat = c[1];
+                        }
+                    }
+                }
+                if (minLon === Infinity) continue;
+                landMaskFeatures.push({
+                    minLon: minLon, maxLon: maxLon, minLat: minLat, maxLat: maxLat,
+                    polys: polys
+                });
+            }
+        }
+
+        function pointInRing(lon, lat, ring) {
+            var inside = false;
+            for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                var xi = ring[i][0], yi = ring[i][1];
+                var xj = ring[j][0], yj = ring[j][1];
+                if ((yi > lat) !== (yj > lat) &&
+                    lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) {
+                    inside = !inside;
+                }
+            }
+            return inside;
+        }
+
+        function isLandPoint(lon, lat) {
+            if (!landMaskFeatures) return false;
+            for (var i = 0; i < landMaskFeatures.length; i++) {
+                var f = landMaskFeatures[i];
+                if (lon < f.minLon || lon > f.maxLon || lat < f.minLat || lat > f.maxLat) continue;
+                for (var p = 0; p < f.polys.length; p++) {
+                    var poly = f.polys[p];
+                    if (!pointInRing(lon, lat, poly[0])) continue;
+                    var inHole = false;
+                    for (var h = 1; h < poly.length; h++) {
+                        if (pointInRing(lon, lat, poly[h])) { inHole = true; break; }
+                    }
+                    if (!inHole) return true;
+                }
+            }
+            return false;
+        }
+
         function drawWindFieldOnCanvas(data) {
             if (!windCanvasCtx || !windCanvasSize) return;
             var ctx = windCanvasCtx;
@@ -1575,6 +2053,7 @@
                 if (spd < CONFIG.minWind) continue;
                 if (la < mapBounds.getSouth() - padding || la > mapBounds.getNorth() + padding) continue;
                 if (lo < mapBounds.getWest() - padding || lo > mapBounds.getEast() + padding) continue;
+                if (isLandPoint(lo, la)) continue;
 
                 var pt = map.latLngToContainerPoint([la, lo]);
                 if (pt.x < -50 || pt.x > size.x + 50 || pt.y < -50 || pt.y > size.y + 50) continue;
@@ -1649,6 +2128,407 @@
             container.innerHTML = html;
         }
 
+        // ===== Measure Tool =====
+        var measureActive = false;
+        var measurePoints = [];
+        var measureLine = null;
+        var measureMarkers = [];
+        var measureTipEl = null;
+
+        function startMeasure() {
+            if (focusDrawActive) cancelFocusDraw();
+            measureActive = true;
+            measurePoints = [];
+            if (measureLine) { map.removeLayer(measureLine); measureLine = null; }
+            measureMarkers.forEach(function(m) { map.removeLayer(m); });
+            measureMarkers = [];
+            map.doubleClickZoom.disable();
+            map.getContainer().style.cursor = 'crosshair';
+            map.on('click', onMeasureClick);
+            map.on('dblclick', onMeasureDblClick);
+            document.getElementById('btn-measure').classList.add('active');
+            document.getElementById('measure-info').style.display = 'flex';
+            document.getElementById('measure-text').textContent = '点击地图添加测距点，双击结束';
+            showMeasureTip('测距模式：点击添加测距点，双击结束');
+        }
+
+        function stopMeasure(keepResult) {
+            measureActive = false;
+            map.off('click', onMeasureClick);
+            map.off('dblclick', onMeasureDblClick);
+            map.doubleClickZoom.enable();
+            map.getContainer().style.cursor = '';
+            document.getElementById('btn-measure').classList.remove('active');
+            hideMeasureTip();
+            if (!keepResult) {
+                clearMeasure();
+            } else {
+                updateMeasureText();
+            }
+        }
+
+        function clearMeasure() {
+            measurePoints = [];
+            if (measureLine) { map.removeLayer(measureLine); measureLine = null; }
+            measureMarkers.forEach(function(m) { map.removeLayer(m); });
+            measureMarkers = [];
+            document.getElementById('measure-text').textContent = '点击地图添加测距点，双击结束';
+        }
+
+        function onMeasureClick(e) {
+            measurePoints.push(e.latlng);
+            var marker = L.circleMarker(e.latlng, {
+                radius: 4, color: '#fff', weight: 2, fillColor: '#ff5722', fillOpacity: 1
+            }).addTo(map);
+            measureMarkers.push(marker);
+            if (measureLine) map.removeLayer(measureLine);
+            measureLine = L.polyline(measurePoints, {
+                color: '#ff5722', weight: 2, dashArray: '5,4', opacity: 0.9
+            }).addTo(map);
+            updateMeasureText();
+        }
+
+        function onMeasureDblClick(e) {
+            var p = e.latlng;
+            while (measurePoints.length > 1) {
+                var last = measurePoints[measurePoints.length - 1];
+                if (last.distanceTo(p) < 1) {
+                    measurePoints.pop();
+                    var m = measureMarkers.pop();
+                    if (m) map.removeLayer(m);
+                } else break;
+            }
+            if (measureLine) map.removeLayer(measureLine);
+            if (measurePoints.length > 1) {
+                measureLine = L.polyline(measurePoints, {
+                    color: '#ff5722', weight: 2, dashArray: '5,4', opacity: 0.9
+                }).addTo(map);
+            }
+            stopMeasure(true);
+        }
+
+        function updateMeasureText() {
+            var total = 0;
+            var segments = [];
+            for (var i = 1; i < measurePoints.length; i++) {
+                var d = measurePoints[i - 1].distanceTo(measurePoints[i]);
+                total += d;
+                segments.push(formatDistance(d));
+            }
+            var el = document.getElementById('measure-text');
+            if (measurePoints.length < 2) {
+                el.textContent = '点击地图添加测距点，双击结束';
+            } else {
+                el.innerHTML = '分段：' + segments.join(' / ') + '　总计：<b>' + formatDistance(total) + '</b>';
+            }
+        }
+
+        function formatDistance(m) {
+            if (m >= 1000) return (m / 1000).toFixed(2) + ' km';
+            return m.toFixed(0) + ' m';
+        }
+
+        function showMeasureTip(text) {
+            if (!measureTipEl) {
+                measureTipEl = document.createElement('div');
+                measureTipEl.className = 'focus-draw-tip';
+                document.body.appendChild(measureTipEl);
+            }
+            measureTipEl.textContent = text;
+            measureTipEl.style.display = 'block';
+        }
+
+        function hideMeasureTip() {
+            if (measureTipEl) measureTipEl.style.display = 'none';
+        }
+
+        // ===== Focus Area Draw Tool =====
+        var focusDrawActive = false;
+        var focusShape = null;
+        var focusDrawPoints = [];
+        var focusDrawBounds = null;
+        var focusDrawPreview = null;
+        var focusRectStart = null;
+        var focusMainPolygon = null;
+        var focusMainRect = null;
+        var focusWindow = null;
+        var focusMiniMap = null;
+        var focusMiniLayer = null;
+        var focusMiniPolygon = null;
+        var focusMiniWindCanvas = null;
+        var focusMiniWindCtx = null;
+        var focusMiniWindSize = null;
+        var focusMiniPortMarkers = [];
+        var focusMiniTrackLine = null;
+        var focusMiniTyphoonMarker = null;
+
+        function startFocusDraw(shape) {
+            if (measureActive) stopMeasure(true);
+            if (focusDrawActive) cancelFocusDraw();
+            focusDrawActive = true;
+            focusShape = shape === 'rect' ? 'rect' : 'poly';
+            focusDrawPoints = [];
+            focusDrawBounds = null;
+            if (focusMainPolygon) { map.removeLayer(focusMainPolygon); focusMainPolygon = null; }
+            if (focusMainRect) { map.removeLayer(focusMainRect); focusMainRect = null; }
+            closeFocusWindow();
+            map.doubleClickZoom.disable();
+            map.getContainer().style.cursor = 'crosshair';
+            if (focusShape === 'rect') {
+                map.dragging.disable();
+                map.on('mousedown', onFocusRectStart);
+                map.on('mousemove', onFocusRectMove);
+                map.on('mouseup', onFocusRectEnd);
+                document.getElementById('btn-focus-rect').classList.add('active');
+                showMeasureTip('矩形模式：按下鼠标拖拽绘制矩形，松开完成');
+            } else {
+                map.on('click', onFocusDrawClick);
+                map.on('dblclick', onFocusDrawDblClick);
+                document.getElementById('btn-focus-poly').classList.add('active');
+                showMeasureTip('多边形模式：点击添加顶点，双击闭合');
+            }
+        }
+
+        function cancelFocusDraw() {
+            focusDrawActive = false;
+            map.off('click', onFocusDrawClick);
+            map.off('dblclick', onFocusDrawDblClick);
+            map.off('mousedown', onFocusRectStart);
+            map.off('mousemove', onFocusRectMove);
+            map.off('mouseup', onFocusRectEnd);
+            map.doubleClickZoom.enable();
+            map.dragging.enable();
+            map.getContainer().style.cursor = '';
+            document.getElementById('btn-focus-rect').classList.remove('active');
+            document.getElementById('btn-focus-poly').classList.remove('active');
+            if (focusDrawPreview) { map.removeLayer(focusDrawPreview); focusDrawPreview = null; }
+            focusDrawPoints = [];
+            focusDrawBounds = null;
+            focusRectStart = null;
+            hideMeasureTip();
+        }
+
+        function onFocusDrawClick(e) {
+            focusDrawPoints.push(e.latlng);
+            updateFocusPreview();
+        }
+
+        function updateFocusPreview() {
+            if (focusDrawPreview) map.removeLayer(focusDrawPreview);
+            focusDrawPreview = null;
+            if (focusDrawPoints.length === 1) {
+                focusDrawPreview = L.circleMarker(focusDrawPoints[0], {
+                    radius: 5, color: '#fff', weight: 2, fillColor: '#ff5722', fillOpacity: 1
+                }).addTo(map);
+            } else if (focusDrawPoints.length > 1) {
+                focusDrawPreview = L.polygon(focusDrawPoints, {
+                    color: '#ff5722', weight: 2, dashArray: '5,4',
+                    fillColor: '#ff5722', fillOpacity: 0.12
+                }).addTo(map);
+            }
+        }
+
+        function onFocusDrawDblClick(e) {
+            var p = e.latlng;
+            while (focusDrawPoints.length > 2) {
+                var last = focusDrawPoints[focusDrawPoints.length - 1];
+                if (last.distanceTo(p) < 1) focusDrawPoints.pop();
+                else break;
+            }
+            finishFocusDraw();
+        }
+
+        function finishFocusDraw() {
+            focusDrawActive = false;
+            map.off('click', onFocusDrawClick);
+            map.off('dblclick', onFocusDrawDblClick);
+            map.doubleClickZoom.enable();
+            map.getContainer().style.cursor = '';
+            document.getElementById('btn-focus-poly').classList.remove('active');
+            hideMeasureTip();
+            if (focusDrawPreview) { map.removeLayer(focusDrawPreview); focusDrawPreview = null; }
+            if (focusDrawPoints.length < 3) {
+                focusDrawPoints = [];
+                return;
+            }
+            focusMainPolygon = L.polygon(focusDrawPoints, {
+                color: '#ff5722', weight: 2, fillColor: '#ff5722', fillOpacity: 0.12
+            }).addTo(map);
+            focusDrawBounds = L.latLngBounds(focusDrawPoints);
+            createFocusWindow();
+        }
+
+        // --- Rectangle draw ---
+        function onFocusRectStart(e) {
+            if (!focusDrawActive) return;
+            focusRectStart = { latlng: e.latlng, point: e.containerPoint };
+            focusDrawPoints = [];
+            if (focusDrawPreview) { map.removeLayer(focusDrawPreview); focusDrawPreview = null; }
+        }
+
+        function onFocusRectMove(e) {
+            if (!focusDrawActive || !focusRectStart) return;
+            var bounds = L.latLngBounds(focusRectStart.latlng, e.latlng);
+            if (focusDrawPreview) map.removeLayer(focusDrawPreview);
+            focusDrawPreview = L.rectangle(bounds, {
+                color: '#ff5722', weight: 2, dashArray: '5,4',
+                fillColor: '#ff5722', fillOpacity: 0.12
+            }).addTo(map);
+        }
+
+        function onFocusRectEnd(e) {
+            if (!focusDrawActive || !focusRectStart) return;
+            var bounds = L.latLngBounds(focusRectStart.latlng, e.latlng);
+            focusRectStart = null;
+            if (focusDrawPreview) { map.removeLayer(focusDrawPreview); focusDrawPreview = null; }
+            if (!bounds.isValid() || (bounds.getEast() - bounds.getWest()) < 0.0001) return;
+            finishFocusRect(bounds);
+        }
+
+        function finishFocusRect(bounds) {
+            focusDrawActive = false;
+            map.off('mousedown', onFocusRectStart);
+            map.off('mousemove', onFocusRectMove);
+            map.off('mouseup', onFocusRectEnd);
+            map.doubleClickZoom.enable();
+            map.dragging.enable();
+            map.getContainer().style.cursor = '';
+            document.getElementById('btn-focus-rect').classList.remove('active');
+            hideMeasureTip();
+            focusMainRect = L.rectangle(bounds, {
+                color: '#ff5722', weight: 2, fillColor: '#ff5722', fillOpacity: 0.12
+            }).addTo(map);
+            focusDrawBounds = bounds;
+            focusDrawPoints = [
+                bounds.getSouthWest(), bounds.getNorthWest(),
+                bounds.getNorthEast(), bounds.getSouthEast()
+            ];
+            createFocusWindow();
+        }
+
+        // --- Mini window (live monitor) ---
+        function createFocusWindow() {
+            if (!focusWindow) focusWindow = document.getElementById('focus-window');
+            focusWindow.style.display = 'flex';
+            if (!focusMiniMap) initFocusMiniMap();
+            if (focusMiniPolygon) focusMiniMap.removeLayer(focusMiniPolygon);
+            var style = { color: '#ff5722', weight: 2, fillColor: '#ff5722', fillOpacity: 0.15 };
+            if (focusShape === 'rect' && focusDrawBounds) {
+                focusMiniPolygon = L.rectangle(focusDrawBounds, style).addTo(focusMiniMap);
+            } else {
+                focusMiniPolygon = L.polygon(focusDrawPoints, style).addTo(focusMiniMap);
+            }
+            focusMiniMap.invalidateSize();
+            resizeMiniWindCanvas();
+            focusMiniMap.fitBounds(focusDrawBounds || L.latLngBounds(focusDrawPoints));
+            syncMiniTyphoon(parseInt(document.getElementById('time-slider').value));
+            var key = 'wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin';
+            if (windFieldCache[key]) syncMiniWind(windFieldCache[key]);
+        }
+
+        function initFocusMiniMap() {
+            focusMiniMap = L.map('focus-window-map', {
+                zoomControl: false, attributionControl: false, zoomSnap: 0.5
+            });
+            var layerName = currentLayer || 'osm';
+            focusMiniLayer = L.tileLayer('tiles/' + layerName + '/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(focusMiniMap);
+            var pane = focusMiniMap.createPane('miniWindPane');
+            pane.style.zIndex = '350';
+            pane.style.pointerEvents = 'none';
+            focusMiniWindCanvas = document.createElement('canvas');
+            focusMiniWindCanvas.style.position = 'absolute';
+            focusMiniWindCanvas.style.left = '0';
+            focusMiniWindCanvas.style.top = '0';
+            focusMiniWindCanvas.style.pointerEvents = 'none';
+            focusMiniWindCanvas.style.opacity = '0.85';
+            pane.appendChild(focusMiniWindCanvas);
+            focusMiniWindCtx = focusMiniWindCanvas.getContext('2d');
+            RISK_SITES.forEach(function(site) {
+                var isFacility = site.type === '重要设施';
+                var m = L.circleMarker([site.lat, site.lon], {
+                    radius: 5, color: '#fff', weight: 1.5,
+                    dashArray: isFacility ? '3,2' : null,
+                    fillColor: '#757575', fillOpacity: 0.95
+                }).addTo(focusMiniMap);
+                m.bindTooltip(site.name + ' · --', { direction: 'top', offset: [0, -4], className: 'port-name-label' });
+                focusMiniPortMarkers.push({ site: site, marker: m, risk: getSiteRisk(NaN) });
+            });
+            focusMiniTrackLine = L.polyline(typhoonTrack.map(function(p) { return [p.lat, p.lon]; }), {
+                color: '#e94560', weight: 1.5, opacity: 0.6
+            }).addTo(focusMiniMap);
+            focusMiniTyphoonMarker = L.circleMarker([0, 0], {
+                radius: 6, color: '#fff', weight: 2, fillColor: '#e94560', fillOpacity: 1
+            }).addTo(focusMiniMap);
+            focusMiniTyphoonMarker.bindTooltip('', { direction: 'top', offset: [0, -6] });
+        }
+
+        function resizeMiniWindCanvas() {
+            if (!focusMiniMap || !focusMiniWindCanvas) return;
+            var size = focusMiniMap.getSize();
+            var dpr = window.devicePixelRatio || 1;
+            L.DomUtil.setPosition(focusMiniWindCanvas, focusMiniMap.containerPointToLayerPoint([0, 0]));
+            focusMiniWindCanvas.width = size.x * dpr;
+            focusMiniWindCanvas.height = size.y * dpr;
+            focusMiniWindCanvas.style.width = size.x + 'px';
+            focusMiniWindCanvas.style.height = size.y + 'px';
+            focusMiniWindCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            focusMiniWindSize = size;
+        }
+
+        function syncMiniRisks(data, t) {
+            if (!focusMiniMap) return;
+            if (focusWindow && focusWindow.style.display === 'none') return;
+            focusMiniPortMarkers.forEach(function(entry) {
+                var sample = findNearestSiteWind(entry.site, data);
+                var risk = getSiteRisk(sample ? sample.speed : NaN);
+                entry.risk = risk;
+                entry.marker.setStyle({ fillColor: risk.color });
+                entry.marker.setTooltipContent(entry.site.name + ' · ' + risk.level + ' ' + risk.name);
+            });
+        }
+
+        function syncMiniWind(data) {
+            if (!focusMiniMap || !focusMiniWindCtx) return;
+            if (focusWindow && focusWindow.style.display === 'none') return;
+            if (!data || !data.length || !windLayerActive) {
+                if (focusMiniWindSize) focusMiniWindCtx.clearRect(0, 0, focusMiniWindSize.x, focusMiniWindSize.y);
+                return;
+            }
+            resizeMiniWindCanvas();
+            var ctx = focusMiniWindCtx;
+            var size = focusMiniWindSize;
+            ctx.clearRect(0, 0, size.x, size.y);
+            var mapBounds = focusMiniMap.getBounds();
+            var padding = 0.05;
+            for (var i = 0; i < data.length; i++) {
+                var lo = data[i][0], la = data[i][1], spd = data[i][2], dire = data[i][3];
+                if (spd < CONFIG.minWind) continue;
+                if (la < mapBounds.getSouth() - padding || la > mapBounds.getNorth() + padding) continue;
+                if (lo < mapBounds.getWest() - padding || lo > mapBounds.getEast() + padding) continue;
+                if (isLandPoint(lo, la)) continue;
+                var pt = focusMiniMap.latLngToContainerPoint([la, lo]);
+                if (pt.x < -50 || pt.x > size.x + 50 || pt.y < -50 || pt.y > size.y + 50) continue;
+                drawWindBarb(ctx, pt.x, pt.y, spd, dire, 22);
+            }
+        }
+
+        function syncMiniTyphoon(t) {
+            if (!focusMiniMap) return;
+            if (focusWindow && focusWindow.style.display === 'none') return;
+            var pt = getTyphoonPointAt(t);
+            if (!pt) {
+                focusMiniTyphoonMarker.setLatLng([0, 0]);
+                return;
+            }
+            focusMiniTyphoonMarker.setLatLng([pt.lat, pt.lon]);
+            focusMiniTyphoonMarker.setTooltipContent(tToBeijingTime(t) + '<br>风速 ' + pt.wind.toFixed(1) + ' m/s · ' + getWindCategory(pt.wind).name);
+        }
+
+        function closeFocusWindow() {
+            if (!focusWindow) focusWindow = document.getElementById('focus-window');
+            focusWindow.style.display = 'none';
+        }
+
         // ===== Initialization =====
         function init() {
             initMap();
@@ -1684,6 +2564,81 @@
                 if (e.target === document.getElementById('legend-modal')) toggleLegend();
             });
             document.getElementById('news-ticker-close').addEventListener('click', closeNewsTicker);
+
+            // Tool buttons
+            document.getElementById('btn-measure').addEventListener('click', function() {
+                if (measureActive) stopMeasure(true);
+                else startMeasure();
+            });
+            document.getElementById('btn-focus-rect').addEventListener('click', function() {
+                if (focusDrawActive && focusShape === 'rect') cancelFocusDraw();
+                else startFocusDraw('rect');
+            });
+            document.getElementById('btn-focus-poly').addEventListener('click', function() {
+                if (focusDrawActive && focusShape === 'poly') cancelFocusDraw();
+                else startFocusDraw('poly');
+            });
+            document.getElementById('measure-clear').addEventListener('click', clearMeasure);
+            document.getElementById('measure-done').addEventListener('click', function() {
+                stopMeasure(true);
+            });
+            document.getElementById('focus-window-close').addEventListener('click', closeFocusWindow);
+
+            // Focus window drag & resize
+            var focusHeader = document.getElementById('focus-window-header');
+            var focusResize = document.getElementById('focus-window-resize');
+            var fwDrag = null;
+            focusHeader.addEventListener('pointerdown', function(e) {
+                fwDrag = {
+                    startX: e.clientX, startY: e.clientY,
+                    left: focusWindow.offsetLeft, top: focusWindow.offsetTop
+                };
+                focusHeader.setPointerCapture(e.pointerId);
+            });
+            focusHeader.addEventListener('pointermove', function(e) {
+                if (!fwDrag) return;
+                var left = fwDrag.left + (e.clientX - fwDrag.startX);
+                var top = fwDrag.top + (e.clientY - fwDrag.startY);
+                left = Math.max(0, Math.min(window.innerWidth - 80, left));
+                top = Math.max(0, Math.min(window.innerHeight - 60, top));
+                focusWindow.style.left = left + 'px';
+                focusWindow.style.top = top + 'px';
+                focusWindow.style.right = 'auto';
+                focusWindow.style.bottom = 'auto';
+            });
+            focusHeader.addEventListener('pointerup', function() { fwDrag = null; });
+            focusHeader.addEventListener('pointercancel', function() { fwDrag = null; });
+
+            var fwResize = null;
+            focusResize.addEventListener('pointerdown', function(e) {
+                fwResize = {
+                    startX: e.clientX, startY: e.clientY,
+                    w: focusWindow.offsetWidth, h: focusWindow.offsetHeight
+                };
+                focusResize.setPointerCapture(e.pointerId);
+                e.stopPropagation();
+            });
+            focusResize.addEventListener('pointermove', function(e) {
+                if (!fwResize) return;
+                var w = Math.max(200, fwResize.w + (e.clientX - fwResize.startX));
+                var h = Math.max(150, fwResize.h + (e.clientY - fwResize.startY));
+                focusWindow.style.width = w + 'px';
+                focusWindow.style.height = h + 'px';
+                if (focusMiniMap) {
+                    focusMiniMap.invalidateSize();
+                    var key = 'wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin';
+                    if (windFieldCache[key]) syncMiniWind(windFieldCache[key]);
+                }
+            });
+            focusResize.addEventListener('pointerup', function() {
+                if (!fwResize) return;
+                fwResize = null;
+                if (focusMiniMap && focusDrawBounds) {
+                    focusMiniMap.invalidateSize();
+                    focusMiniMap.fitBounds(focusDrawBounds);
+                }
+            });
+            focusResize.addEventListener('pointercancel', function() { fwResize = null; });
 
             document.getElementById('wind-opacity').addEventListener('input', function(e) {
                 var v = parseInt(e.target.value);
@@ -1736,6 +2691,11 @@
             // Keyboard controls
             document.addEventListener('keydown', function(e) {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+                if (e.key === 'Escape') {
+                    if (focusDrawActive) cancelFocusDraw();
+                    else if (measureActive) stopMeasure(true);
+                    return;
+                }
                 switch (e.key) {
                     case 'ArrowLeft': stepBackward(); break;
                     case 'ArrowRight': stepForward(); break;
