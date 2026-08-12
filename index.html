@@ -36,7 +36,7 @@
         }
 
         #top-controls {
-            position: absolute; top: 15px; right: 15px; z-index: 1000;
+            position: absolute; top: 12px; right: 15px; z-index: 1000;
             display: flex; gap: 8px; align-items: center;
         }
 
@@ -93,7 +93,8 @@
             background: #e3f2fd;
             border-color: #1976d2;
         }
-        #tool-controls button::after {
+        #tool-controls button::after,
+        #playback-controls button[data-tip]::after {
             content: attr(data-tip);
             position: absolute; left: calc(100% + 8px); top: 50%;
             transform: translateY(-50%);
@@ -102,7 +103,8 @@
             font-size: 0.76rem; white-space: nowrap; pointer-events: none;
             opacity: 0; transition: opacity 0.15s; z-index: 1300;
         }
-        #tool-controls button:hover::after { opacity: 1; }
+        #tool-controls button:hover::after,
+        #playback-controls button[data-tip]:hover::after { opacity: 1; }
         #focus-menu-wrap { position: relative; }
         #focus-menu {
             position: absolute; top: 0; left: calc(100% + 4px); right: auto;
@@ -174,19 +176,7 @@
         }
 
         /* Zoom buttons */
-        #zoom-controls {
-            position: absolute; right: 232px; bottom: 38px; z-index: 1200;
-            display: flex; flex-direction: row; gap: 4px;
-        }
-        #zoom-controls button {
-            width: 34px; height: 34px; border-radius: 6px;
-            background: rgba(255,255,255,0.94); color: #333;
-            border: 1px solid rgba(21,101,192,0.25);
-            font-size: 1.1rem; cursor: pointer; line-height: 1;
-            box-shadow: 0 2px 8px rgba(21,101,192,0.12);
-            transition: background 0.2s;
-        }
-        #zoom-controls button:hover { background: #e3f2fd; border-color: #1976d2; }
+        #btn-zoom-in, #btn-zoom-out { font-size: 1.15rem; }
 
         /* Clean fullscreen mode */
         #btn-clean-exit {
@@ -203,7 +193,6 @@
         body.clean-mode #time-panel,
         body.clean-mode #legend,
         body.clean-mode #left-panel-toggle,
-        body.clean-mode #zoom-controls,
         body.clean-mode #measure-info,
         body.clean-mode #news-ticker,
         body.clean-mode #title,
@@ -214,7 +203,7 @@
 
         /* Title */
         #title {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
             z-index: 1000; background: rgba(255,255,255,0.94); color: #222;
             padding: 8px 28px; border-radius: 20px; font-size: 1.2rem;
             font-weight: bold; letter-spacing: 0.15em;
@@ -231,14 +220,14 @@
         /* Typhoon eye coordinates (bottom-left) */
         #eye-coord {
             position: absolute; left: 15px; bottom: 82px; z-index: 1000;
-            background: rgba(255,255,255,0.94); color: #222;
-            padding: 6px 12px; border-radius: 8px;
+            color: #222;
             font-size: 0.86rem; font-weight: 700; letter-spacing: 0.04em;
-            box-shadow: 0 2px 8px rgba(21,101,192,0.14);
-            border: 1px solid rgba(21,101,192,0.25);
-            backdrop-filter: blur(6px); pointer-events: none;
-            white-space: nowrap;
+            pointer-events: none; white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9), 0 -1px 2px rgba(255,255,255,0.9),
+                         1px 0 2px rgba(255,255,255,0.9), -1px 0 2px rgba(255,255,255,0.9);
         }
+        .leaflet-bottom.leaflet-left { display: flex; align-items: flex-end; }
+        #eye-coord.in-scale-row { position: static; margin: 0 0 5px 8px; }
 
         /* Typhoon Switcher */
         #typhoon-switcher {
@@ -500,12 +489,12 @@
         @media (max-width: 768px) {
             #time-panel { left: 8px; right: 8px; transform: none; min-width: auto; padding: 10px 12px; }
             #left-panel { width: 85vw; }
-            #top-controls { top: 8px; bottom: auto; right: 8px; flex-direction: row; }
+            #top-controls { top: 5px; bottom: auto; right: 8px; flex-direction: row; }
             #layer-switcher { position: static; }
             #legend { right: 8px; bottom: 38px; font-size: 0.75rem; padding: 8px 10px; }
             #left-panel-toggle { bottom: 38px; left: 8px; }
             #title { font-size: 1rem; padding: 6px 18px; }
-            #eye-coord { left: 8px; bottom: 76px; font-size: 0.78rem; padding: 5px 10px; }
+            #eye-coord.in-scale-row { font-size: 0.78rem; }
             #wind-opacity { width: 80px; }
         }
 
@@ -602,7 +591,7 @@
 <body>
     <div id="map"></div>
 
-    <div id="eye-coord">风眼 --</div>
+    <div id="eye-coord">--</div>
 
     <div id="top-controls">
         <div id="layer-switcher">
@@ -623,6 +612,13 @@
             </div>
             <button id="btn-clean" title="清屏全屏模式" data-tip="清屏全屏">⛶</button>
             <button id="btn-lock" title="锁定台风风眼，视图跟随台风" data-tip="锁定风眼">🎯</button>
+            <button id="btn-watch" title="显示/隐藏24、48小时警戒线" data-tip="警戒线" class="active">⚠</button>
+            <button id="btn-fit" title="复位到台风全路径视野" data-tip="复位视图">⌂</button>
+            <button id="btn-shot" title="截图导出当前画面为PNG" data-tip="截图导出">📸</button>
+            <button id="btn-compare" title="原场/订正场风场对比" data-tip="原场/订正场">🔄</button>
+            <button id="btn-multi" title="多台风路径对比" data-tip="双台风对比">🆚</button>
+            <button id="btn-zoom-in" title="放大" data-tip="放大">＋</button>
+            <button id="btn-zoom-out" title="缩小" data-tip="缩小">－</button>
         </div>
 
     <button id="btn-clean-exit">退出全屏</button>
@@ -640,11 +636,6 @@
         </div>
         <div id="focus-window-map"></div>
         <div id="focus-window-resize"></div>
-    </div>
-
-    <div id="zoom-controls">
-        <button id="btn-zoom-in" title="放大">＋</button>
-        <button id="btn-zoom-out" title="缩小">－</button>
     </div>
 
         <div id="history-chart">
@@ -681,6 +672,7 @@
                 <button id="btn-play" title="播放/暂停">▶️</button>
                 <button id="btn-next" title="前进一帧">⏩</button>
                 <button id="btn-end" title="跳到终点">⏭</button>
+                <button id="btn-loop" title="循环播放开关" data-tip="循环播放">🔁</button>
                 <select id="speed-select" title="播放速度">
                     <option value="800">0.5x</option>
                     <option value="400">1x</option>
@@ -777,6 +769,7 @@
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="https://unpkg.com/topojson-client@3"></script>
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
         <script type="importmap">
         {
             "imports": {
@@ -881,7 +874,8 @@
 
         function windFieldKey(t) {
             var d = currentTyphoonData() || {};
-            return (d.windDir || '') + 'wind_field_' + String(t).padStart(4, '0') + '.bin';
+            var dir = (windCorrected && d.windDirCorrected) ? d.windDirCorrected : (d.windDir || '');
+            return dir + 'wind_field_' + String(t).padStart(4, '0') + '.bin';
         }
 
         function windFieldUrl(t) {
@@ -1601,6 +1595,13 @@
                 imperial: false,
                 maxWidth: 160
             }).addTo(map);
+            // 把经纬度挪进左下角比例尺同一行
+            var scaleRow = document.querySelector('.leaflet-bottom.leaflet-left');
+            var eyeEl = document.getElementById('eye-coord');
+            if (scaleRow && eyeEl) {
+                scaleRow.appendChild(eyeEl);
+                eyeEl.classList.add('in-scale-row');
+            }
 
             baseLayers.osm = L.tileLayer('tiles/osm/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap', maxZoom: 18, detectRetina: true
@@ -1676,13 +1677,13 @@
             // 24h / 48h 警戒线：官方固定地理折线（静态，不随台风移动）
             // 48h：蓝色虚线，34N/132E -> 15N/132E -> 0N/105E
             // 24h：黄色实线，34N/127E -> 22N/127E -> 15N/110E
-            var watchLine48 = L.polyline([[34, 132], [15, 132], [0, 105]], {
+            watchLine48 = L.polyline([[34, 132], [15, 132], [0, 105]], {
                 color: '#1e88e5', weight: 2.5, opacity: 0.95, dashArray: '8,8',
                 interactive: false
             }).addTo(map);
             watchLine48.bindTooltip('48小时警戒线', { sticky: true, direction: 'top', offset: [0, -10] });
 
-            var watchLine24 = L.polyline([[34, 127], [22, 127], [15, 110]], {
+            watchLine24 = L.polyline([[34, 127], [22, 127], [15, 110]], {
                 color: '#fbc02d', weight: 2.5, opacity: 0.95,
                 interactive: false
             }).addTo(map);
@@ -1942,6 +1943,11 @@
         }
 
         var watchCircleLayers = [];
+        var watchLine24 = null;
+        var watchLine48 = null;
+        var windCorrected = false;
+        var compareMode = false;
+        var compareLayers = [];
 
         function getTyphoonSpeed(pt) {
             var idx = -1;
@@ -1970,7 +1976,7 @@
         function updateInfoPanel(pt) {
             var eye = document.getElementById('eye-coord');
             if (eye) {
-                eye.textContent = pt ? ('风眼 ' + pt.lat.toFixed(2) + '°N  ' + pt.lon.toFixed(2) + '°E') : '风眼 --';
+                eye.textContent = pt ? (pt.lat.toFixed(2) + '°N  ' + pt.lon.toFixed(2) + '°E') : '--';
             }
             if (!document.getElementById('info-time')) return;
             if (!pt) {
@@ -3120,6 +3126,10 @@
             }
             updateTyphoonBrand();
             updateHistoryList();
+            windCorrected = false;
+            var cmpBtn = document.getElementById('btn-compare');
+            if (cmpBtn) cmpBtn.classList.remove('active');
+            if (compareMode) updateCompareLayers();
 
             var bounds = L.latLngBounds([]);
             typhoonTrack.forEach(function(p) { bounds.extend([p.lat, p.lon]); });
@@ -3127,6 +3137,24 @@
 
             document.getElementById('history-menu').classList.remove('open');
             updateTimeDisplay();
+        }
+
+        function updateCompareLayers() {
+            compareLayers.forEach(function(layer) { map.removeLayer(layer); });
+            compareLayers = [];
+            if (!compareMode) return;
+            var names = Object.keys(TYPHOON_DATA);
+            names.forEach(function(name) {
+                if (name === currentTyphoonName) return;
+                var d = TYPHOON_DATA[name];
+                var track = d.track || [];
+                if (!track.length) return;
+                var layer = L.polyline(track.map(function(p) { return [p.lat, p.lon]; }), {
+                    color: '#9e9e9e', weight: 2, dashArray: '6,6', opacity: 0.85,
+                    interactive: false
+                }).addTo(map);
+                compareLayers.push(layer);
+            });
         }
 
         // ===== Initialization =====
@@ -3257,6 +3285,49 @@
                     }
                     if (idx >= 0) map.setView([typhoonTrack[idx].lat, typhoonTrack[idx].lon], map.getZoom(), { animate: true });
                 }
+            });
+            document.getElementById('btn-watch').addEventListener('click', function() {
+                var show = !this.classList.contains('active');
+                this.classList.toggle('active', show);
+                if (watchLine24) { if (show) map.addLayer(watchLine24); else map.removeLayer(watchLine24); }
+                if (watchLine48) { if (show) map.addLayer(watchLine48); else map.removeLayer(watchLine48); }
+            });
+            document.getElementById('btn-fit').addEventListener('click', function() {
+                var b = L.latLngBounds([]);
+                typhoonTrack.forEach(function(p) { b.extend([p.lat, p.lon]); });
+                map.fitBounds(b, { padding: [40, 40] });
+            });
+            document.getElementById('btn-compare').addEventListener('click', function() {
+                windCorrected = !windCorrected;
+                this.classList.toggle('active', windCorrected);
+                if (windLayerActive && windCurrentT >= 0) loadWindField(windCurrentT);
+            });
+            document.getElementById('btn-multi').addEventListener('click', function() {
+                compareMode = !compareMode;
+                this.classList.toggle('active', compareMode);
+                updateCompareLayers();
+            });
+            document.getElementById('btn-loop').addEventListener('click', function() {
+                loopPlayback = !loopPlayback;
+                this.classList.toggle('active', loopPlayback);
+            });
+            document.getElementById('btn-shot').addEventListener('click', function() {
+                if (!window.html2canvas) {
+                    alert('截图组件未加载，请检查网络后重试');
+                    return;
+                }
+                html2canvas(document.getElementById('map'), {
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                }).then(function(canvas) {
+                    var a = document.createElement('a');
+                    var ts = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
+                    a.download = '台风_' + currentTyphoonName + '_' + ts + '.png';
+                    a.href = canvas.toDataURL('image/png');
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }).catch(function(err) { console.error('screenshot failed:', err); });
             });
             map.on('dragstart', function() {
                 if (typhoonLock) {

@@ -1,0 +1,36 @@
+{
+  "defaults": {
+    "ocean_hgt_max": 0.0,
+    "land_hgt_max": 0.0,
+    "tail_from_t": null,
+    "tail_box": null,
+    "interpolate_gaps": true,
+    "max_jump_deg": 2.0,
+    "subsample": 5,
+    "min_wind": 5.0,
+    "wind_dir": ""
+  },
+  "typhoons": {
+    "桦加沙": {
+      "name": "桦加沙",
+      "wrf_file": "/home/haike/test_web/wind_wrfout_d02_2025-09-15_000000",
+      "start": "2025-09-15T00:00:00Z",
+      "slider_min_t": 61,
+      "slider_max_t": 263,
+      "default_t": 135,
+      "wind_dir": "",
+      "track": {
+        "source": "file",
+        "file": "data/huajiasha.track.json",
+        "track_from_t": 125,
+        "track_to_t": 249
+      },
+      "ticks": [
+        { "t": 135, "label": "生成", "major": true },
+        { "t": 163, "label": "巅峰", "major": true },
+        { "t": 225, "label": "登陆", "major": true },
+        { "t": 249, "label": "消散", "major": true }
+      ]
+    }
+  }
+}
