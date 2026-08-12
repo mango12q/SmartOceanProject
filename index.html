@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>桦加沙 - 台风路径可视化</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cdefs%3E%3ClinearGradient%20id='b'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%2342a5f5'/%3E%3Cstop%20offset='1'%20stop-color='%230d47a1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle%20cx='32'%20cy='32'%20r='31'%20fill='url(%23b)'/%3E%3Cg%20fill='none'%20stroke='%23fff'%20stroke-width='4'%20stroke-linecap='round'%3E%3Cpath%20d='M32%2032C38%2027%2046%2031%2045%2039C44%2047%2033%2051%2026%2045C19%2039%2019%2027%2028%2022'/%3E%3Cpath%20d='M32%2032C26%2037%2018%2033%2019%2025C20%2017%2031%2013%2038%2019C45%2025%2045%2037%2036%2042'/%3E%3C/g%3E%3C/svg%3E" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -11,43 +12,27 @@
         #map { width: 100vw; height: 100vh; }
 
         /* Info Panel */
-        #info-panel {
-            position: absolute; top: 15px; left: 15px; z-index: 1000;
-            background: rgba(0,0,0,0.75); color: #fff;
-            padding: 15px 18px; border-radius: 10px;
-            font-size: 0.88rem; line-height: 1.7;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.12);
-            min-width: 210px; pointer-events: none;
-        }
-        #info-panel h2 {
-            font-size: 1.25rem; margin-bottom: 8px;
-            color: #ff6b6b; letter-spacing: 0.05em;
-        }
-        #info-panel .info-row { display: flex; justify-content: space-between; }
-        #info-panel .info-label { color: #bbb; }
-        #info-panel .info-value { font-weight: bold; }
-        #info-category {
-            display: inline-block; padding: 2px 10px; border-radius: 4px;
-            font-size: 0.8rem; font-weight: bold; margin-top: 4px;
-        }
-
         /* Layer Switcher */
         #layer-switcher {
             display: flex; gap: 4px;
-            background: rgba(0,0,0,0.6); padding: 5px;
-            border-radius: 8px; backdrop-filter: blur(4px);
+            background: rgba(255,255,255,0.94); padding: 5px;
+            border-radius: 8px; backdrop-filter: blur(6px);
+            border: 1px solid rgba(21,101,192,0.22);
+            box-shadow: 0 2px 10px rgba(21,101,192,0.12);
         }
         #layer-switcher button {
-            background: transparent; color: #fff;
-            border: 1px solid rgba(255,255,255,0.3);
+            background: transparent; color: #333;
+            border: 1px solid rgba(21,101,192,0.25);
             padding: 5px 11px; border-radius: 6px;
             cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
         }
         #layer-switcher button:hover,
         #layer-switcher button.active {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.6);
+            background: #e3f2fd;
+            border-color: #1976d2;
+        }
+        #layer-switcher button.active {
+            background: #1976d2; color: #fff;
         }
 
         #top-controls {
@@ -55,21 +40,10 @@
             display: flex; gap: 8px; align-items: center;
         }
 
-        /* Wind Panel (draggable, above time panel) */
-        #wind-panel {
-            position: absolute; left: 50%; top: 0; z-index: 1001;
-            transform: translateX(-50%);
-            display: flex; align-items: center; gap: 8px;
-            background: rgba(0,0,0,0.6); color: #fff;
-            padding: 6px 10px; border-radius: 10px;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            cursor: grab; user-select: none; touch-action: none;
-        }
-        #wind-panel.dragging { cursor: grabbing; }
+        /* Wind controls (inside time panel) */
         #wind-toggle {
-            background: transparent; color: #fff;
-            border: 1px solid rgba(255,255,255,0.3);
+            background: #f0f0f0; color: #333;
+            border: 1px solid #ddd;
             padding: 5px 11px; border-radius: 6px;
             cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
         }
@@ -82,30 +56,70 @@
             border-color: rgba(33,150,243,0.9);
             color: #fff;
         }
+        #playback-row {
+            display: flex; align-items: center; justify-content: space-between;
+            width: 100%; gap: 12px;
+        }
+        #playback-row > #playback-controls { margin: 0 auto; }
+        #wind-row {
+            display: flex; justify-content: center; align-items: center;
+            gap: 10px; width: 100%;
+        }
         #wind-opacity-control {
             display: flex; align-items: center; gap: 8px;
             font-size: 0.78rem;
         }
         #wind-opacity { width: 100px; cursor: pointer; accent-color: #2196f3; }
-        #wind-opacity-value { min-width: 34px; text-align: center; color: #fff; font-weight: bold; }
+        #wind-opacity-value { min-width: 34px; text-align: center; color: #333; font-weight: bold; }
 
         /* Tool Controls (measure / focus area) */
         #tool-controls {
-            display: flex; gap: 4px;
-            background: rgba(0,0,0,0.6); padding: 5px;
-            border-radius: 8px; backdrop-filter: blur(4px);
+            position: absolute; left: 15px; bottom: 130px; z-index: 1200;
+            display: flex; flex-direction: column; gap: 4px;
+            background: rgba(255,255,255,0.94); padding: 5px;
+            border-radius: 8px; backdrop-filter: blur(6px);
+            border: 1px solid rgba(21,101,192,0.22);
+            box-shadow: 0 2px 10px rgba(21,101,192,0.12);
         }
         #tool-controls button {
-            background: transparent; color: #fff;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 5px 11px; border-radius: 6px;
-            cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+            position: relative;
+            background: transparent; color: #333;
+            border: 1px solid rgba(21,101,192,0.25);
+            padding: 7px 10px; border-radius: 6px;
+            cursor: pointer; font-size: 1rem; line-height: 1; transition: all 0.2s;
         }
         #tool-controls button:hover,
         #tool-controls button.active {
-            background: rgba(255,82,82,0.45);
-            border-color: rgba(255,120,120,0.8);
+            background: #e3f2fd;
+            border-color: #1976d2;
         }
+        #tool-controls button::after {
+            content: attr(data-tip);
+            position: absolute; left: calc(100% + 8px); top: 50%;
+            transform: translateY(-50%);
+            background: #0d47a1; color: #fff;
+            padding: 4px 9px; border-radius: 6px;
+            font-size: 0.76rem; white-space: nowrap; pointer-events: none;
+            opacity: 0; transition: opacity 0.15s; z-index: 1300;
+        }
+        #tool-controls button:hover::after { opacity: 1; }
+        #focus-menu-wrap { position: relative; }
+        #focus-menu {
+            position: absolute; top: 0; left: calc(100% + 4px); right: auto;
+            display: none; flex-direction: column; gap: 4px;
+            background: rgba(255,255,255,0.97); padding: 5px;
+            border-radius: 8px; backdrop-filter: blur(4px);
+            border: 1px solid rgba(21,101,192,0.22);
+            box-shadow: 0 4px 14px rgba(21,101,192,0.14);
+            z-index: 1200; min-width: 96px;
+        }
+        #focus-menu.open { display: flex; }
+        #focus-menu button {
+            background: transparent; color: #333; border: 1px solid rgba(21,101,192,0.25);
+            padding: 5px 11px; border-radius: 6px; cursor: pointer;
+            font-size: 0.82rem; transition: all 0.2s; text-align: left;
+        }
+        #focus-menu button:hover { background: #e3f2fd; border-color: #1976d2; }
 
         /* Measure info bar */
         #measure-info {
@@ -121,13 +135,13 @@
             padding: 3px 9px; cursor: pointer; font-size: 0.76rem; color: #444;
         }
         #measure-info button:hover { background: #e0e0e0; }
-        #measure-info button.primary { background: #ff5722; border-color: #ff5722; color: #fff; }
-        #measure-info button.primary:hover { background: #e64a19; }
+        #measure-info button.primary { background: #1976d2; border-color: #1976d2; color: #fff; }
+        #measure-info button.primary:hover { background: #1565c0; }
         #measure-text { font-variant-numeric: tabular-nums; }
 
         /* Focus area mini window */
         #focus-window {
-            position: absolute; right: 15px; bottom: 38px; z-index: 1100;
+            position: absolute; left: 65px; bottom: 90px; z-index: 1100;
             width: 320px; height: 240px; min-width: 200px; min-height: 150px;
             display: none; flex-direction: column;
             background: #fff; border-radius: 10px;
@@ -136,7 +150,7 @@
         }
         #focus-window-header {
             display: flex; align-items: center; justify-content: space-between;
-            background: #ff5722; color: #fff;
+            background: #1976d2; color: #fff;
             padding: 6px 10px; font-size: 0.8rem; font-weight: 600;
             cursor: move; user-select: none; flex: 0 0 auto;
         }
@@ -149,59 +163,173 @@
         #focus-window-resize {
             position: absolute; right: 0; bottom: 0; width: 16px; height: 16px;
             cursor: nwse-resize; z-index: 1200;
-            background: linear-gradient(135deg, transparent 45%, #ff5722 45%, #ff5722 55%, transparent 55%);
+            background: linear-gradient(135deg, transparent 45%, #1976d2 45%, #1976d2 55%, transparent 55%);
         }
         .focus-draw-tip {
             position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: rgba(0,0,0,0.7); color: #fff;
+            z-index: 1000; background: rgba(255,255,255,0.94); color: #222;
             padding: 4px 12px; border-radius: 12px; font-size: 0.75rem;
-            pointer-events: none;
+            pointer-events: none; border: 1px solid rgba(21,101,192,0.3);
+            box-shadow: 0 2px 8px rgba(21,101,192,0.14);
         }
+
+        /* Zoom buttons */
+        #zoom-controls {
+            position: absolute; right: 232px; bottom: 38px; z-index: 1200;
+            display: flex; flex-direction: row; gap: 4px;
+        }
+        #zoom-controls button {
+            width: 34px; height: 34px; border-radius: 6px;
+            background: rgba(255,255,255,0.94); color: #333;
+            border: 1px solid rgba(21,101,192,0.25);
+            font-size: 1.1rem; cursor: pointer; line-height: 1;
+            box-shadow: 0 2px 8px rgba(21,101,192,0.12);
+            transition: background 0.2s;
+        }
+        #zoom-controls button:hover { background: #e3f2fd; border-color: #1976d2; }
+
+        /* Clean fullscreen mode */
+        #btn-clean-exit {
+            display: none; position: absolute; top: 15px; right: 15px; z-index: 2000;
+            background: rgba(255,255,255,0.95); color: #333; border: 1px solid rgba(21,101,192,0.35);
+            padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 0.82rem;
+            box-shadow: 0 2px 8px rgba(21,101,192,0.15);
+        }
+        #btn-clean-exit:hover { background: #e3f2fd; }
+        body.clean-mode #btn-clean-exit { display: block; }
+        body.clean-mode #top-controls,
+        body.clean-mode #tool-controls,
+        body.clean-mode #history-chart,
+        body.clean-mode #time-panel,
+        body.clean-mode #legend,
+        body.clean-mode #left-panel-toggle,
+        body.clean-mode #zoom-controls,
+        body.clean-mode #measure-info,
+        body.clean-mode #news-ticker,
+        body.clean-mode #title,
+        body.clean-mode #typhoon-switcher,
+        body.clean-mode #eye-coord,
+        body.clean-mode #focus-window,
+        body.clean-mode .leaflet-control-scale { display: none !important; }
 
         /* Title */
         #title {
             position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: rgba(0,0,0,0.6); color: #fff;
+            z-index: 1000; background: rgba(255,255,255,0.94); color: #222;
             padding: 8px 28px; border-radius: 20px; font-size: 1.2rem;
             font-weight: bold; letter-spacing: 0.15em;
-            pointer-events: none; backdrop-filter: blur(4px);
+            pointer-events: auto; cursor: pointer;
+            backdrop-filter: blur(6px); border: 1px solid rgba(21,101,192,0.3);
+            box-shadow: 0 2px 10px rgba(21,101,192,0.15);
+            transition: background 0.2s;
         }
+        #title:hover { background: #fff; }
+        #title::after {
+            content: ' ▾'; font-size: 0.8em; color: #333;
+        }
+
+        /* Typhoon eye coordinates (bottom-left) */
+        #eye-coord {
+            position: absolute; left: 15px; bottom: 82px; z-index: 1000;
+            background: rgba(255,255,255,0.94); color: #222;
+            padding: 6px 12px; border-radius: 8px;
+            font-size: 0.86rem; font-weight: 700; letter-spacing: 0.04em;
+            box-shadow: 0 2px 8px rgba(21,101,192,0.14);
+            border: 1px solid rgba(21,101,192,0.25);
+            backdrop-filter: blur(6px); pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Typhoon Switcher */
+        #typhoon-switcher {
+            position: absolute; top: 62px; left: 50%; transform: translateX(-50%);
+            z-index: 1001;
+        }
+        #history-menu {
+            position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%);
+            display: none; min-width: 240px;
+            background: rgba(255,255,255,0.97); color: #1a2b3c;
+            border-radius: 10px; padding: 8px 10px;
+            box-shadow: 0 6px 20px rgba(21,101,192,0.16);
+            backdrop-filter: blur(8px); border: 1px solid rgba(21,101,192,0.22);
+        }
+        #history-menu.open { display: block; }
+        .history-head {
+            font-size: 0.76rem; color: #333; padding: 2px 4px 6px;
+            border-bottom: 1px solid rgba(21,101,192,0.15); margin-bottom: 6px;
+            letter-spacing: 0.08em;
+        }
+        .history-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 8px; border-radius: 7px; cursor: pointer;
+            font-size: 0.86rem; transition: background 0.15s;
+        }
+        .history-item:hover { background: #e3f2fd; }
+        .history-item.active { background: #bbdefb; }
+        .history-item.active .history-name { color: #222; }
+        .history-name { font-weight: 600; }
+        .history-period { font-size: 0.72rem; color: #5c6f82; }
+        .history-now {
+            margin-left: auto; font-size: 0.68rem; color: #333;
+            border: 1px solid #333; border-radius: 10px; padding: 1px 7px;
+        }
+        .history-note { font-size: 0.72rem; color: #5c6f82; padding: 6px 4px 2px; }
 
         /* History Chart */
         #history-chart {
-            position: absolute; top: 70px; right: 15px; z-index: 1000;
-            background: rgba(15, 20, 28, 0.78); color: #fff;
-            padding: 9px 11px 7px; border-radius: 12px;
-            backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.14);
-            width: 352px; pointer-events: auto;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+            position: absolute; top: 90px; right: 15px; z-index: 1000;
+            background: rgba(255,255,255,0.95); color: #333;
+            padding: 9px 10px 7px; border-radius: 12px;
+            backdrop-filter: blur(8px); border: 1px solid rgba(21,101,192,0.22);
+            width: 300px; max-width: calc(100vw - 30px); pointer-events: auto;
+            box-shadow: 0 4px 16px rgba(21,101,192,0.15);
         }
         #history-chart-title {
-            font-size: 0.78rem; margin-bottom: 6px;
-            text-align: center; letter-spacing: 0.05em;
-            display: flex; justify-content: center; gap: 16px;
+            font-size: 0.78rem; margin-bottom: 4px;
+            letter-spacing: 0.05em;
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
         }
-        .hc-legend { display: inline-flex; align-items: center; gap: 5px; color: #ccc; }
+        .hc-title {
+            font-size: 0.88rem; font-weight: 700; color: #333;
+            letter-spacing: 0.08em; white-space: nowrap;
+        }
+        #history-chart-legend {
+            display: flex; justify-content: center; gap: 16px;
+            margin-bottom: 6px; font-size: 0.7rem;
+        }
+        #history-chart-toggle {
+            position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.14); color: #fff; border: none;
+            width: 18px; height: 18px; border-radius: 4px;
+            cursor: pointer; font-size: 0.9rem; line-height: 1; padding: 0;
+        }
+        #history-chart-toggle:hover { background: rgba(255,255,255,0.3); }
+        #history-chart.collapsed { padding: 6px 11px 5px; }
+        #history-chart.collapsed #history-chart-legend,
+        #history-chart.collapsed #history-chart-canvas,
+        #history-chart.collapsed #history-chart-current { display: none; }
+        .hc-legend { display: inline-flex; align-items: center; gap: 5px; color: #546e7a; }
         .hc-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        #history-chart-canvas { display: block; width: 330px; height: 96px; margin: 0 auto; }
+        #history-chart-canvas { display: block; width: 280px; height: 108px; margin: 0 auto; }
         #history-chart-current {
-            font-size: 0.72rem; color: #ddd; text-align: center;
+            font-size: 0.72rem; color: #666; text-align: center;
             margin-top: 4px; white-space: nowrap;
         }
 
         /* Time Panel */
         #time-panel {
-            position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: 38px; left: 50%; transform: translateX(-50%);
             z-index: 1000; background: rgba(255,255,255,0.95);
             padding: 12px 20px; border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             display: flex; flex-direction: column; align-items: center;
-            gap: 8px; min-width: 400px; max-width: 95vw;
+            gap: 8px; min-width: 520px; max-width: 95vw;
         }
         #time-display { font-size: 1rem; font-weight: bold; color: #333; }
         #time-slider { width: 100%; cursor: pointer; }
         #time-ticks { display: flex; justify-content: space-between; width: 100%; padding: 0 4px; }
-        .time-tick { position: relative; flex: 1; text-align: center; font-size: 0.7rem; color: #666; }
+        .time-tick { position: relative; flex: 1; text-align: center; font-size: 0.7rem; color: #666; white-space: nowrap; }
         .time-tick::before { content: ''; position: absolute; top: -10px; left: 50%; width: 1px; height: 6px; background: #ccc; }
         .time-tick.major::before { height: 9px; background: #999; }
         .time-tick.major { font-weight: bold; color: #333; }
@@ -222,10 +350,8 @@
 
         /* Color Bar */
         #color-bar {
-            position: absolute; bottom: 38px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: rgba(255,255,255,0.92);
-            padding: 7px 14px; border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+            position: static; background: transparent; box-shadow: none;
+            padding: 8px 0 0; border-top: 1px solid rgba(0,0,0,0.08);
             display: flex; align-items: center; gap: 10px;
         }
         #color-bar canvas { height: 14px; border-radius: 3px; display: block; }
@@ -240,6 +366,7 @@
             border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.12);
             font-size: 0.82rem; color: #333; line-height: 1.9;
             cursor: pointer; transition: background 0.2s;
+            max-height: 46vh; overflow-y: auto;
         }
         #legend:hover { background: rgba(255,255,255,0.98); }
         #legend .line-sample {
@@ -249,6 +376,18 @@
         #legend .dashed-sample {
             display: inline-block; width: 28px; height: 0;
             border-top: 2px dashed #999; vertical-align: middle; margin-right: 7px;
+        }
+        .legend-wind-grid {
+            display: grid; grid-template-columns: 1fr;
+            gap: 2px 8px; line-height: 1.5;
+        }
+        .legend-wind-item {
+            display: flex; align-items: center; gap: 4px;
+            font-size: 0.7rem; white-space: nowrap;
+        }
+        .legend-wind-item i {
+            width: 9px; height: 9px; border-radius: 3px;
+            display: inline-block; flex: 0 0 9px;
         }
         #legend .typhoon-sample {
             display: inline-block; width: 11px; height: 11px;
@@ -312,6 +451,29 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         #left-panel-header h3 { font-size: 1.05rem; color: #333; }
+        #time-search-row {
+            position: relative; padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+        }
+        #time-date-btn {
+            background: #1976d2; color: #fff; border: none;
+            border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.82rem;
+            width: 100%;
+        }
+        #time-date-btn:hover { background: #1565c0; }
+        #time-date-panel {
+            display: none; position: absolute; left: 10px; right: 10px; top: calc(100% + 4px);
+            background: #fff; border: 1px solid #ddd; border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18); z-index: 1300; padding: 8px;
+        }
+        #time-date-panel.open { display: block; }
+        .cal-head { text-align: center; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; color: #333; }
+        .cal-grid + .cal-head { margin-top: 10px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .cal-week { text-align: center; padding: 3px 0; font-size: 0.68rem; color: #999; }
+        .cal-cell { text-align: center; padding: 4px 0; border-radius: 4px; font-size: 0.75rem; color: #bbb; }
+        .cal-cell.has { color: #1976d2; font-weight: 700; cursor: pointer; background: #e3f2fd; }
+        .cal-cell.has:hover { background: #bbdefb; }
         #left-panel-close {
             background: none; border: none; font-size: 1.4rem;
             cursor: pointer; color: #999; padding: 0 4px;
@@ -319,23 +481,23 @@
         #left-panel-content { flex: 1; overflow-y: auto; padding: 8px; }
         #left-panel-content table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
         #left-panel-content th {
-            background: #f5f5f5; padding: 7px 6px; text-align: left;
-            position: sticky; top: 0; font-weight: bold; color: #555;
+            background: #e3f2fd; padding: 7px 6px; text-align: left;
+            position: sticky; top: 0; font-weight: bold; color: #333;
         }
         #left-panel-content td { padding: 5px 6px; border-bottom: 1px solid #f0f0f0; }
-        #left-panel-content tr.active { background: #fff3cd; font-weight: bold; }
-        #left-panel-content tr:hover { background: #fafafa; }
+        #left-panel-content tr.active { background: #bbdefb; font-weight: bold; }
+        #left-panel-content tr:hover { background: #f3f9ff; }
         #left-panel-toggle {
             position: absolute; bottom: 38px; left: 15px; z-index: 1000;
-            background: rgba(0,0,0,0.6); color: #fff; border: none;
+            background: #1976d2; color: #fff; border: none;
             width: 38px; height: 38px; border-radius: 50%;
             font-size: 1.1rem; cursor: pointer;
             backdrop-filter: blur(4px); transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(21,101,192,0.3);
         }
-        #left-panel-toggle:hover { background: rgba(0,0,0,0.8); }
+        #left-panel-toggle:hover { background: #1565c0; }
 
         @media (max-width: 768px) {
-            #info-panel { left: 8px; top: 8px; padding: 10px 12px; min-width: auto; font-size: 0.8rem; }
             #time-panel { left: 8px; right: 8px; transform: none; min-width: auto; padding: 10px 12px; }
             #left-panel { width: 85vw; }
             #top-controls { top: 8px; bottom: auto; right: 8px; flex-direction: row; }
@@ -343,12 +505,11 @@
             #legend { right: 8px; bottom: 38px; font-size: 0.75rem; padding: 8px 10px; }
             #left-panel-toggle { bottom: 38px; left: 8px; }
             #title { font-size: 1rem; padding: 6px 18px; }
-            #wind-panel { font-size: 0.72rem; }
+            #eye-coord { left: 8px; bottom: 76px; font-size: 0.78rem; padding: 5px 10px; }
             #wind-opacity { width: 80px; }
         }
 
         @media (max-width: 480px) {
-            #info-panel { font-size: 0.75rem; }
             #time-panel { bottom: 75px; padding: 8px 10px; gap: 6px; }
             #playback-controls button { padding: 4px 7px; min-width: 28px; font-size: 0.85rem; }
             #speed-select { font-size: 0.75rem; padding: 4px 6px; }
@@ -422,33 +583,26 @@
         .typhoon-marker-pulse { animation: pulse 2s ease-in-out infinite; transform-origin: center center; }
 
         .typhoon-label-icon span {
-            display: inline-block; padding: 3px 10px; border-radius: 12px;
-            color: #fff; font-size: 0.82rem; font-weight: bold;
+            display: inline-block; padding: 2px 7px; border-radius: 10px;
+            color: #fff; font-size: 0.68rem; font-weight: bold;
             box-shadow: 0 2px 6px rgba(0,0,0,0.4); white-space: nowrap;
         }
 
         /* Wind Circles */
         .wind-circle-label {
-            background: rgba(0,0,0,0.65);
-            color: #fff;
+            background: rgba(255,255,255,0.92);
+            color: #222;
             padding: 1px 6px;
             border-radius: 10px;
             font-size: 10px;
+            border: 1px solid rgba(21,101,192,0.3);
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
 
-    <div id="info-panel">
-        <h2>桦加沙</h2>
-        <div class="info-row"><span class="info-label">时间</span><span class="info-value" id="info-time">--</span></div>
-        <div class="info-row"><span class="info-label">中心气压</span><span class="info-value" id="info-pressure">--</span></div>
-        <div class="info-row"><span class="info-label">最大风速</span><span class="info-value" id="info-wind">--</span></div>
-        <div class="info-row"><span class="info-label">纬度</span><span class="info-value" id="info-lat">--</span></div>
-        <div class="info-row"><span class="info-label">经度</span><span class="info-value" id="info-lon">--</span></div>
-        <div id="info-category">--</div>
-    </div>
+    <div id="eye-coord">风眼 --</div>
 
     <div id="top-controls">
         <div id="layer-switcher">
@@ -456,12 +610,22 @@
             <button data-layer="satellite">卫星地图</button>
             <button data-layer="terrain">地形图</button>
         </div>
-        <div id="tool-controls">
-            <button id="btn-measure" title="点击地图测距，双击结束">测距</button>
-            <button id="btn-focus-rect" title="拖拽绘制矩形关注区域">矩形</button>
-            <button id="btn-focus-poly" title="绘制多边形关注重点区域，双击闭合">多边形</button>
-        </div>
     </div>
+
+        <div id="tool-controls">
+            <button id="btn-measure" title="点击地图测距，双击结束" data-tip="测距">📏</button>
+            <div id="focus-menu-wrap">
+                <button id="btn-focus" title="绘制关注区域" data-tip="绘制关注区">✏️</button>
+                <div id="focus-menu">
+                    <button id="btn-focus-rect" title="拖拽绘制矩形关注区域">矩形</button>
+                    <button id="btn-focus-poly" title="绘制多边形关注重点区域，双击闭合">多边形</button>
+                </div>
+            </div>
+            <button id="btn-clean" title="清屏全屏模式" data-tip="清屏全屏">⛶</button>
+            <button id="btn-lock" title="锁定台风风眼，视图跟随台风" data-tip="锁定风眼">🎯</button>
+        </div>
+
+    <button id="btn-clean-exit">退出全屏</button>
 
     <div id="measure-info" style="display:none">
         <span id="measure-text"></span>
@@ -478,47 +642,62 @@
         <div id="focus-window-resize"></div>
     </div>
 
-    <div id="history-chart">
-        <div id="history-chart-title">
-            <span class="hc-legend"><i class="hc-dot" style="background:#ff6b6b"></i>中心气压</span>
-            <span class="hc-legend"><i class="hc-dot" style="background:#4fc3f7"></i>最大风速</span>
-        </div>
-        <canvas id="history-chart-canvas"></canvas>
-        <div id="history-chart-current">--</div>
+    <div id="zoom-controls">
+        <button id="btn-zoom-in" title="放大">＋</button>
+        <button id="btn-zoom-out" title="缩小">－</button>
     </div>
+
+        <div id="history-chart">
+            <div id="history-chart-title">
+                <span class="hc-title">台风强度演变</span>
+                <button id="history-chart-toggle" title="折叠/展开">−</button>
+            </div>
+            <div id="history-chart-legend">
+                <span class="hc-legend"><i class="hc-dot" style="background:#ff6b6b"></i>中心气压 (hPa)</span>
+                <span class="hc-legend"><i class="hc-dot" style="background:#4fc3f7"></i>最大风速 (m/s)</span>
+            </div>
+            <canvas id="history-chart-canvas"></canvas>
+            <div id="history-chart-current">--</div>
+        </div>
 
     <div id="title">桦加沙</div>
 
-    <div id="wind-panel">
-        <button id="wind-toggle" data-layer="wind">风场</button>
-        <div id="wind-opacity-control">
-            <span>透明度</span>
-            <input type="range" id="wind-opacity" min="0" max="100" value="15" title="风场透明度">
-            <span id="wind-opacity-value">15%</span>
+    <div id="typhoon-switcher">
+        <div id="history-menu">
+            <div class="history-head">历史台风</div>
+            <div id="history-list"></div>
+            <div class="history-note" id="history-note">暂无其他历史台风数据，后续数据处理后会自动出现在这里</div>
         </div>
     </div>
 
     <div id="time-panel">
         <div id="time-display">2025-09-18 09:00</div>
-            <input type="range" id="time-slider" min="61" max="263" step="1" value="125">
+        <input type="range" id="time-slider" min="61" max="263" step="1" value="135">
         <div id="time-ticks"></div>
-        <div id="playback-controls">
-            <button id="btn-start" title="回到起点">⏮</button>
-            <button id="btn-prev" title="后退一帧">⏪</button>
-            <button id="btn-play" title="播放/暂停">▶️</button>
-            <button id="btn-next" title="前进一帧">⏩</button>
-            <button id="btn-end" title="跳到终点">⏭</button>
-            <select id="speed-select" title="播放速度">
-                <option value="400">1x</option>
-                <option value="200">2x</option>
-                <option value="100">4x</option>
-            </select>
+        <div id="playback-row">
+            <div id="playback-controls">
+                <button id="btn-start" title="回到起点">⏮</button>
+                <button id="btn-prev" title="后退一帧">⏪</button>
+                <button id="btn-play" title="播放/暂停">▶️</button>
+                <button id="btn-next" title="前进一帧">⏩</button>
+                <button id="btn-end" title="跳到终点">⏭</button>
+                <select id="speed-select" title="播放速度">
+                    <option value="800">0.5x</option>
+                    <option value="400">1x</option>
+                    <option value="267" selected>1.5x</option>
+                    <option value="200">2x</option>
+                    <option value="100">4x</option>
+                </select>
+            </div>
         </div>
-    </div>
-
-    <div id="color-bar">
-        <canvas id="color-bar-canvas" width="200" height="14"></canvas>
-        <div id="color-bar-labels"></div>
+        <div id="wind-row">
+            <button id="wind-toggle" data-layer="wind">风场</button>
+            <div id="wind-opacity-control">
+                <span>透明度</span>
+                <input type="range" id="wind-opacity" min="0" max="100" value="15" title="风场透明度">
+                <span id="wind-opacity-value">15%</span>
+            </div>
+        </div>
     </div>
 
     <div id="legend">
@@ -538,6 +717,12 @@
         <div id="left-panel-header">
             <h3>台风路径数据</h3>
             <button id="left-panel-close">✕</button>
+        </div>
+        <div id="time-search-row">
+            <button id="time-date-btn">日期定位 ▾</button>
+            <div id="time-date-panel">
+                <div id="time-date-calendar"></div>
+            </div>
         </div>
         <div id="left-panel-content">
             <table>
@@ -631,6 +816,8 @@
             'circle7': '<span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #ff9800;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>7级风圈',
             'circle10': '<span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #f44336;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>10级风圈',
             'circle12': '<span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #9c27b0;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>12级风圈',
+            'watch24': '<span style="display:inline-block;width:20px;height:3px;background:#fbc02d;vertical-align:middle;margin-right:7px;"></span>24小时警戒线',
+            'watch48': '<span style="display:inline-block;width:20px;height:0;border-top:2px dashed #1e88e5;vertical-align:middle;margin-right:7px;"></span>48小时警戒线',
             'barb': WIND_SPEED_SCALE_HTML,
             'coast': '<span class="line-sample" style="background:#555;"></span>国界/海岸线',
             'province': '<span class="dashed-sample"></span>省界',
@@ -639,20 +826,67 @@
             'portRisk': TARGET_RISK_LEGEND_HTML
         };
         var LEGEND_LAYERS = {
-            'osm': ['coast', 'province', 'typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'portRisk', 'barb'],
-            'satellite': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'portRisk', 'barb'],
-            'terrain': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'portRisk', 'barb']
+            'osm': ['coast', 'province', 'typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'watch24', 'watch48', 'portRisk', 'barb'],
+            'satellite': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'watch24', 'watch48', 'portRisk', 'barb'],
+            'terrain': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'watch24', 'watch48', 'portRisk', 'barb']
         };
         function updateLegend(layerName) {
             var keys = LEGEND_LAYERS[layerName] || LEGEND_LAYERS.osm;
             var html = keys.map(function(k) { return '<div>' + LEGEND_ITEMS[k] + '</div>'; }).join('');
-            document.getElementById('legend').innerHTML = html;
+            var gradeHtml =
+                '<div style="margin-top:4px;padding-top:4px;border-top:1px solid rgba(0,0,0,0.12);font-weight:600;margin-bottom:2px;">台风强度分级 (m/s)</div>' +
+                '<div class="legend-wind-grid">' +
+                    '<span class="legend-wind-item"><i style="background:#29b6f6"></i>热带低压（≤10.8）</span>' +
+                    '<span class="legend-wind-item"><i style="background:#ffca28"></i>热带风暴（10.9-17.1）</span>' +
+                    '<span class="legend-wind-item"><i style="background:#ff9800"></i>强热带风暴（17.2-24.4）</span>' +
+                    '<span class="legend-wind-item"><i style="background:#f44336"></i>台风（24.5-32.6）</span>' +
+                    '<span class="legend-wind-item"><i style="background:#d50000"></i>强台风（32.7-41.4）</span>' +
+                    '<span class="legend-wind-item"><i style="background:#aa00ff"></i>超强台风（≥41.5）</span>' +
+                '</div>';
+            document.getElementById('legend').innerHTML = html + gradeHtml;
             renderWindSpeedScale();
         }
 
 
         // ===== Typhoon Track Data =====
         const typhoonTrack = [{"t":125,"lat":16.68,"lon":128.88,"psfc":98432,"wind":6.8},{"t":126,"lat":16.91,"lon":128.81,"psfc":98234,"wind":10.7},{"t":127,"lat":17.19,"lon":128.74,"psfc":98097,"wind":18.6},{"t":128,"lat":17.26,"lon":129.04,"psfc":97996,"wind":19},{"t":129,"lat":17.03,"lon":128.53,"psfc":97730,"wind":8.8},{"t":130,"lat":17.39,"lon":128.66,"psfc":97618,"wind":16.1},{"t":131,"lat":17.49,"lon":128.58,"psfc":97482,"wind":18.2},{"t":132,"lat":17.59,"lon":128.39,"psfc":97215,"wind":28.7},{"t":133,"lat":17.22,"lon":128.45,"psfc":97235,"wind":2.3},{"t":134,"lat":17.7,"lon":128.21,"psfc":97240,"wind":12.9},{"t":135,"lat":17.44,"lon":127.99,"psfc":96944,"wind":10.2},{"t":136,"lat":17.54,"lon":127.9,"psfc":96735,"wind":4.1},{"t":137,"lat":17.73,"lon":127.82,"psfc":96690,"wind":6.7},{"t":138,"lat":17.84,"lon":127.63,"psfc":96608,"wind":5.5},{"t":139,"lat":17.85,"lon":127.54,"psfc":96589,"wind":7.2},{"t":140,"lat":17.95,"lon":127.35,"psfc":96515,"wind":4.5},{"t":141,"lat":17.96,"lon":127.25,"psfc":96511,"wind":5.2},{"t":142,"lat":17.98,"lon":126.96,"psfc":96587,"wind":6.2},{"t":143,"lat":17.89,"lon":126.96,"psfc":96482,"wind":3.7},{"t":144,"lat":18.17,"lon":126.88,"psfc":96388,"wind":9.2},{"t":145,"lat":18.09,"lon":126.68,"psfc":96302,"wind":8.1},{"t":146,"lat":18,"lon":126.67,"psfc":96223,"wind":5.5},{"t":147,"lat":18.19,"lon":126.59,"psfc":96120,"wind":7},{"t":148,"lat":18.2,"lon":126.49,"psfc":96054,"wind":7.1},{"t":149,"lat":18.3,"lon":126.31,"psfc":95979,"wind":3.9},{"t":150,"lat":18.32,"lon":126.11,"psfc":95856,"wind":5.1},{"t":151,"lat":18.31,"lon":126.21,"psfc":95736,"wind":4.1},{"t":152,"lat":18.6,"lon":126.03,"psfc":95637,"wind":10.6},{"t":153,"lat":18.51,"lon":125.93,"psfc":95647,"wind":5.5},{"t":154,"lat":18.7,"lon":125.85,"psfc":95645,"wind":8.8},{"t":155,"lat":18.72,"lon":125.55,"psfc":95521,"wind":4.4},{"t":156,"lat":18.73,"lon":125.46,"psfc":95381,"wind":4.7},{"t":157,"lat":18.93,"lon":125.18,"psfc":95199,"wind":10.8},{"t":158,"lat":18.84,"lon":125.07,"psfc":95128,"wind":4.7},{"t":159,"lat":18.96,"lon":124.59,"psfc":95165,"wind":5.8},{"t":160,"lat":19.06,"lon":124.5,"psfc":94890,"wind":7.2},{"t":161,"lat":19.16,"lon":124.31,"psfc":94819,"wind":10.3},{"t":162,"lat":19.09,"lon":123.81,"psfc":94647,"wind":9.3},{"t":163,"lat":19.19,"lon":123.82,"psfc":94268,"wind":9.3},{"t":164,"lat":19.1,"lon":123.62,"psfc":94310,"wind":2.8},{"t":165,"lat":19.3,"lon":123.43,"psfc":94343,"wind":10.9},{"t":166,"lat":19.21,"lon":123.23,"psfc":94342,"wind":9.9},{"t":167,"lat":19.23,"lon":122.94,"psfc":94398,"wind":7.1},{"t":168,"lat":19.14,"lon":122.83,"psfc":94480,"wind":3.7},{"t":169,"lat":19.33,"lon":122.55,"psfc":94486,"wind":9.1},{"t":170,"lat":19.34,"lon":122.45,"psfc":94544,"wind":9.3},{"t":171,"lat":19.35,"lon":122.25,"psfc":94588,"wind":4.7},{"t":172,"lat":19.35,"lon":122.06,"psfc":94571,"wind":2.6},{"t":173,"lat":19.46,"lon":121.77,"psfc":94562,"wind":6.2},{"t":174,"lat":19.46,"lon":121.67,"psfc":94529,"wind":6.9},{"t":175,"lat":19.56,"lon":121.38,"psfc":94448,"wind":11.5},{"t":176,"lat":19.47,"lon":121.18,"psfc":94423,"wind":5.2},{"t":177,"lat":19.48,"lon":121.08,"psfc":94458,"wind":6.2},{"t":178,"lat":19.48,"lon":120.98,"psfc":94509,"wind":4.3},{"t":179,"lat":19.49,"lon":120.69,"psfc":94535,"wind":4.7},{"t":180,"lat":19.49,"lon":120.49,"psfc":94611,"wind":3.5},{"t":181,"lat":19.59,"lon":120.3,"psfc":94678,"wind":9.1},{"t":182,"lat":19.59,"lon":120.1,"psfc":94670,"wind":6.5},{"t":183,"lat":19.6,"lon":119.9,"psfc":94755,"wind":5.6},{"t":184,"lat":19.6,"lon":119.61,"psfc":94795,"wind":7.3},{"t":185,"lat":19.65,"lon":119.46,"psfc":94776,"wind":7.2},{"t":186,"lat":19.7,"lon":119.31,"psfc":94757,"wind":7.2},{"t":187,"lat":19.79,"lon":119.32,"psfc":94798,"wind":10.1},{"t":188,"lat":19.89,"lon":119.02,"psfc":94846,"wind":8.2},{"t":189,"lat":19.89,"lon":118.82,"psfc":94892,"wind":4.4},{"t":190,"lat":19.99,"lon":118.63,"psfc":94911,"wind":9.3},{"t":191,"lat":19.9,"lon":118.43,"psfc":94885,"wind":3.3},{"t":192,"lat":19.99,"lon":118.33,"psfc":94873,"wind":7.7},{"t":193,"lat":20.09,"lon":118.14,"psfc":94825,"wind":7.7},{"t":194,"lat":20.18,"lon":118.04,"psfc":94822,"wind":10.3},{"t":195,"lat":20.28,"lon":117.74,"psfc":94848,"wind":6.3},{"t":196,"lat":20.37,"lon":117.54,"psfc":94855,"wind":9},{"t":197,"lat":20.46,"lon":117.45,"psfc":94781,"wind":12.5},{"t":198,"lat":20.56,"lon":117.15,"psfc":94719,"wind":7.5},{"t":199,"lat":20.56,"lon":117.05,"psfc":94641,"wind":8.2},{"t":200,"lat":20.56,"lon":116.75,"psfc":94642,"wind":4.4},{"t":201,"lat":20.74,"lon":116.55,"psfc":94653,"wind":10.9},{"t":202,"lat":20.74,"lon":116.45,"psfc":94653,"wind":4.5},{"t":203,"lat":20.83,"lon":116.25,"psfc":94704,"wind":8},{"t":204,"lat":20.83,"lon":116.16,"psfc":94742,"wind":8.6},{"t":205,"lat":20.83,"lon":115.96,"psfc":94844,"wind":4.5},{"t":206,"lat":20.92,"lon":115.76,"psfc":94896,"wind":6.8},{"t":207,"lat":21.01,"lon":115.56,"psfc":94972,"wind":8.2},{"t":208,"lat":21.01,"lon":115.36,"psfc":94964,"wind":4.1},{"t":209,"lat":21.1,"lon":115.16,"psfc":94932,"wind":7.4},{"t":210,"lat":21.19,"lon":115.06,"psfc":94915,"wind":10.7},{"t":211,"lat":21.28,"lon":114.86,"psfc":94880,"wind":9.6},{"t":212,"lat":21.28,"lon":114.66,"psfc":94890,"wind":4.4},{"t":213,"lat":21.37,"lon":114.46,"psfc":94919,"wind":8.5},{"t":214,"lat":21.36,"lon":114.16,"psfc":94934,"wind":6.5},{"t":215,"lat":21.36,"lon":114.06,"psfc":94954,"wind":6.8},{"t":216,"lat":21.45,"lon":113.76,"psfc":95010,"wind":10},{"t":217,"lat":21.44,"lon":113.56,"psfc":95044,"wind":9.5},{"t":218,"lat":21.44,"lon":113.36,"psfc":95088,"wind":6.2},{"t":219,"lat":21.34,"lon":113.06,"psfc":95138,"wind":7.9},{"t":220,"lat":21.52,"lon":112.95,"psfc":95173,"wind":9.1},{"t":221,"lat":21.33,"lon":112.76,"psfc":95232,"wind":6.3},{"t":222,"lat":21.42,"lon":112.56,"psfc":95238,"wind":9.3},{"t":223,"lat":21.41,"lon":112.46,"psfc":95197,"wind":7.3},{"t":224,"lat":21.5,"lon":112.26,"psfc":95304,"wind":9.6},{"t":225,"lat":21.5,"lon":112.16,"psfc":95478,"wind":13.3},{"t":226,"lat":21.39,"lon":111.86,"psfc":96248,"wind":30.9},{"t":227,"lat":21.39,"lon":111.66,"psfc":96783,"wind":34.6},{"t":228,"lat":21.37,"lon":111.36,"psfc":97293,"wind":31.9},{"t":229,"lat":21.32,"lon":111.12,"psfc":97821,"wind":30.4},{"t":230,"lat":21.26,"lon":110.87,"psfc":98349,"wind":29},{"t":231,"lat":21.26,"lon":110.77,"psfc":98683,"wind":24},{"t":232,"lat":21.33,"lon":110.16,"psfc":98782,"wind":24.5},{"t":233,"lat":21.39,"lon":109.56,"psfc":98882,"wind":25},{"t":234,"lat":21.766441345214844,"lon":109.74038696289062,"psfc":97397,"wind":7.9},{"t":235,"lat":21.66344451904297,"lon":109.54608154296875,"psfc":97938,"wind":4.4},{"t":236,"lat":21.65296173095703,"lon":109.346435546875,"psfc":97945,"wind":5.3},{"t":237,"lat":21.64763641357422,"lon":109.24658203125,"psfc":98226,"wind":4.1},{"t":238,"lat":21.543968200683594,"lon":109.05288696289062,"psfc":98682,"wind":7.4},{"t":239,"lat":21.538436889648438,"lon":108.95318603515625,"psfc":98935,"wind":6.5},{"t":240,"lat":21.625579833984375,"lon":108.84738159179688,"psfc":99097,"wind":1.7},{"t":241,"lat":21.70690155029297,"lon":108.6416015625,"psfc":99238,"wind":0.5},{"t":242,"lat":21.7938232421875,"lon":108.53546142578125,"psfc":99459,"wind":6.1},{"t":243,"lat":21.86865234375,"lon":108.22921752929688,"psfc":98300,"wind":0.8},{"t":244,"lat":22.035614013671875,"lon":107.91583251953125,"psfc":96279,"wind":2.6},{"t":245,"lat":22.02289581298828,"lon":107.71572875976562,"psfc":98041,"wind":0.4},{"t":246,"lat":22.10260772705078,"lon":107.508544921875,"psfc":97474,"wind":4.5},{"t":247,"lat":22.089324951171875,"lon":107.308349609375,"psfc":97701,"wind":1.4},{"t":248,"lat":22.168472290039062,"lon":107.100830078125,"psfc":97747,"wind":3.4},{"t":249,"lat":22.06884002685547,"lon":107.0081787109375,"psfc":97946,"wind":3.8}];
+
+        // 去掉开头 10 个不稳定点（t=125~134，2025-09-20 13:00~22:00 北京时间）
+        typhoonTrack.splice(0, 10);
+
+        // ===== Typhoon Data Registry =====
+        // 后续台风数据用同样算法处理后，往 TYPHOON_DATA 里加一项即可。
+        // windDir 填写风场文件目录前缀（如 'wind_field/杜苏芮/'），留空表示 wind_field/ 根目录。
+        // === AUTO:TYPHOON_DATA:START ===
+        var TYPHOON_DATA = {
+            '桦加沙': {
+                start: new Date('2025-09-15T00:00:00Z'),
+                minT: 61, maxT: 263, defaultT: 135,
+                ticks: [
+                    { t: 135, label: '生成', major: true },
+                    { t: 163, label: '巅峰', major: true },
+                    { t: 225, label: '登陆', major: true },
+                    { t: 249, label: '消散', major: true }
+                ],
+                windDir: '',
+                track: typhoonTrack.slice()
+            }
+        };
+        // === AUTO:TYPHOON_DATA:END ===
+        var currentTyphoonName = '桦加沙';
+
+        function currentTyphoonData() {
+            return TYPHOON_DATA[currentTyphoonName];
+        }
+
+        function windFieldKey(t) {
+            var d = currentTyphoonData() || {};
+            return (d.windDir || '') + 'wind_field_' + String(t).padStart(4, '0') + '.bin';
+        }
+
+        function windFieldUrl(t) {
+            return 'wind_field/' + windFieldKey(t);
+        }
 
         // ===== Configuration =====
         const CONFIG = {
@@ -661,8 +895,8 @@
             distanceThreshold: 3,
             minT: 61,
             maxT: 263,
-            defaultT: 125,
-            playSpeed: 400,
+            defaultT: 135,
+            playSpeed: 267,
             markerSize: 200,
             minWind: 5.0,
         };
@@ -1010,7 +1244,7 @@
 
             // High-DPI (retina) support — fixes blurriness
             var dpr = window.devicePixelRatio || 1;
-            var cssW = 330, cssH = 96;
+            var cssW = 280, cssH = 108;
             if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
                 canvas.width = Math.round(cssW * dpr);
                 canvas.height = Math.round(cssH * dpr);
@@ -1018,20 +1252,26 @@
             var ctx = canvas.getContext('2d');
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-            var pad = { l: 30, r: 12, t: 10, b: 15 };
+            var pad = { l: 22, r: 10, t: 12, b: 16 };
             var plotW = cssW - pad.l - pad.r, plotH = cssH - pad.t - pad.b;
 
             var minP = 94000, maxP = 101000;
             var maxWind = 45;
 
-            function xPos(tt) { return pad.l + ((tt - CONFIG.minT) / (CONFIG.maxT - CONFIG.minT)) * plotW; }
+            // 横轴按当前台风路径实际起止时次绘制，曲线横向铺满（拉宽）
+            var axisMinT = typhoonTrack[0].t;
+            var axisMaxT = typhoonTrack[typhoonTrack.length - 1].t;
+            function xPos(tt) {
+                if (axisMaxT <= axisMinT) return pad.l;
+                return pad.l + ((tt - axisMinT) / (axisMaxT - axisMinT)) * plotW;
+            }
             function pY(p) { return pad.t + (1 - (p - minP) / (maxP - minP)) * plotH; }
             function wY(w) { return pad.t + (1 - Math.min(maxWind, w) / maxWind) * plotH; }
 
             ctx.clearRect(0, 0, cssW, cssH);
 
             // Horizontal grid lines (subtle)
-            ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+            ctx.strokeStyle = 'rgba(21,101,192,0.08)';
             ctx.lineWidth = 1;
             for (var g = 0; g <= 3; g++) {
                 var gy = pad.t + (g / 3) * plotH;
@@ -1042,7 +1282,7 @@
             }
 
             // X axis baseline
-            ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+            ctx.strokeStyle = 'rgba(21,101,192,0.18)';
             ctx.beginPath();
             ctx.moveTo(pad.l, pad.t + plotH);
             ctx.lineTo(cssW - pad.r, pad.t + plotH);
@@ -1071,7 +1311,7 @@
 
             // Pressure line (red)
             ctx.strokeStyle = '#ff6b6b';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.lineJoin = 'round';
             ctx.lineCap = 'round';
             ctx.beginPath();
@@ -1098,7 +1338,7 @@
 
             // Wind line (cyan)
             ctx.strokeStyle = '#4fc3f7';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
             for (var wi = 0; wi < typhoonTrack.length; wi++) {
                 var wx = xPos(typhoonTrack[wi].t), wy = wY(typhoonTrack[wi].wind);
@@ -1106,10 +1346,24 @@
             }
             ctx.stroke();
 
+            function drawChartLabel(text, x, y, color, baseline) {
+                ctx.font = '8px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                var w = ctx.measureText(text).width;
+                var h = 11;
+                var bx = x - w / 2 - 2;
+                var by = baseline === 'bottom' ? y - h : y;
+                ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                ctx.fillRect(bx, by, w + 4, h);
+                ctx.fillStyle = color;
+                ctx.textBaseline = baseline;
+                ctx.fillText(text, x, y);
+            }
+
             // Current time cursor
             if (t >= CONFIG.minT && t <= CONFIG.maxT) {
-                var cx = xPos(t);
-                ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+                var cx = Math.max(pad.l, Math.min(pad.l + plotW, xPos(t)));
+                ctx.strokeStyle = 'rgba(21,101,192,0.7)';
                 ctx.lineWidth = 1.3;
                 ctx.setLineDash([3, 3]);
                 ctx.beginPath();
@@ -1132,6 +1386,8 @@
                     ctx.beginPath();
                     ctx.arc(cx, wY(curPt.wind), 3, 0, Math.PI * 2);
                     ctx.fill();
+                    drawChartLabel((curPt.psfc / 1000).toFixed(1), cx, pY(curPt.psfc) - 7, '#e53935', 'bottom');
+                    drawChartLabel(curPt.wind.toFixed(1), cx, wY(curPt.wind) + 7, '#0097a7', 'top');
                 }
             }
 
@@ -1160,7 +1416,7 @@
             ctx.fillText(maxWind + 'm/s', cssW - pad.r + 3, pad.t);
 
             // Peak annotation text
-            ctx.fillStyle = '#ffd54f';
+            ctx.fillStyle = '#f9a825';
             ctx.font = '8.5px "Segoe UI", sans-serif';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'top';
@@ -1176,10 +1432,15 @@
         var trackLineLayers = [];
         var currentMarker = null;
         var typhoonLabelMarker = null;
+        var lastTyphoonPt = null;
         var spinAngle = 0;
         var isPlaying = false;
         var playInterval = null;
         var playSpeed = CONFIG.playSpeed;
+        var loopPlayback = false;
+        var savedPlaySpeed = null;
+        var savedPlaying = false;
+        var typhoonLock = false;
         var windLayerActive = true;
         var windFieldCache = {};
         var windCurrentT = -1;
@@ -1189,6 +1450,8 @@
         var windCanvasSize = 0;
         var windBarbColor = '#222';
         var landMaskFeatures = null;
+        var windQueryPopup = null;
+        var windQueryTimer = null;
         var riskSiteMarkers = [];
         var riskGroupMarker = null;
 
@@ -1329,8 +1592,15 @@
                 center: [17, 121],
                 zoom: 5,
                 minZoom: 4,
-                maxZoom: 10
+                maxZoom: 10,
+                zoomControl: false
             });
+            L.control.scale({
+                position: 'bottomleft',
+                metric: true,
+                imperial: false,
+                maxWidth: 160
+            }).addTo(map);
 
             baseLayers.osm = L.tileLayer('tiles/osm/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap', maxZoom: 18, detectRetina: true
@@ -1363,23 +1633,15 @@
             windPane.appendChild(windCanvas);
             windCanvasCtx = windCanvas.getContext('2d');
 
-            window.addEventListener('resize', function() {
-                var panel = document.getElementById('wind-panel');
-                var left = parseFloat(panel.style.left);
-                var top = parseFloat(panel.style.top);
-                var pr = panel.getBoundingClientRect();
-                left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, left));
-                top = Math.max(8, Math.min(window.innerHeight - pr.height - 8, top));
-                panel.style.left = left + 'px';
-                panel.style.top = top + 'px';
-            });
-
             map.on('moveend zoomend resize', resizeWindCanvas);
             map.on('moveend zoomend', function() {
                 if (windLayerActive) {
                     var val = parseInt(document.getElementById('time-slider').value);
-                    drawWindFieldOnCanvas(windCurrentT >= 0 ? windFieldCache['wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin'] : null);
+                    drawWindFieldOnCanvas(windCurrentT >= 0 ? windFieldCache[windFieldKey(windCurrentT)] : null);
                 }
+            });
+            map.on('zoomend', function() {
+                if (lastTyphoonPt) positionTyphoonLabel(lastTyphoonPt);
             });
 
             function resizeWindCanvas() {
@@ -1393,7 +1655,7 @@
                 windCanvasCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 windCanvasSize = size;
                 if (windLayerActive && windCurrentT >= 0) {
-                    drawWindFieldOnCanvas(windFieldCache['wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin']);
+                    drawWindFieldOnCanvas(windFieldCache[windFieldKey(windCurrentT)]);
                 }
             }
             resizeWindCanvas();
@@ -1411,17 +1673,33 @@
 
             initRiskSiteMarkers();
 
+            // 24h / 48h 警戒线：官方固定地理折线（静态，不随台风移动）
+            // 48h：蓝色虚线，34N/132E -> 15N/132E -> 0N/105E
+            // 24h：黄色实线，34N/127E -> 22N/127E -> 15N/110E
+            var watchLine48 = L.polyline([[34, 132], [15, 132], [0, 105]], {
+                color: '#1e88e5', weight: 2.5, opacity: 0.95, dashArray: '8,8',
+                interactive: false
+            }).addTo(map);
+            watchLine48.bindTooltip('48小时警戒线', { sticky: true, direction: 'top', offset: [0, -10] });
+
+            var watchLine24 = L.polyline([[34, 127], [22, 127], [15, 110]], {
+                color: '#fbc02d', weight: 2.5, opacity: 0.95,
+                interactive: false
+            }).addTo(map);
+            watchLine24.bindTooltip('24小时警戒线', { sticky: true, direction: 'top', offset: [0, -10] });
+
             // Load country boundaries
             fetch('data/countries-50m.json')
                 .then(function(res) { return res.json(); })
                 .then(function(world) {
                     var countries = topojson.feature(world, world.objects.countries);
                     buildLandMask(countries.features);
+                    landRaster = null; // 掩膜数据就绪后强制重建栅格
                     L.geoJSON(countries, {
                         style: { color: '#555555', weight: 1.5, fillColor: 'transparent', fillOpacity: 0 }
                     }).addTo(map);
                     if (windLayerActive && windCurrentT >= 0) {
-                        var key = 'wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin';
+                        var key = windFieldKey(windCurrentT);
                         if (windFieldCache[key]) drawWindFieldOnCanvas(windFieldCache[key]);
                     }
                 })
@@ -1443,9 +1721,10 @@
 
             // Click map to query wind speed/direction at that point
             map.on('click', function(e) {
+                if (measureActive || focusDrawActive) return;
                 var lat = e.latlng.lat, lon = e.latlng.lng;
                 var t = parseInt(document.getElementById('time-slider').value);
-                var key = 'wind_field_' + String(t).padStart(4, '0') + '.bin';
+                var key = windFieldKey(t);
                 var data = windFieldCache[key];
                 var html = '<div class="port-risk-popup"><strong>位置风速查询</strong>' +
                     '<div>位置：' + lat.toFixed(2) + '°N, ' + lon.toFixed(2) + '°E</div>' +
@@ -1459,10 +1738,16 @@
                     html += '<div>附近风速：暂无数据</div>';
                 }
                 html += '</div>';
-                L.popup({ maxWidth: 260 })
+                if (windQueryPopup) { map.closePopup(windQueryPopup); windQueryPopup = null; }
+                if (windQueryTimer) { clearTimeout(windQueryTimer); windQueryTimer = null; }
+                windQueryPopup = L.popup({ maxWidth: 260, closeButton: false })
                     .setLatLng(e.latlng)
                     .setContent(html)
                     .openOn(map);
+                windQueryTimer = setTimeout(function() {
+                    if (windQueryPopup) { map.closePopup(windQueryPopup); windQueryPopup = null; }
+                    windQueryTimer = null;
+                }, 3000);
             });
         }
 
@@ -1487,8 +1772,11 @@
             if (!typhoonBorn) {
                 if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
                 if (typhoonLabelMarker) { map.removeLayer(typhoonLabelMarker); typhoonLabelMarker = null; }
+                lastTyphoonPt = null;
                 windCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
                 windCircleLayers = [];
+                watchCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
+                watchCircleLayers = [];
                 document.getElementById('time-display').textContent = tToBeijingTime(t) + ' (台风尚未生成)';
                 updateInfoPanel(null);
                 updateNewsTicker(null);
@@ -1517,8 +1805,11 @@
             if (typhoonGone) {
                 if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
                 if (typhoonLabelMarker) { map.removeLayer(typhoonLabelMarker); typhoonLabelMarker = null; }
+                lastTyphoonPt = null;
                 windCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
                 windCircleLayers = [];
+                watchCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
+                watchCircleLayers = [];
                 document.getElementById('time-display').textContent = tToBeijingTime(t) + ' (台风已消散)';
                 updateInfoPanel(null);
                 updateNewsTicker(null);
@@ -1563,23 +1854,26 @@
             var catLabel = getWindCategory(pt.wind);
             var labelIcon = L.divIcon({
                 className: 'typhoon-label-icon',
-                html: '<span style="background:' + catLabel.color + ';">' + catLabel.name + '</span>',
+                html: '<span style="background:' + catLabel.color + ';transform:translate(5px,-50%);">' + catLabel.name + '</span>',
                 iconSize: [0, 0],
                 iconAnchor: [0, 0]
             });
             if (!typhoonLabelMarker) {
-                typhoonLabelMarker = L.marker([pt.lat + 0.8, pt.lon], { icon: labelIcon, interactive: false, zIndexOffset: 1002 }).addTo(map);
+                typhoonLabelMarker = L.marker([pt.lat, pt.lon], { icon: labelIcon, interactive: false, zIndexOffset: 1002 }).addTo(map);
             } else {
-                typhoonLabelMarker.setLatLng([pt.lat + 0.8, pt.lon]);
                 typhoonLabelMarker.setIcon(labelIcon);
             }
+            lastTyphoonPt = pt;
+            positionTyphoonLabel(pt);
 
             // Update info panel
             updateInfoPanel(pt);
             updateLeftPanelHighlight(t);
             updateNewsTicker(pt);
             updateWindCircles(pt);
+            updateWatchCircles(pt);
             if (focusMiniMap) syncMiniTyphoon(t);
+            if (typhoonLock) map.setView([pt.lat, pt.lon], map.getZoom(), { animate: false });
             loadWindField(t);
         }
 
@@ -1647,7 +1941,38 @@
             }
         }
 
+        var watchCircleLayers = [];
+
+        function getTyphoonSpeed(pt) {
+            var idx = -1;
+            for (var i = 0; i < typhoonTrack.length; i++) {
+                if (typhoonTrack[i].t === pt.t) { idx = i; break; }
+            }
+            if (idx < 0) return NaN;
+            var lookBack = 12;
+            var p0 = typhoonTrack[Math.max(0, idx - lookBack)];
+            if (p0.t >= pt.t) p0 = typhoonTrack[Math.max(0, idx - 1)];
+            var km = distanceKm(p0.lat, p0.lon, pt.lat, pt.lon);
+            var hours = pt.t - p0.t;
+            if (hours <= 0) return NaN;
+            return km / hours;
+        }
+
+        function updateWatchCircles(pt) {
+            // 24/48小时警戒线已改为固定地理折线（initMap 中一次性添加），此处不再绘制动态圆圈。
+        }
+
+        function positionTyphoonLabel(pt) {
+            if (!typhoonLabelMarker || !pt) return;
+            typhoonLabelMarker.setLatLng([pt.lat, pt.lon]);
+        }
+
         function updateInfoPanel(pt) {
+            var eye = document.getElementById('eye-coord');
+            if (eye) {
+                eye.textContent = pt ? ('风眼 ' + pt.lat.toFixed(2) + '°N  ' + pt.lon.toFixed(2) + '°E') : '风眼 --';
+            }
+            if (!document.getElementById('info-time')) return;
             if (!pt) {
                 document.getElementById('info-time').textContent = '--';
                 document.getElementById('info-pressure').textContent = '--';
@@ -1679,7 +2004,7 @@
                 return;
             }
             var cat = getWindCategory(pt.wind);
-            var text = '【台风快讯】台风"桦加沙"' + tToBeijingTime(pt.t) +
+            var text = '【台风快讯】台风"' + currentTyphoonName + '"' + tToBeijingTime(pt.t) +
                 '位于' + pt.lat.toFixed(1) + '°N, ' + pt.lon.toFixed(1) + '°E，' +
                 '中心气压' + pt.psfc.toFixed(0) + ' hPa，最大风力' + pt.wind.toFixed(1) + ' m/s（' + cat.name + '），请注意防范。';
             document.getElementById('ticker-text').textContent = text;
@@ -1694,6 +2019,34 @@
             }
         }
 
+        function enterCleanMode() {
+            savedPlaySpeed = playSpeed;
+            savedPlaying = isPlaying;
+            playSpeed = 267;
+            document.getElementById('speed-select').value = '267';
+            loopPlayback = true;
+            if (!isPlaying) startPlayback();
+            document.body.classList.add('clean-mode');
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(function() {});
+            }
+        }
+
+        function exitCleanMode() {
+            loopPlayback = false;
+            if (savedPlaySpeed !== null) {
+                playSpeed = savedPlaySpeed;
+                document.getElementById('speed-select').value = String(savedPlaySpeed);
+                savedPlaySpeed = null;
+            }
+            if (!savedPlaying) pausePlayback();
+            savedPlaying = false;
+            document.body.classList.remove('clean-mode');
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
         function startPlayback() {
             if (isPlaying) return;
             isPlaying = true;
@@ -1705,6 +2058,11 @@
             playInterval = setInterval(function() {
                 var val = parseInt(slider.value);
                 if (val >= CONFIG.maxT) {
+                    if (loopPlayback) {
+                        slider.value = CONFIG.minT;
+                        updateTimeDisplay();
+                        return;
+                    }
                     pausePlayback();
                     return;
                 }
@@ -1758,7 +2116,7 @@
         }
 
         function changeSpeed(delta) {
-            var speeds = [400, 200, 100];
+            var speeds = [800, 400, 267, 200, 100];
             var currentIndex = speeds.indexOf(playSpeed);
             if (currentIndex === -1) {
                 if (playSpeed < 100) currentIndex = 2;
@@ -1802,7 +2160,7 @@
             updateLegend(layerName);
             windBarbColor = WIND_BARB_COLORS[layerName] || '#222';
             if (windLayerActive && windCurrentT >= 0) {
-                var key = 'wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin';
+                var key = windFieldKey(windCurrentT);
                 if (windFieldCache[key]) drawWindFieldOnCanvas(windFieldCache[key]);
             }
             if (focusMiniMap && focusMiniLayer) {
@@ -1831,14 +2189,14 @@
         function loadWindField(t) {
             windCurrentT = t;
             var seq = ++windRequestSeq;
-            var key = 'wind_field_' + String(t).padStart(4, '0') + '.bin';
+            var key = windFieldKey(t);
             if (windFieldCache[key]) {
                 updateRiskSiteRisks(windFieldCache[key], t);
                 if (windLayerActive) drawWindFieldOnCanvas(windFieldCache[key]);
                 syncMiniWind(windFieldCache[key]);
                 return;
             }
-            fetch('wind_field/' + key)
+            fetch(windFieldUrl(t))
                 .then(function(res) {
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return res.arrayBuffer();
@@ -2033,6 +2391,62 @@
             return false;
         }
 
+        // 陆地栅格掩膜（带海岸/小岛缓冲区），用于风羽避让
+        var landRaster = null;
+
+        function buildLandRaster() {
+            if (!windCanvasSize) return;
+            var b = map.getBounds();
+            var key = map.getZoom() + '|' + b.getWest().toFixed(3) + '|' + b.getEast().toFixed(3) +
+                '|' + b.getSouth().toFixed(3) + '|' + b.getNorth().toFixed(3);
+            if (landRaster && landRaster.key === key) return;
+            var size = windCanvasSize;
+            var dpr = window.devicePixelRatio || 1;
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(size.x * dpr));
+            canvas.height = Math.max(1, Math.round(size.y * dpr));
+            var ctx = canvas.getContext('2d');
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, size.x, size.y);
+            ctx.fillStyle = '#000';
+            if (landMaskFeatures) {
+                for (var i = 0; i < landMaskFeatures.length; i++) {
+                    var f = landMaskFeatures[i];
+                    for (var p = 0; p < f.polys.length; p++) {
+                        var poly = f.polys[p];
+                        ctx.beginPath();
+                        for (var r = 0; r < poly.length; r++) {
+                            var ring = poly[r];
+                            for (var k = 0; k < ring.length; k++) {
+                                var pt = map.latLngToContainerPoint([ring[k][1], ring[k][0]]);
+                                if (k === 0) ctx.moveTo(pt.x, pt.y);
+                                else ctx.lineTo(pt.x, pt.y);
+                            }
+                            ctx.closePath();
+                        }
+                        ctx.fill('evenodd');
+                    }
+                }
+            }
+            landRaster = { canvas: canvas, ctx: ctx, key: key, dpr: dpr };
+        }
+
+        function isLandNear(x, y, radius) {
+            if (!landRaster) return false;
+            var dpr = landRaster.dpr;
+            var r = Math.max(1, Math.round(radius * dpr));
+            var sx = Math.round(x * dpr), sy = Math.round(y * dpr);
+            var ctx = landRaster.ctx;
+            var x0 = Math.max(0, sx - r), y0 = Math.max(0, sy - r);
+            var x1 = Math.min(ctx.canvas.width - 1, sx + r), y1 = Math.min(ctx.canvas.height - 1, sy + r);
+            if (x1 < x0 || y1 < y0) return false;
+            var img = ctx.getImageData(x0, y0, x1 - x0 + 1, y1 - y0 + 1).data;
+            for (var i = 3; i < img.length; i += 4) {
+                if (img[i] > 0) return true;
+            }
+            return false;
+        }
+
         function drawWindFieldOnCanvas(data) {
             if (!windCanvasCtx || !windCanvasSize) return;
             var ctx = windCanvasCtx;
@@ -2043,6 +2457,9 @@
             var pointsDrawn = 0;
             var mapBounds = map.getBounds();
             var padding = 0.05;
+            buildLandRaster();
+            var spacing = 35; // 风羽最小间距（px）
+            var grid = {};
 
             for (var i = 0; i < data.length; i++) {
                 var lo = data[i][0];
@@ -2057,6 +2474,24 @@
 
                 var pt = map.latLngToContainerPoint([la, lo]);
                 if (pt.x < -50 || pt.x > size.x + 50 || pt.y < -50 || pt.y > size.y + 50) continue;
+                if (isLandNear(pt.x, pt.y, 12)) continue; // 海岸/小岛缓冲区
+                var gx = Math.floor(pt.x / spacing), gy = Math.floor(pt.y / spacing);
+                var tooClose = false;
+                for (var dx = -1; dx <= 1 && !tooClose; dx++) {
+                    for (var dy = -1; dy <= 1 && !tooClose; dy++) {
+                        var near = grid[(gx + dx) + ',' + (gy + dy)];
+                        if (!near) continue;
+                        for (var nk = 0; nk < near.length; nk++) {
+                            var ddx = pt.x - near[nk][0], ddy = pt.y - near[nk][1];
+                            if (ddx * ddx + ddy * ddy < spacing * spacing * 0.7) {
+                                tooClose = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (tooClose) continue;
+                (grid[gx + ',' + gy] = grid[gx + ',' + gy] || []).push([pt.x, pt.y]);
                 drawWindBarb(ctx, pt.x, pt.y, spd, dire, 28);
                 pointsDrawn++;
             }
@@ -2098,6 +2533,55 @@
             }
         }
 
+        function buildDateCalendar() {
+            var dates = {};
+            typhoonTrack.forEach(function(p) {
+                var d = tToBeijingTime(p.t).slice(0, 10);
+                dates[d] = true;
+            });
+            // 按路径覆盖的每个年月分段渲染（支持跨月/跨年台风）
+            var months = {};
+            Object.keys(dates).sort().forEach(function(k) {
+                var ym = k.slice(0, 7);
+                (months[ym] = months[ym] || []).push(k);
+            });
+            var html = '';
+            Object.keys(months).sort().forEach(function(ym) {
+                var parts = ym.split('-');
+                var year = parseInt(parts[0], 10), month = parseInt(parts[1], 10) - 1;
+                var first = new Date(year, month, 1).getDay();
+                var daysInMonth = new Date(year, month + 1, 0).getDate();
+                html += '<div class="cal-head">' + year + '年' + (month + 1) + '月</div><div class="cal-grid">';
+                ['日', '一', '二', '三', '四', '五', '六'].forEach(function(w) {
+                    html += '<span class="cal-week">' + w + '</span>';
+                });
+                for (var i = 0; i < first; i++) html += '<span class="cal-cell"></span>';
+                for (var d = 1; d <= daysInMonth; d++) {
+                    var key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                    var has = !!dates[key];
+                    html += '<span class="cal-cell' + (has ? ' has' : '') + '" data-date="' + key + '">' + d + '</span>';
+                }
+                html += '</div>';
+            });
+            document.getElementById('time-date-calendar').innerHTML = html;
+        }
+
+        function jumpToDate(key) {
+            var target = -1;
+            for (var i = 0; i < typhoonTrack.length; i++) {
+                if (tToBeijingTime(typhoonTrack[i].t).slice(0, 10) === key) {
+                    target = typhoonTrack[i].t;
+                    break;
+                }
+            }
+            if (target < 0) return;
+            var slider = document.getElementById('time-slider');
+            slider.value = target;
+            updateTimeDisplay();
+            document.getElementById('time-date-panel').classList.remove('open');
+            document.getElementById('left-panel').classList.add('open');
+        }
+
         // ===== Legend Modal =====
         function toggleLegend() {
             document.getElementById('legend-modal').classList.toggle('open');
@@ -2112,12 +2596,19 @@
         }
 
         function initTimeTicks() {
-            var ticks = [
-                { t: 125, label: '生成', major: true },
-                { t: 163, label: '巅峰', major: true },
-                { t: 225, label: '登陆', major: true },
-                { t: 249, label: '消散', major: true }
-            ];
+            var d = currentTyphoonData() || {};
+            var ticks = d.ticks;
+            if (!ticks || !ticks.length) {
+                var tMax = typhoonTrack[0];
+                for (var ti = 1; ti < typhoonTrack.length; ti++) {
+                    if (typhoonTrack[ti].wind > tMax.wind) tMax = typhoonTrack[ti];
+                }
+                ticks = [
+                    { t: typhoonTrack[0].t, label: '生成', major: true },
+                    { t: tMax.t, label: '巅峰', major: true },
+                    { t: typhoonTrack[typhoonTrack.length - 1].t, label: '消散', major: true }
+                ];
+            }
             var container = document.getElementById('time-ticks');
             var html = '';
             for (var i = 0; i < ticks.length; i++) {
@@ -2159,6 +2650,7 @@
             map.doubleClickZoom.enable();
             map.getContainer().style.cursor = '';
             document.getElementById('btn-measure').classList.remove('active');
+            document.getElementById('measure-info').style.display = 'none';
             hideMeasureTip();
             if (!keepResult) {
                 clearMeasure();
@@ -2178,12 +2670,12 @@
         function onMeasureClick(e) {
             measurePoints.push(e.latlng);
             var marker = L.circleMarker(e.latlng, {
-                radius: 4, color: '#fff', weight: 2, fillColor: '#ff5722', fillOpacity: 1
+                radius: 4, color: '#fff', weight: 2, fillColor: '#1e88e5', fillOpacity: 1
             }).addTo(map);
             measureMarkers.push(marker);
             if (measureLine) map.removeLayer(measureLine);
             measureLine = L.polyline(measurePoints, {
-                color: '#ff5722', weight: 2, dashArray: '5,4', opacity: 0.9
+                color: '#1e88e5', weight: 2, dashArray: '5,4', opacity: 0.9
             }).addTo(map);
             updateMeasureText();
         }
@@ -2201,7 +2693,7 @@
             if (measureLine) map.removeLayer(measureLine);
             if (measurePoints.length > 1) {
                 measureLine = L.polyline(measurePoints, {
-                    color: '#ff5722', weight: 2, dashArray: '5,4', opacity: 0.9
+                    color: '#1e88e5', weight: 2, dashArray: '5,4', opacity: 0.9
                 }).addTo(map);
             }
             stopMeasure(true);
@@ -2318,12 +2810,12 @@
             focusDrawPreview = null;
             if (focusDrawPoints.length === 1) {
                 focusDrawPreview = L.circleMarker(focusDrawPoints[0], {
-                    radius: 5, color: '#fff', weight: 2, fillColor: '#ff5722', fillOpacity: 1
+                    radius: 5, color: '#fff', weight: 2, fillColor: '#1e88e5', fillOpacity: 1
                 }).addTo(map);
             } else if (focusDrawPoints.length > 1) {
                 focusDrawPreview = L.polygon(focusDrawPoints, {
-                    color: '#ff5722', weight: 2, dashArray: '5,4',
-                    fillColor: '#ff5722', fillOpacity: 0.12
+                    color: '#1e88e5', weight: 2, dashArray: '5,4',
+                    fillColor: '#1e88e5', fillOpacity: 0.12
                 }).addTo(map);
             }
         }
@@ -2352,7 +2844,7 @@
                 return;
             }
             focusMainPolygon = L.polygon(focusDrawPoints, {
-                color: '#ff5722', weight: 2, fillColor: '#ff5722', fillOpacity: 0.12
+                color: '#1e88e5', weight: 2, fillColor: '#1e88e5', fillOpacity: 0.12
             }).addTo(map);
             focusDrawBounds = L.latLngBounds(focusDrawPoints);
             createFocusWindow();
@@ -2371,8 +2863,8 @@
             var bounds = L.latLngBounds(focusRectStart.latlng, e.latlng);
             if (focusDrawPreview) map.removeLayer(focusDrawPreview);
             focusDrawPreview = L.rectangle(bounds, {
-                color: '#ff5722', weight: 2, dashArray: '5,4',
-                fillColor: '#ff5722', fillOpacity: 0.12
+                color: '#1e88e5', weight: 2, dashArray: '5,4',
+                fillColor: '#1e88e5', fillOpacity: 0.12
             }).addTo(map);
         }
 
@@ -2396,7 +2888,7 @@
             document.getElementById('btn-focus-rect').classList.remove('active');
             hideMeasureTip();
             focusMainRect = L.rectangle(bounds, {
-                color: '#ff5722', weight: 2, fillColor: '#ff5722', fillOpacity: 0.12
+                color: '#1e88e5', weight: 2, fillColor: '#1e88e5', fillOpacity: 0.12
             }).addTo(map);
             focusDrawBounds = bounds;
             focusDrawPoints = [
@@ -2410,9 +2902,13 @@
         function createFocusWindow() {
             if (!focusWindow) focusWindow = document.getElementById('focus-window');
             focusWindow.style.display = 'flex';
+            focusWindow.style.left = '65px';
+            focusWindow.style.top = 'auto';
+            focusWindow.style.right = 'auto';
+            focusWindow.style.bottom = '90px';
             if (!focusMiniMap) initFocusMiniMap();
             if (focusMiniPolygon) focusMiniMap.removeLayer(focusMiniPolygon);
-            var style = { color: '#ff5722', weight: 2, fillColor: '#ff5722', fillOpacity: 0.15 };
+            var style = { color: '#1e88e5', weight: 2, fillColor: '#1e88e5', fillOpacity: 0.15 };
             if (focusShape === 'rect' && focusDrawBounds) {
                 focusMiniPolygon = L.rectangle(focusDrawBounds, style).addTo(focusMiniMap);
             } else {
@@ -2422,7 +2918,7 @@
             resizeMiniWindCanvas();
             focusMiniMap.fitBounds(focusDrawBounds || L.latLngBounds(focusDrawPoints));
             syncMiniTyphoon(parseInt(document.getElementById('time-slider').value));
-            var key = 'wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin';
+            var key = windFieldKey(windCurrentT);
             if (windFieldCache[key]) syncMiniWind(windFieldCache[key]);
         }
 
@@ -2500,6 +2996,8 @@
             ctx.clearRect(0, 0, size.x, size.y);
             var mapBounds = focusMiniMap.getBounds();
             var padding = 0.05;
+            var spacing = 45; // 小窗风羽最小间距（px）
+            var grid = {};
             for (var i = 0; i < data.length; i++) {
                 var lo = data[i][0], la = data[i][1], spd = data[i][2], dire = data[i][3];
                 if (spd < CONFIG.minWind) continue;
@@ -2508,6 +3006,23 @@
                 if (isLandPoint(lo, la)) continue;
                 var pt = focusMiniMap.latLngToContainerPoint([la, lo]);
                 if (pt.x < -50 || pt.x > size.x + 50 || pt.y < -50 || pt.y > size.y + 50) continue;
+                var gx = Math.floor(pt.x / spacing), gy = Math.floor(pt.y / spacing);
+                var tooClose = false;
+                for (var dx = -1; dx <= 1 && !tooClose; dx++) {
+                    for (var dy = -1; dy <= 1 && !tooClose; dy++) {
+                        var near = grid[(gx + dx) + ',' + (gy + dy)];
+                        if (!near) continue;
+                        for (var nk = 0; nk < near.length; nk++) {
+                            var ddx = pt.x - near[nk][0], ddy = pt.y - near[nk][1];
+                            if (ddx * ddx + ddy * ddy < spacing * spacing * 0.7) {
+                                tooClose = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (tooClose) continue;
+                (grid[gx + ',' + gy] = grid[gx + ',' + gy] || []).push([pt.x, pt.y]);
                 drawWindBarb(ctx, pt.x, pt.y, spd, dire, 22);
             }
         }
@@ -2527,16 +3042,103 @@
         function closeFocusWindow() {
             if (!focusWindow) focusWindow = document.getElementById('focus-window');
             focusWindow.style.display = 'none';
+            if (focusMainPolygon) { map.removeLayer(focusMainPolygon); focusMainPolygon = null; }
+            if (focusMainRect) { map.removeLayer(focusMainRect); focusMainRect = null; }
+            focusDrawPoints = [];
+            focusDrawBounds = null;
+        }
+
+        // ===== Typhoon Switching =====
+        function updateTyphoonBrand() {
+            document.getElementById('title').textContent = currentTyphoonName;
+            document.title = currentTyphoonName + ' - 台风路径可视化';
+        }
+
+        function updateHistoryList() {
+            var list = document.getElementById('history-list');
+            var names = Object.keys(TYPHOON_DATA);
+            list.innerHTML = names.map(function(name) {
+                var d = TYPHOON_DATA[name];
+                var period = '';
+                if (d.track && d.track.length) {
+                    var t0 = d.start.getTime() + d.track[0].t * 3600 * 1000 + 8 * 3600 * 1000;
+                    var t1 = d.start.getTime() + d.track[d.track.length - 1].t * 3600 * 1000 + 8 * 3600 * 1000;
+                    period = new Date(t0).toISOString().slice(0, 10) + ' ~ ' + new Date(t1).toISOString().slice(0, 10);
+                }
+                var active = name === currentTyphoonName;
+                return '<div class="history-item' + (active ? ' active' : '') + '" data-name="' + name + '">' +
+                    '<span class="history-name">' + name + '</span>' +
+                    '<span class="history-period">' + period + '</span>' +
+                    (active ? '<span class="history-now">当前</span>' : '') +
+                    '</div>';
+            }).join('');
+            document.getElementById('history-note').style.display = names.length > 1 ? 'none' : 'block';
+        }
+
+        function clearTyphoonOverlays() {
+            trackLineLayers.forEach(function(layer) { map.removeLayer(layer); });
+            trackLineLayers = [];
+            windCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
+            windCircleLayers = [];
+            watchCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
+            watchCircleLayers = [];
+            if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
+            if (typhoonLabelMarker) { map.removeLayer(typhoonLabelMarker); typhoonLabelMarker = null; }
+            lastTyphoonPt = null;
+        }
+
+        function switchTyphoon(name) {
+            var d = TYPHOON_DATA[name];
+            if (!d || name === currentTyphoonName) return;
+            if (isPlaying) togglePlay();
+            currentTyphoonName = name;
+
+            typhoonTrack.length = 0;
+            Array.prototype.push.apply(typhoonTrack, d.track);
+
+            CONFIG.wrfStart = d.start || new Date('2025-09-15T00:00:00Z');
+            CONFIG.minT = (d.minT != null) ? d.minT : d.track[0].t;
+            CONFIG.maxT = (d.maxT != null) ? d.maxT : d.track[d.track.length - 1].t;
+            CONFIG.defaultT = (d.defaultT != null) ? d.defaultT : d.track[0].t;
+
+            clearTyphoonOverlays();
+            windFieldCache = {};
+            windCurrentT = -1;
+
+            var slider = document.getElementById('time-slider');
+            slider.min = CONFIG.minT;
+            slider.max = CONFIG.maxT;
+            slider.value = CONFIG.defaultT;
+
+            document.getElementById('left-panel-tbody').innerHTML = '';
+            initLeftPanel();
+            buildDateCalendar();
+            initTimeTicks();
+            closeFocusWindow();
+            if (focusMiniTrackLine) {
+                focusMiniTrackLine.setLatLngs(typhoonTrack.map(function(p) { return [p.lat, p.lon]; }));
+            }
+            updateTyphoonBrand();
+            updateHistoryList();
+
+            var bounds = L.latLngBounds([]);
+            typhoonTrack.forEach(function(p) { bounds.extend([p.lat, p.lon]); });
+            map.fitBounds(bounds, { padding: [40, 40] });
+
+            document.getElementById('history-menu').classList.remove('open');
+            updateTimeDisplay();
         }
 
         // ===== Initialization =====
         function init() {
             initMap();
             updateLegend(currentLayer);
-            drawColorBar();
             initLeftPanel();
             initLegendCategories();
             initTimeTicks();
+            updateTyphoonBrand();
+            updateHistoryList();
+            document.getElementById('speed-select').value = String(CONFIG.playSpeed);
 
             // Wire up controls
             var slider = document.getElementById('time-slider');
@@ -2558,31 +3160,113 @@
 
             document.getElementById('left-panel-toggle').addEventListener('click', toggleLeftPanel);
             document.getElementById('left-panel-close').addEventListener('click', toggleLeftPanel);
+            document.getElementById('title').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('history-menu').classList.toggle('open');
+            });
+            document.getElementById('history-list').addEventListener('click', function(e) {
+                var item = e.target.closest('.history-item');
+                if (item && item.getAttribute('data-name')) {
+                    switchTyphoon(item.getAttribute('data-name'));
+                }
+            });
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#typhoon-switcher') && !e.target.closest('#title')) {
+                    document.getElementById('history-menu').classList.remove('open');
+                }
+            });
+            document.getElementById('time-date-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                var panel = document.getElementById('time-date-panel');
+                panel.classList.toggle('open');
+                buildDateCalendar();
+            });
+            document.getElementById('time-date-calendar').addEventListener('click', function(e) {
+                var cell = e.target.closest('.cal-cell.has');
+                if (cell) jumpToDate(cell.getAttribute('data-date'));
+            });
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#time-search-row')) {
+                    document.getElementById('time-date-panel').classList.remove('open');
+                }
+            });
             document.getElementById('legend').addEventListener('click', toggleLegend);
             document.getElementById('legend-close').addEventListener('click', toggleLegend);
             document.getElementById('legend-modal').addEventListener('click', function(e) {
                 if (e.target === document.getElementById('legend-modal')) toggleLegend();
             });
             document.getElementById('news-ticker-close').addEventListener('click', closeNewsTicker);
+            document.getElementById('history-chart-toggle').addEventListener('click', function() {
+                var hc = document.getElementById('history-chart');
+                var collapsed = hc.classList.toggle('collapsed');
+                this.textContent = collapsed ? '+' : '−';
+            });
 
             // Tool buttons
             document.getElementById('btn-measure').addEventListener('click', function() {
                 if (measureActive) stopMeasure(true);
                 else startMeasure();
             });
-            document.getElementById('btn-focus-rect').addEventListener('click', function() {
+            document.getElementById('btn-focus').addEventListener('click', function(e) {
+                e.stopPropagation();
+                var menu = document.getElementById('focus-menu');
+                if (focusDrawActive) {
+                    cancelFocusDraw();
+                    menu.classList.remove('open');
+                } else {
+                    menu.classList.toggle('open');
+                }
+            });
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#focus-menu-wrap')) {
+                    document.getElementById('focus-menu').classList.remove('open');
+                }
+            });
+            document.getElementById('btn-focus-rect').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('focus-menu').classList.remove('open');
                 if (focusDrawActive && focusShape === 'rect') cancelFocusDraw();
                 else startFocusDraw('rect');
             });
-            document.getElementById('btn-focus-poly').addEventListener('click', function() {
+            document.getElementById('btn-focus-poly').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('focus-menu').classList.remove('open');
                 if (focusDrawActive && focusShape === 'poly') cancelFocusDraw();
                 else startFocusDraw('poly');
             });
             document.getElementById('measure-clear').addEventListener('click', clearMeasure);
             document.getElementById('measure-done').addEventListener('click', function() {
-                stopMeasure(true);
+                stopMeasure(false);
             });
             document.getElementById('focus-window-close').addEventListener('click', closeFocusWindow);
+            document.getElementById('focus-window-close').addEventListener('pointerdown', function(e) {
+                e.stopPropagation();
+            });
+            document.getElementById('btn-zoom-in').addEventListener('click', function() { map.zoomIn(); });
+            document.getElementById('btn-zoom-out').addEventListener('click', function() { map.zoomOut(); });
+            document.getElementById('btn-clean').addEventListener('click', enterCleanMode);
+            document.getElementById('btn-clean-exit').addEventListener('click', exitCleanMode);
+            document.getElementById('btn-lock').addEventListener('click', function() {
+                typhoonLock = !typhoonLock;
+                this.classList.toggle('active', typhoonLock);
+                if (typhoonLock) {
+                    var idx = -1;
+                    var cur = parseInt(document.getElementById('time-slider').value);
+                    for (var i = 0; i < typhoonTrack.length; i++) {
+                        if (typhoonTrack[i].t === cur) { idx = i; break; }
+                    }
+                    if (idx >= 0) map.setView([typhoonTrack[idx].lat, typhoonTrack[idx].lon], map.getZoom(), { animate: true });
+                }
+            });
+            map.on('dragstart', function() {
+                if (typhoonLock) {
+                    typhoonLock = false;
+                    document.getElementById('btn-lock').classList.remove('active');
+                }
+            });
+            document.addEventListener('fullscreenchange', function() {
+                if (!document.fullscreenElement) exitCleanMode();
+            });
 
             // Focus window drag & resize
             var focusHeader = document.getElementById('focus-window-header');
@@ -2626,7 +3310,7 @@
                 focusWindow.style.height = h + 'px';
                 if (focusMiniMap) {
                     focusMiniMap.invalidateSize();
-                    var key = 'wind_field_' + String(windCurrentT).padStart(4, '0') + '.bin';
+                    var key = windFieldKey(windCurrentT);
                     if (windFieldCache[key]) syncMiniWind(windFieldCache[key]);
                 }
             });
@@ -2645,48 +3329,6 @@
                 document.getElementById('wind-opacity-value').textContent = v + '%';
                 document.getElementById('wind-canvas').style.opacity = ((100 - v) / 100);
             });
-
-            // Draggable wind panel (mouse + touch)
-            var windPanel = document.getElementById('wind-panel');
-            var panelDragging = false;
-            var panelStartX = 0, panelStartY = 0;
-            var panelOriginLeft = 0, panelOriginTop = 0;
-
-            windPanel.addEventListener('pointerdown', function(e) {
-                if (e.target === document.getElementById('wind-opacity')) return;
-                if (e.target.closest('#wind-opacity-control')) return;
-                if (e.target.closest('#wind-toggle')) return;
-                panelDragging = true;
-                windPanel.classList.add('dragging');
-                panelStartX = e.clientX;
-                panelStartY = e.clientY;
-                panelOriginLeft = parseFloat(windPanel.style.left) || windPanel.getBoundingClientRect().left;
-                panelOriginTop = parseFloat(windPanel.style.top) || windPanel.getBoundingClientRect().top;
-                windPanel.setPointerCapture(e.pointerId);
-                e.preventDefault();
-            });
-
-            windPanel.addEventListener('pointermove', function(e) {
-                if (!panelDragging) return;
-                var dx = e.clientX - panelStartX;
-                var dy = e.clientY - panelStartY;
-                var left = panelOriginLeft + dx;
-                var top = panelOriginTop + dy;
-                var pr = windPanel.getBoundingClientRect();
-                left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, left));
-                top = Math.max(8, Math.min(window.innerHeight - pr.height - 8, top));
-                windPanel.style.left = left + 'px';
-                windPanel.style.top = top + 'px';
-                windPanel.style.transform = 'none';
-            });
-
-            function endPanelDrag(e) {
-                if (!panelDragging) return;
-                panelDragging = false;
-                windPanel.classList.remove('dragging');
-            }
-            windPanel.addEventListener('pointerup', endPanelDrag);
-            windPanel.addEventListener('pointercancel', endPanelDrag);
 
             // Keyboard controls
             document.addEventListener('keydown', function(e) {
@@ -2708,23 +3350,6 @@
             // Initial render
             document.getElementById('wind-toggle').classList.add('active');
             updateTimeDisplay();
-            initWindPanelPosition();
-        }
-
-        function initWindPanelPosition() {
-            var panel = document.getElementById('wind-panel');
-            if (!panel) return;
-            var tp = document.getElementById('time-panel');
-            var tpRect = tp.getBoundingClientRect();
-            var pr = panel.getBoundingClientRect();
-            if (pr.width === 0 || pr.height === 0) return;
-            var left = tpRect.left + (tpRect.width - pr.width) / 2;
-            var top = tpRect.top - pr.height - 10;
-            left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, left));
-            top = Math.max(8, Math.min(window.innerHeight - pr.height - 8, top));
-            panel.style.left = left + 'px';
-            panel.style.top = top + 'px';
-            panel.style.transform = 'none';
         }
 
         document.addEventListener('DOMContentLoaded', init);
