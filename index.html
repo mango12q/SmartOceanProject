@@ -5,11 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>桦加沙 - 台风路径可视化</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cdefs%3E%3ClinearGradient%20id='b'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%2342a5f5'/%3E%3Cstop%20offset='1'%20stop-color='%230d47a1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle%20cx='32'%20cy='32'%20r='31'%20fill='url(%23b)'/%3E%3Cg%20fill='none'%20stroke='%23fff'%20stroke-width='4'%20stroke-linecap='round'%3E%3Cpath%20d='M32%2032C38%2027%2046%2031%2045%2039C44%2047%2033%2051%2026%2045C19%2039%2019%2027%2028%2022'/%3E%3Cpath%20d='M32%2032C26%2037%2018%2033%2019%2025C20%2017%2031%2013%2038%2019C45%2025%2045%2037%2036%2042'/%3E%3C/g%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="vendor/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Microsoft YaHei', sans-serif; overflow: hidden; }
         #map { width: 100vw; height: 100vh; }
+
+        /* Top title: current typhoon name + selector */
+        #title {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: rgba(255,255,255,0.94); color: #222;
+            padding: 6px 24px; border-radius: 20px; font-size: 1.1rem;
+            font-weight: 700; letter-spacing: 0.12em; white-space: nowrap;
+            pointer-events: auto; cursor: pointer; user-select: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            border: 1px solid rgba(21,101,192,0.2);
+        }
+        #title .title-caret { font-size: 0.8em; color: #1976d2; margin-left: 4px; }
+        #title:hover { background: #f4f9ff; }
+        #title.open .title-caret { transform: rotate(180deg); }
+        .route-name-label span {
+            background: rgba(255,255,255,0.97); color: #43a047;
+            border: 2px solid #43a047; border-radius: 4px;
+            font-size: 13px; font-weight: 700; padding: 3px 8px;
+            white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
 
         /* Info Panel */
         /* Layer Switcher */
@@ -93,6 +113,13 @@
             background: #e3f2fd;
             border-color: #1976d2;
         }
+        #tool-controls .tool-group-label {
+            font-size: 0.58rem; font-weight: 700; color: #1565c0;
+            letter-spacing: 0.12em; text-align: center;
+            padding: 3px 0 1px; opacity: 0.7;
+            border-top: 1px solid rgba(21,101,192,0.16);
+        }
+        #tool-controls .tool-group-label:first-child { border-top: none; padding-top: 1px; }
         #tool-controls button::after,
         #playback-controls button[data-tip]::after {
             content: attr(data-tip);
@@ -122,6 +149,29 @@
             font-size: 0.82rem; transition: all 0.2s; text-align: left;
         }
         #focus-menu button:hover { background: #e3f2fd; border-color: #1976d2; }
+
+        /* VS typhoon selection menu (right expand) */
+        #vs-menu-wrap { position: relative; }
+        #vs-menu {
+            position: absolute; top: 0; left: calc(100% + 4px); z-index: 1300;
+            display: none; flex-direction: column; gap: 2px; min-width: 180px;
+            background: rgba(255,255,255,0.97); padding: 6px;
+            border-radius: 8px; border: 1px solid rgba(21,101,192,0.25);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        }
+        #vs-menu.open { display: flex; }
+        .vs-item {
+            padding: 6px 10px; border-radius: 6px; cursor: pointer;
+            font-size: 0.82rem; color: #333; white-space: nowrap;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .vs-item:hover { background: #e3f2fd; }
+        .vs-item.active { background: #bbdefb; font-weight: 600; }
+        .vs-item .vs-check {
+            width: 12px; height: 12px; border: 1.5px solid #1976d2; border-radius: 3px;
+            display: inline-block; flex: 0 0 12px;
+        }
+        .vs-item.active .vs-check { background: #1976d2; }
 
         /* Measure info bar */
         #measure-info {
@@ -190,32 +240,16 @@
         body.clean-mode #top-controls,
         body.clean-mode #tool-controls,
         body.clean-mode #history-chart,
-        body.clean-mode #time-panel,
-        body.clean-mode #legend,
         body.clean-mode #left-panel-toggle,
         body.clean-mode #measure-info,
         body.clean-mode #news-ticker,
-        body.clean-mode #title,
-        body.clean-mode #typhoon-switcher,
         body.clean-mode #eye-coord,
+        body.clean-mode #title,
+        body.clean-mode #compare-legend,
+        body.clean-mode #gba-label,
+        body.clean-mode #hazard-radar,
         body.clean-mode #focus-window,
         body.clean-mode .leaflet-control-scale { display: none !important; }
-
-        /* Title */
-        #title {
-            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: rgba(255,255,255,0.94); color: #222;
-            padding: 8px 28px; border-radius: 20px; font-size: 1.2rem;
-            font-weight: bold; letter-spacing: 0.15em;
-            pointer-events: auto; cursor: pointer;
-            backdrop-filter: blur(6px); border: 1px solid rgba(21,101,192,0.3);
-            box-shadow: 0 2px 10px rgba(21,101,192,0.15);
-            transition: background 0.2s;
-        }
-        #title:hover { background: #fff; }
-        #title::after {
-            content: ' ▾'; font-size: 0.8em; color: #333;
-        }
 
         /* Typhoon eye coordinates (bottom-left) */
         #eye-coord {
@@ -229,50 +263,56 @@
         .leaflet-bottom.leaflet-left { display: flex; align-items: flex-end; }
         #eye-coord.in-scale-row { position: static; margin: 0 0 5px 8px; }
 
-        /* Typhoon Switcher */
-        #typhoon-switcher {
-            position: absolute; top: 62px; left: 50%; transform: translateX(-50%);
-            z-index: 1001;
+        /* Typhoon selector (top-center dropdown) */
+        #typhoon-menu {
+            position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+            display: none; flex-direction: column; gap: 4px;
+            background: rgba(255,255,255,0.98); padding: 8px;
+            border-radius: 10px; backdrop-filter: blur(6px);
+            border: 1px solid rgba(21,101,192,0.22);
+            box-shadow: 0 8px 22px rgba(21,101,192,0.18);
+            z-index: 1200; min-width: 220px; max-height: 60vh; overflow-y: auto;
+            color: #1a2b3c; text-align: left; font-weight: 400; letter-spacing: 0;
         }
-        #history-menu {
-            position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%);
-            display: none; min-width: 240px;
-            background: rgba(255,255,255,0.97); color: #1a2b3c;
-            border-radius: 10px; padding: 8px 10px;
-            box-shadow: 0 6px 20px rgba(21,101,192,0.16);
-            backdrop-filter: blur(8px); border: 1px solid rgba(21,101,192,0.22);
-        }
-        #history-menu.open { display: block; }
-        .history-head {
-            font-size: 0.76rem; color: #333; padding: 2px 4px 6px;
-            border-bottom: 1px solid rgba(21,101,192,0.15); margin-bottom: 6px;
-            letter-spacing: 0.08em;
-        }
+        #typhoon-menu.open { display: flex; }
+        #history-list { display: flex; flex-direction: column; gap: 4px; }
         .history-item {
-            display: flex; align-items: center; gap: 8px;
-            padding: 7px 8px; border-radius: 7px; cursor: pointer;
-            font-size: 0.86rem; transition: background 0.15s;
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 10px; border-radius: 9px; cursor: pointer;
+            font-size: 0.9rem; transition: background 0.15s, transform 0.1s;
         }
-        .history-item:hover { background: #e3f2fd; }
-        .history-item.active { background: #bbdefb; }
-        .history-item.active .history-name { color: #222; }
-        .history-name { font-weight: 600; }
-        .history-period { font-size: 0.72rem; color: #5c6f82; }
+        .history-item:hover { background: #eef5ff; transform: translateX(2px); }
+        .history-item.active {
+            background: linear-gradient(90deg, #e3f0ff, #f4f8ff);
+            border: 1px solid #bbdefb; box-shadow: inset 3px 0 0 #1565c0;
+        }
+        .history-ico {
+            flex: 0 0 30px; height: 30px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; color: #fff; background: #1565c0;
+            box-shadow: 0 2px 5px rgba(21,101,192,0.3);
+        }
+        .history-info { display: flex; flex-direction: column; min-width: 0; }
+        .history-name { font-weight: 700; color: #0d47a1; }
+        .history-period { font-size: 0.72rem; color: #5c6f82; margin-top: 1px; }
         .history-now {
-            margin-left: auto; font-size: 0.68rem; color: #333;
-            border: 1px solid #333; border-radius: 10px; padding: 1px 7px;
+            margin-left: auto; flex: 0 0 auto; font-size: 0.66rem; font-weight: 700;
+            color: #1565c0; background: #e3f0ff; border: 1px solid #bbdefb;
+            border-radius: 12px; padding: 2px 9px;
         }
         .history-note { font-size: 0.72rem; color: #5c6f82; padding: 6px 4px 2px; }
 
         /* History Chart */
         #history-chart {
-            position: absolute; top: 90px; right: 15px; z-index: 1000;
+            position: absolute; top: 15px; left: 82px; z-index: 1000;
+            display: none;
             background: rgba(255,255,255,0.95); color: #333;
             padding: 9px 10px 7px; border-radius: 12px;
             backdrop-filter: blur(8px); border: 1px solid rgba(21,101,192,0.22);
-            width: 300px; max-width: calc(100vw - 30px); pointer-events: auto;
+            width: 300px; max-width: calc(100vw - 82px); pointer-events: auto;
             box-shadow: 0 4px 16px rgba(21,101,192,0.15);
         }
+        #history-chart.show { display: block; }
         #history-chart-title {
             font-size: 0.78rem; margin-bottom: 4px;
             letter-spacing: 0.05em;
@@ -317,8 +357,8 @@
         }
         #time-display { font-size: 1rem; font-weight: bold; color: #333; }
         #time-slider { width: 100%; cursor: pointer; }
-        #time-ticks { display: flex; justify-content: space-between; width: 100%; padding: 0 4px; }
-        .time-tick { position: relative; flex: 1; text-align: center; font-size: 0.7rem; color: #666; white-space: nowrap; }
+        #time-ticks { position: relative; width: 100%; height: 20px; }
+        .time-tick { position: absolute; top: 0; transform: translateX(-50%); text-align: center; font-size: 0.7rem; color: #666; white-space: nowrap; }
         .time-tick::before { content: ''; position: absolute; top: -10px; left: 50%; width: 1px; height: 6px; background: #ccc; }
         .time-tick.major::before { height: 9px; background: #999; }
         .time-tick.major { font-weight: bold; color: #333; }
@@ -346,6 +386,148 @@
         #color-bar canvas { height: 14px; border-radius: 3px; display: block; }
         #color-bar-labels { display: flex; gap: 6px; flex-wrap: wrap; }
         .color-label { display: flex; align-items: center; gap: 3px; font-size: 0.7rem; color: #444; }
+
+        /* Wind diff legend (corrected − original) */
+        #diff-legend {
+            display: none; flex-direction: column; align-items: center; gap: 3px;
+            width: 100%;
+        }
+        #diff-legend-canvas {
+            width: 200px; height: 12px; border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.15);
+        }
+        #diff-legend-labels {
+            display: flex; justify-content: space-between; width: 200px;
+            font-size: 0.68rem; color: #555;
+        }
+        #diff-legend-title { font-size: 0.68rem; color: #666; }
+
+        /* Hazard warning radar (six-dimension) */
+        #hazard-radar {
+            position: absolute; top: 90px; right: 15px; z-index: 1000;
+            display: none; flex-direction: column; align-items: center;
+            width: 520px; max-width: calc(100vw - 30px);
+            max-height: calc(100vh - 128px - 46vh); overflow-y: auto;
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,249,255,0.98));
+            border-radius: 14px; border: 1px solid rgba(21,101,192,0.25);
+            box-shadow: 0 10px 30px rgba(13,71,161,0.25);
+            backdrop-filter: blur(10px);
+        }
+        #hazard-radar.show { display: flex; }
+        #hazard-radar-header {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            padding: 9px 12px; color: #fff;
+            background: linear-gradient(135deg, #1976d2, #0d47a1);
+        }
+        #hazard-radar-header .hr-title { font-size: 0.86rem; font-weight: 700; letter-spacing: 0.05em; }
+        #hazard-radar-close {
+            background: rgba(255,255,255,0.2); border: none; color: #fff;
+            width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+            line-height: 1; font-size: 0.82rem; transition: background 0.15s;
+        }
+        #hazard-radar-close:hover { background: rgba(255,255,255,0.38); }
+        #hazard-radar-pos {
+            width: 100%; padding: 7px 10px 1px; font-size: 0.7rem; color: #546e7a;
+            text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        #hazard-radar-body {
+            width: 100%; display: flex; flex-direction: row; align-items: center; gap: 8px;
+            padding: 0 12px;
+        }
+        #hazard-radar-canvas { flex: 0 0 280px; display: block; }
+        #hazard-radar-values {
+            flex: 1 1 auto; padding: 0 0 0 2px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .hr-row {
+            display: flex; align-items: baseline; gap: 4px;
+            font-size: 0.68rem; line-height: 1.4;
+        }
+        .hr-row.hr-head { color: #90a4ae; font-size: 0.62rem; border-bottom: 1px solid rgba(21,101,192,0.12); padding-bottom: 2px; }
+        .hr-dim { flex: 0 0 46px; color: #37474f; }
+        .hr-row.hr-head .hr-dim { color: #90a4ae; }
+        .hr-val { flex: 0 0 58px; text-align: right; font-variant-numeric: tabular-nums; }
+        .hr-val.orig { color: #9e9e9e; }
+        .hr-val.corr { color: #1565c0; font-weight: 700; }
+        .hr-delta { flex: 0 0 36px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .hr-delta.up { color: #e53935; }
+        .hr-delta.down { color: #2e7d32; }
+        .hr-delta.zero { color: #b0bec5; }
+        #hazard-radar-compare-row { display: flex; align-items: center; gap: 18px; padding: 2px 12px 0; }
+        .hr-switch {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.72rem; color: #1565c0; cursor: pointer; user-select: none;
+        }
+        .hr-switch input { accent-color: #1976d2; cursor: pointer; }
+        .hr-amp {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.68rem; color: #546e7a; user-select: none;
+        }
+        .hr-amp input[type="range"] { width: 90px; accent-color: #1976d2; cursor: pointer; }
+        #hazard-radar-amp-val { min-width: 24px; color: #1565c0; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .wn { font-weight: 700; }
+        .wn.blue { color: #2196f3; }
+        .wn.yellow { color: #f9a825; }
+        .wn.orange { color: #ff9800; }
+        .wn.red { color: #d32f2f; }
+        #hazard-radar-legend {
+            display: flex; gap: 16px; padding: 3px 10px 6px; font-size: 0.7rem; color: #546e7a;
+        }
+        #hazard-radar-note {
+            width: 100%; padding: 0 12px 10px; font-size: 0.6rem; line-height: 1.5;
+            color: #78909c; text-align: left;
+        }
+        .hr-lg { display: inline-flex; align-items: center; gap: 5px; }
+        .hr-dot { width: 15px; height: 3px; border-radius: 2px; display: inline-block; }
+        .hr-dot.orig { background: #9e9e9e; }
+        .hr-dot.corr { background: #1976d2; }
+        .compare-name-label span {
+            background: rgba(255,255,255,0.95); color: #444;
+            border: 1px solid #e53935; border-radius: 3px;
+            font-size: 10px; font-weight: 600; padding: 1px 5px;
+            white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+        #compare-legend {
+            display: none; position: absolute; top: 94px; left: 50%; transform: translateX(-50%);
+            z-index: 1001; background: rgba(255,255,255,0.96); color: #333;
+            padding: 6px 14px; border-radius: 16px; font-size: 0.82rem;
+            border: 1px solid rgba(21,101,192,0.35); box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            white-space: nowrap; pointer-events: auto;
+            align-items: center; gap: 6px;
+        }
+        #compare-legend.show { display: flex; }
+        #compare-legend .compare-label { font-weight: 600; }
+        #compare-legend .compare-vs { color: #999; }
+        #compare-current { color: #1565c0; font-weight: 700; }
+        #compare-select {
+            background: #1976d2; color: #fff; border: none;
+            border-radius: 12px; padding: 3px 10px; cursor: pointer;
+            font-size: 0.78rem; transition: background 0.15s;
+        }
+        #compare-select:hover { background: #1565c0; }
+        #compare-menu {
+            position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+            display: none; min-width: 180px; max-width: calc(100vw - 30px);
+            background: rgba(255,255,255,0.98); border: 1px solid rgba(21,101,192,0.22);
+            border-radius: 10px; box-shadow: 0 8px 22px rgba(13,71,161,0.18);
+            padding: 5px; z-index: 1300; text-align: left;
+        }
+        #compare-menu.open { display: block; }
+        .compare-item {
+            padding: 8px 12px; border-radius: 8px; cursor: pointer;
+            font-size: 0.85rem; color: #333; transition: background 0.12s;
+        }
+        .compare-item:hover { background: #eef5ff; }
+        .compare-item.active { background: #e3f0ff; color: #1565c0; font-weight: 700; }
+        #gba-label {
+            display: none; position: absolute; top: 12px; left: 15px;
+            z-index: 1001; background: rgba(255,255,255,0.94); color: #222;
+            padding: 5px 14px; border-radius: 16px; font-size: 0.82rem;
+            font-weight: 600; border: 1px solid rgba(21,101,192,0.25);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15); white-space: nowrap;
+            pointer-events: none;
+        }
+        #gba-label.show { display: block; }
         .color-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
         /* Legend */
@@ -394,6 +576,13 @@
             line-height: 1.2;
         }
         #legend .wind-speed-title { margin-bottom: 4px; font-weight: 600; }
+        #legend .legend-route-title {
+            margin-top: 6px; padding-top: 6px;
+            border-top: 1px solid rgba(0,0,0,0.12);
+            font-weight: 700; font-size: 0.85rem; color: #333;
+            margin-bottom: 2px;
+        }
+        #legend .legend-route-title::before { content: '⛴ '; }
         #legend .wind-speed-grid {
             display: grid; grid-template-columns: repeat(2, minmax(68px, 1fr));
             gap: 3px 8px;
@@ -493,7 +682,6 @@
             #layer-switcher { position: static; }
             #legend { right: 8px; bottom: 38px; font-size: 0.75rem; padding: 8px 10px; }
             #left-panel-toggle { bottom: 38px; left: 8px; }
-            #title { font-size: 1rem; padding: 6px 18px; }
             #eye-coord.in-scale-row { font-size: 0.78rem; }
             #wind-opacity { width: 80px; }
         }
@@ -593,6 +781,53 @@
 
     <div id="eye-coord">--</div>
 
+    <div id="title">
+        <span class="title-name">桦加沙</span>
+        <span class="title-caret">▾</span>
+        <div id="typhoon-menu">
+            <div id="history-list"></div>
+            <div class="history-note" id="history-note">暂无其他历史台风数据，后续数据处理后会自动出现在这里</div>
+        </div>
+    </div>
+
+    <div id="compare-legend">
+        <span class="compare-label">🆚 双台风对比：</span>
+        <span id="compare-current">桦加沙</span>
+        <span class="compare-vs">vs</span>
+        <button id="compare-select" type="button">选择台风 ▾</button>
+        <div id="compare-menu"></div>
+    </div>
+
+    <div id="gba-label">粤港澳大湾区重点目标</div>
+
+    <div id="hazard-radar">
+        <div id="hazard-radar-header">
+            <span class="hr-title">灾害预警六维雷达</span>
+            <button id="hazard-radar-close" title="关闭">✕</button>
+        </div>
+        <div id="hazard-radar-pos">点击地图任意点查看该处预警</div>
+        <div id="hazard-radar-body">
+            <canvas id="hazard-radar-canvas"></canvas>
+            <div id="hazard-radar-values"></div>
+        </div>
+        <div id="hazard-radar-compare-row">
+            <label class="hr-switch">
+                <input type="checkbox" id="hazard-radar-compare" checked>
+                <span>原场 ⇄ 订正场对比</span>
+            </label>
+            <label class="hr-amp">
+                <span>差值放大</span>
+                <input type="range" id="hazard-radar-amp" min="1" max="10" step="0.5" value="1">
+                <span id="hazard-radar-amp-val">×1</span>
+            </label>
+        </div>
+        <div id="hazard-radar-legend">
+            <span class="hr-lg"><i class="hr-dot orig"></i>原场</span>
+            <span class="hr-lg"><i class="hr-dot corr"></i>订正场</span>
+        </div>
+        <div id="hazard-radar-note">风速(国家预警)：<span class="wn blue">蓝&lt;17.1</span> <span class="wn yellow">黄&lt;24.4</span> <span class="wn orange">橙&lt;32.6</span> <span class="wn red">红≥32.6 m/s</span>；大风时长为该点≥17.2 m/s 的持续小时数；中心/路径/设施越近威胁越大</div>
+    </div>
+
     <div id="top-controls">
         <div id="layer-switcher">
             <button data-layer="osm" class="active">行政地图</button>
@@ -602,6 +837,7 @@
     </div>
 
         <div id="tool-controls">
+            <div class="tool-group-label">绘图测量</div>
             <button id="btn-measure" title="点击地图测距，双击结束" data-tip="测距">📏</button>
             <div id="focus-menu-wrap">
                 <button id="btn-focus" title="绘制关注区域" data-tip="绘制关注区">✏️</button>
@@ -610,13 +846,21 @@
                     <button id="btn-focus-poly" title="绘制多边形关注重点区域，双击闭合">多边形</button>
                 </div>
             </div>
-            <button id="btn-clean" title="清屏全屏模式" data-tip="清屏全屏">⛶</button>
+            <div class="tool-group-label">视图</div>
+            <button id="btn-clean" title="全屏" data-tip="全屏">⛶</button>
             <button id="btn-lock" title="锁定台风风眼，视图跟随台风" data-tip="锁定风眼">🎯</button>
             <button id="btn-watch" title="显示/隐藏24、48小时警戒线" data-tip="警戒线" class="active">⚠</button>
             <button id="btn-fit" title="复位到台风全路径视野" data-tip="复位视图">⌂</button>
+            <button id="btn-chart" title="台风强度演变图" data-tip="强度演变">📈</button>
+            <button id="btn-hazard" title="灾害预警六维雷达" data-tip="灾害预警">⛑</button>
+            <div class="tool-group-label">对比导出</div>
             <button id="btn-shot" title="截图导出当前画面为PNG" data-tip="截图导出">📸</button>
             <button id="btn-compare" title="原场/订正场风场对比" data-tip="原场/订正场">🔄</button>
-            <button id="btn-multi" title="多台风路径对比" data-tip="双台风对比">🆚</button>
+            <div id="vs-menu-wrap">
+                <button id="btn-multi" title="选择要对比的台风" data-tip="双台风对比">🆚</button>
+                <div id="vs-menu"></div>
+            </div>
+            <div class="tool-group-label">缩放</div>
             <button id="btn-zoom-in" title="放大" data-tip="放大">＋</button>
             <button id="btn-zoom-out" title="缩小" data-tip="缩小">－</button>
         </div>
@@ -638,32 +882,22 @@
         <div id="focus-window-resize"></div>
     </div>
 
-        <div id="history-chart">
-            <div id="history-chart-title">
-                <span class="hc-title">台风强度演变</span>
-                <button id="history-chart-toggle" title="折叠/展开">−</button>
-            </div>
-            <div id="history-chart-legend">
-                <span class="hc-legend"><i class="hc-dot" style="background:#ff6b6b"></i>中心气压 (hPa)</span>
-                <span class="hc-legend"><i class="hc-dot" style="background:#4fc3f7"></i>最大风速 (m/s)</span>
-            </div>
-            <canvas id="history-chart-canvas"></canvas>
-            <div id="history-chart-current">--</div>
+    <div id="history-chart">
+        <div id="history-chart-title">
+            <span class="hc-title">台风强度演变</span>
+            <button id="history-chart-toggle" title="折叠/展开">−</button>
         </div>
-
-    <div id="title">桦加沙</div>
-
-    <div id="typhoon-switcher">
-        <div id="history-menu">
-            <div class="history-head">历史台风</div>
-            <div id="history-list"></div>
-            <div class="history-note" id="history-note">暂无其他历史台风数据，后续数据处理后会自动出现在这里</div>
+        <div id="history-chart-legend">
+            <span class="hc-legend"><i class="hc-dot" style="background:#ff6b6b"></i>中心气压 (hPa)</span>
+            <span class="hc-legend"><i class="hc-dot" style="background:#4fc3f7"></i>最大风速 (m/s)</span>
         </div>
+        <canvas id="history-chart-canvas"></canvas>
+        <div id="history-chart-current">--</div>
     </div>
 
     <div id="time-panel">
         <div id="time-display">2025-09-18 09:00</div>
-        <input type="range" id="time-slider" min="61" max="263" step="1" value="135">
+        <input type="range" id="time-slider" min="93" max="263" step="1" value="135">
         <div id="time-ticks"></div>
         <div id="playback-row">
             <div id="playback-controls">
@@ -689,6 +923,15 @@
                 <input type="range" id="wind-opacity" min="0" max="100" value="15" title="风场透明度">
                 <span id="wind-opacity-value">15%</span>
             </div>
+        </div>
+        <div id="diff-legend">
+            <canvas id="diff-legend-canvas"></canvas>
+            <div id="diff-legend-labels">
+                <span id="diff-legend-min"></span>
+                <span>0</span>
+                <span id="diff-legend-max"></span>
+            </div>
+            <div id="diff-legend-title">订正后风速变化 (m/s)</div>
         </div>
     </div>
 
@@ -767,13 +1010,13 @@
         <button id="news-ticker-close" title="关闭快讯">✕</button>
     </div>
 
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script src="https://unpkg.com/topojson-client@3"></script>
-        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+        <script src="vendor/leaflet.js"></script>
+        <script src="vendor/topojson-client.min.js"></script>
+        <script src="vendor/html2canvas.min.js"></script>
         <script type="importmap">
         {
             "imports": {
-                "@msgpack/msgpack": "https://cdn.jsdelivr.net/npm/@msgpack/msgpack@3.0.0/+esm"
+                "@msgpack/msgpack": "/vendor/msgpack.mjs"
             }
         }
         </script>
@@ -811,6 +1054,11 @@
             'circle12': '<span style="display:inline-block;width:12px;height:12px;border:1.5px dashed #9c27b0;border-radius:50%;vertical-align:middle;margin-right:7px;"></span>12级风圈',
             'watch24': '<span style="display:inline-block;width:20px;height:3px;background:#fbc02d;vertical-align:middle;margin-right:7px;"></span>24小时警戒线',
             'watch48': '<span style="display:inline-block;width:20px;height:0;border-top:2px dashed #1e88e5;vertical-align:middle;margin-right:7px;"></span>48小时警戒线',
+            'routeTitle': '<div class="legend-route-title">航线影响等级</div>',
+            'routeHigh': '<span style="display:inline-block;width:26px;height:0;border-top:4px dashed #e53935;vertical-align:middle;margin-right:7px;"></span><b>航线·强影响</b> (&lt;300km)',
+            'routeMid': '<span style="display:inline-block;width:26px;height:0;border-top:4px dashed #fb8c00;vertical-align:middle;margin-right:7px;"></span><b>航线·中影响</b> (&lt;600km)',
+            'routeWatch': '<span style="display:inline-block;width:26px;height:0;border-top:4px dashed #1e88e5;vertical-align:middle;margin-right:7px;"></span><b>航线·注意</b> (&lt;900km)',
+            'routeSafe': '<span style="display:inline-block;width:26px;height:0;border-top:4px dashed #43a047;vertical-align:middle;margin-right:7px;"></span><b>航线·暂未受影响</b>',
             'barb': WIND_SPEED_SCALE_HTML,
             'coast': '<span class="line-sample" style="background:#555;"></span>国界/海岸线',
             'province': '<span class="dashed-sample"></span>省界',
@@ -819,9 +1067,9 @@
             'portRisk': TARGET_RISK_LEGEND_HTML
         };
         var LEGEND_LAYERS = {
-            'osm': ['coast', 'province', 'typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'watch24', 'watch48', 'portRisk', 'barb'],
-            'satellite': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'watch24', 'watch48', 'portRisk', 'barb'],
-            'terrain': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'watch24', 'watch48', 'portRisk', 'barb']
+            'osm': ['coast', 'province', 'typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'watch24', 'watch48', 'routeTitle', 'routeHigh', 'routeMid', 'routeWatch', 'routeSafe', 'portRisk', 'barb'],
+            'satellite': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'watch24', 'watch48', 'routeTitle', 'routeHigh', 'routeMid', 'routeWatch', 'routeSafe', 'portRisk', 'barb'],
+            'terrain': ['typhoon', 'vortex', 'circle7', 'circle10', 'circle12', 'watch24', 'watch48', 'routeTitle', 'routeHigh', 'routeMid', 'routeWatch', 'routeSafe', 'portRisk', 'barb']
         };
         function updateLegend(layerName) {
             var keys = LEGEND_LAYERS[layerName] || LEGEND_LAYERS.osm;
@@ -850,19 +1098,46 @@
         // ===== Typhoon Data Registry =====
         // 后续台风数据用同样算法处理后，往 TYPHOON_DATA 里加一项即可。
         // windDir 填写风场文件目录前缀（如 'wind_field/杜苏芮/'），留空表示 wind_field/ 根目录。
-        // === AUTO:TYPHOON_DATA:START ===
+                // === AUTO:TYPHOON_DATA:START ===
         var TYPHOON_DATA = {
             '桦加沙': {
                 start: new Date('2025-09-15T00:00:00Z'),
-                minT: 61, maxT: 263, defaultT: 135,
+                minT: 93, maxT: 263, defaultT: 135,
                 ticks: [
                     { t: 135, label: '生成', major: true },
-                    { t: 163, label: '巅峰', major: true },
                     { t: 225, label: '登陆', major: true },
-                    { t: 249, label: '消散', major: true }
+                    { t: 227, label: '巅峰', major: true },
+                    { t: 249, label: '消散', major: true },
                 ],
                 windDir: '',
-                track: typhoonTrack.slice()
+                windDirCorrected: '桦加沙_corr/',
+                track: [{"t":135,"lat":17.44,"lon":127.99,"psfc":96944,"wind":10.2},{"t":136,"lat":17.54,"lon":127.9,"psfc":96735,"wind":4.1},{"t":137,"lat":17.73,"lon":127.82,"psfc":96690,"wind":6.7},{"t":138,"lat":17.84,"lon":127.63,"psfc":96608,"wind":5.5},{"t":139,"lat":17.85,"lon":127.54,"psfc":96589,"wind":7.2},{"t":140,"lat":17.95,"lon":127.35,"psfc":96515,"wind":4.5},{"t":141,"lat":17.96,"lon":127.25,"psfc":96511,"wind":5.2},{"t":142,"lat":17.98,"lon":126.96,"psfc":96587,"wind":6.2},{"t":143,"lat":17.89,"lon":126.96,"psfc":96482,"wind":3.7},{"t":144,"lat":18.17,"lon":126.88,"psfc":96388,"wind":9.2},{"t":145,"lat":18.09,"lon":126.68,"psfc":96302,"wind":8.1},{"t":146,"lat":18,"lon":126.67,"psfc":96223,"wind":5.5},{"t":147,"lat":18.19,"lon":126.59,"psfc":96120,"wind":7},{"t":148,"lat":18.2,"lon":126.49,"psfc":96054,"wind":7.1},{"t":149,"lat":18.3,"lon":126.31,"psfc":95979,"wind":3.9},{"t":150,"lat":18.32,"lon":126.11,"psfc":95856,"wind":5.1},{"t":151,"lat":18.31,"lon":126.21,"psfc":95736,"wind":4.1},{"t":152,"lat":18.6,"lon":126.03,"psfc":95637,"wind":10.6},{"t":153,"lat":18.51,"lon":125.93,"psfc":95647,"wind":5.5},{"t":154,"lat":18.7,"lon":125.85,"psfc":95645,"wind":8.8},{"t":155,"lat":18.72,"lon":125.55,"psfc":95521,"wind":4.4},{"t":156,"lat":18.73,"lon":125.46,"psfc":95381,"wind":4.7},{"t":157,"lat":18.93,"lon":125.18,"psfc":95199,"wind":10.8},{"t":158,"lat":18.84,"lon":125.07,"psfc":95128,"wind":4.7},{"t":159,"lat":18.96,"lon":124.59,"psfc":95165,"wind":5.8},{"t":160,"lat":19.06,"lon":124.5,"psfc":94890,"wind":7.2},{"t":161,"lat":19.16,"lon":124.31,"psfc":94819,"wind":10.3},{"t":162,"lat":19.09,"lon":123.81,"psfc":94647,"wind":9.3},{"t":163,"lat":19.19,"lon":123.82,"psfc":94268,"wind":9.3},{"t":164,"lat":19.1,"lon":123.62,"psfc":94310,"wind":2.8},{"t":165,"lat":19.3,"lon":123.43,"psfc":94343,"wind":10.9},{"t":166,"lat":19.21,"lon":123.23,"psfc":94342,"wind":9.9},{"t":167,"lat":19.23,"lon":122.94,"psfc":94398,"wind":7.1},{"t":168,"lat":19.14,"lon":122.83,"psfc":94480,"wind":3.7},{"t":169,"lat":19.33,"lon":122.55,"psfc":94486,"wind":9.1},{"t":170,"lat":19.34,"lon":122.45,"psfc":94544,"wind":9.3},{"t":171,"lat":19.35,"lon":122.25,"psfc":94588,"wind":4.7},{"t":172,"lat":19.35,"lon":122.06,"psfc":94571,"wind":2.6},{"t":173,"lat":19.46,"lon":121.77,"psfc":94562,"wind":6.2},{"t":174,"lat":19.46,"lon":121.67,"psfc":94529,"wind":6.9},{"t":175,"lat":19.56,"lon":121.38,"psfc":94448,"wind":11.5},{"t":176,"lat":19.47,"lon":121.18,"psfc":94423,"wind":5.2},{"t":177,"lat":19.48,"lon":121.08,"psfc":94458,"wind":6.2},{"t":178,"lat":19.48,"lon":120.98,"psfc":94509,"wind":4.3},{"t":179,"lat":19.49,"lon":120.69,"psfc":94535,"wind":4.7},{"t":180,"lat":19.49,"lon":120.49,"psfc":94611,"wind":3.5},{"t":181,"lat":19.59,"lon":120.3,"psfc":94678,"wind":9.1},{"t":182,"lat":19.59,"lon":120.1,"psfc":94670,"wind":6.5},{"t":183,"lat":19.6,"lon":119.9,"psfc":94755,"wind":5.6},{"t":184,"lat":19.6,"lon":119.61,"psfc":94795,"wind":7.3},{"t":185,"lat":19.65,"lon":119.46,"psfc":94776,"wind":7.2},{"t":186,"lat":19.7,"lon":119.31,"psfc":94757,"wind":7.2},{"t":187,"lat":19.79,"lon":119.32,"psfc":94798,"wind":10.1},{"t":188,"lat":19.89,"lon":119.02,"psfc":94846,"wind":8.2},{"t":189,"lat":19.89,"lon":118.82,"psfc":94892,"wind":4.4},{"t":190,"lat":19.99,"lon":118.63,"psfc":94911,"wind":9.3},{"t":191,"lat":19.9,"lon":118.43,"psfc":94885,"wind":3.3},{"t":192,"lat":19.99,"lon":118.33,"psfc":94873,"wind":7.7},{"t":193,"lat":20.09,"lon":118.14,"psfc":94825,"wind":7.7},{"t":194,"lat":20.18,"lon":118.04,"psfc":94822,"wind":10.3},{"t":195,"lat":20.28,"lon":117.74,"psfc":94848,"wind":6.3},{"t":196,"lat":20.37,"lon":117.54,"psfc":94855,"wind":9},{"t":197,"lat":20.46,"lon":117.45,"psfc":94781,"wind":12.5},{"t":198,"lat":20.56,"lon":117.15,"psfc":94719,"wind":7.5},{"t":199,"lat":20.56,"lon":117.05,"psfc":94641,"wind":8.2},{"t":200,"lat":20.56,"lon":116.75,"psfc":94642,"wind":4.4},{"t":201,"lat":20.74,"lon":116.55,"psfc":94653,"wind":10.9},{"t":202,"lat":20.74,"lon":116.45,"psfc":94653,"wind":4.5},{"t":203,"lat":20.83,"lon":116.25,"psfc":94704,"wind":8},{"t":204,"lat":20.83,"lon":116.16,"psfc":94742,"wind":8.6},{"t":205,"lat":20.83,"lon":115.96,"psfc":94844,"wind":4.5},{"t":206,"lat":20.92,"lon":115.76,"psfc":94896,"wind":6.8},{"t":207,"lat":21.01,"lon":115.56,"psfc":94972,"wind":8.2},{"t":208,"lat":21.01,"lon":115.36,"psfc":94964,"wind":4.1},{"t":209,"lat":21.1,"lon":115.16,"psfc":94932,"wind":7.4},{"t":210,"lat":21.19,"lon":115.06,"psfc":94915,"wind":10.7},{"t":211,"lat":21.28,"lon":114.86,"psfc":94880,"wind":9.6},{"t":212,"lat":21.28,"lon":114.66,"psfc":94890,"wind":4.4},{"t":213,"lat":21.37,"lon":114.46,"psfc":94919,"wind":8.5},{"t":214,"lat":21.36,"lon":114.16,"psfc":94934,"wind":6.5},{"t":215,"lat":21.36,"lon":114.06,"psfc":94954,"wind":6.8},{"t":216,"lat":21.45,"lon":113.76,"psfc":95010,"wind":10},{"t":217,"lat":21.44,"lon":113.56,"psfc":95044,"wind":9.5},{"t":218,"lat":21.44,"lon":113.36,"psfc":95088,"wind":6.2},{"t":219,"lat":21.34,"lon":113.06,"psfc":95138,"wind":7.9},{"t":220,"lat":21.52,"lon":112.95,"psfc":95173,"wind":9.1},{"t":221,"lat":21.33,"lon":112.76,"psfc":95232,"wind":6.3},{"t":222,"lat":21.42,"lon":112.56,"psfc":95238,"wind":9.3},{"t":223,"lat":21.41,"lon":112.46,"psfc":95197,"wind":7.3},{"t":224,"lat":21.5,"lon":112.26,"psfc":95304,"wind":9.6},{"t":225,"lat":21.5,"lon":112.16,"psfc":95478,"wind":13.3},{"t":226,"lat":21.39,"lon":111.86,"psfc":96248,"wind":30.9},{"t":227,"lat":21.39,"lon":111.66,"psfc":96783,"wind":34.6},{"t":228,"lat":21.37,"lon":111.36,"psfc":97293,"wind":31.9},{"t":229,"lat":21.32,"lon":111.12,"psfc":97821,"wind":30.4},{"t":230,"lat":21.26,"lon":110.87,"psfc":98349,"wind":29},{"t":231,"lat":21.26,"lon":110.77,"psfc":98683,"wind":24},{"t":232,"lat":21.33,"lon":110.16,"psfc":98782,"wind":24.5},{"t":233,"lat":21.39,"lon":109.56,"psfc":98882,"wind":25},{"t":234,"lat":21.766441345214844,"lon":109.74038696289062,"psfc":97397,"wind":7.9},{"t":235,"lat":21.66344451904297,"lon":109.54608154296875,"psfc":97938,"wind":4.4},{"t":236,"lat":21.65296173095703,"lon":109.346435546875,"psfc":97945,"wind":5.3},{"t":237,"lat":21.64763641357422,"lon":109.24658203125,"psfc":98226,"wind":4.1},{"t":238,"lat":21.543968200683594,"lon":109.05288696289062,"psfc":98682,"wind":7.4},{"t":239,"lat":21.538436889648438,"lon":108.95318603515625,"psfc":98935,"wind":6.5},{"t":240,"lat":21.625579833984375,"lon":108.84738159179688,"psfc":99097,"wind":1.7},{"t":241,"lat":21.70690155029297,"lon":108.6416015625,"psfc":99238,"wind":0.5},{"t":242,"lat":21.7938232421875,"lon":108.53546142578125,"psfc":99459,"wind":6.1},{"t":243,"lat":21.86865234375,"lon":108.22921752929688,"psfc":98300,"wind":0.8},{"t":244,"lat":22.035614013671875,"lon":107.91583251953125,"psfc":96279,"wind":2.6},{"t":245,"lat":22.02289581298828,"lon":107.71572875976562,"psfc":98041,"wind":0.4},{"t":246,"lat":22.10260772705078,"lon":107.508544921875,"psfc":97474,"wind":4.5},{"t":247,"lat":22.089324951171875,"lon":107.308349609375,"psfc":97701,"wind":1.4},{"t":248,"lat":22.168472290039062,"lon":107.100830078125,"psfc":97747,"wind":3.4},{"t":249,"lat":22.06884002685547,"lon":107.0081787109375,"psfc":97946,"wind":3.8}]
+            },
+            '山竹': {
+                start: new Date('2018-09-06T00:00:00Z'),
+                minT: 46, maxT: 287, defaultT: 205,
+                ticks: [
+                    { t: 170, label: '生成', major: true },
+                    { t: 213, label: '巅峰1', major: true },
+                    { t: 253, label: '巅峰2', major: true },
+                    { t: 255, label: '消散', major: true },
+                ],
+                windDir: '山竹/',
+                windDirCorrected: '山竹_corr/',
+                track: [{"t":170,"lat":14.86,"lon":130.05,"psfc":97404,"wind":36.0},{"t":171,"lat":14.86,"lon":130.05,"psfc":96557,"wind":36.7},{"t":172,"lat":14.86,"lon":130.05,"psfc":95406,"wind":26.2},{"t":173,"lat":14.77,"lon":130.05,"psfc":94897,"wind":1.8},{"t":174,"lat":14.79,"lon":129.86,"psfc":94789,"wind":2.7},{"t":175,"lat":14.9,"lon":129.68,"psfc":94733,"wind":9.4},{"t":176,"lat":14.91,"lon":129.49,"psfc":94721,"wind":4.7},{"t":177,"lat":15.02,"lon":129.31,"psfc":94780,"wind":10.8},{"t":178,"lat":15.04,"lon":129.12,"psfc":94833,"wind":7.3},{"t":179,"lat":15.06,"lon":128.84,"psfc":94857,"wind":6.1},{"t":180,"lat":15.09,"lon":128.55,"psfc":94900,"wind":9.0},{"t":181,"lat":15.0,"lon":128.45,"psfc":94947,"wind":6.0},{"t":182,"lat":15.01,"lon":128.35,"psfc":94954,"wind":4.1},{"t":183,"lat":15.12,"lon":128.17,"psfc":95034,"wind":6.3},{"t":184,"lat":15.22,"lon":127.99,"psfc":95112,"wind":5.8},{"t":185,"lat":15.34,"lon":127.71,"psfc":95080,"wind":7.3},{"t":186,"lat":15.35,"lon":127.53,"psfc":95056,"wind":3.7},{"t":187,"lat":15.46,"lon":127.34,"psfc":95162,"wind":7.8},{"t":188,"lat":15.56,"lon":127.16,"psfc":95163,"wind":8.4},{"t":189,"lat":15.67,"lon":126.98,"psfc":95212,"wind":8.6},{"t":190,"lat":15.59,"lon":126.78,"psfc":95287,"wind":3.6},{"t":191,"lat":15.7,"lon":126.6,"psfc":95266,"wind":2.5},{"t":192,"lat":15.8,"lon":126.41,"psfc":95305,"wind":4.1},{"t":193,"lat":15.79,"lon":126.51,"psfc":95144,"wind":11.5},{"t":194,"lat":16.18,"lon":126.25,"psfc":94855,"wind":9.9},{"t":195,"lat":16.11,"lon":125.96,"psfc":94858,"wind":5.3},{"t":196,"lat":16.38,"lon":125.97,"psfc":94814,"wind":10.4},{"t":197,"lat":16.6,"lon":125.51,"psfc":94766,"wind":6.2},{"t":198,"lat":16.51,"lon":125.41,"psfc":94722,"wind":4.7},{"t":199,"lat":16.89,"lon":125.24,"psfc":94644,"wind":10.9},{"t":200,"lat":16.82,"lon":124.85,"psfc":94599,"wind":4.3},{"t":201,"lat":17.0,"lon":124.86,"psfc":94594,"wind":6.3},{"t":202,"lat":17.3,"lon":124.49,"psfc":94603,"wind":9.1},{"t":203,"lat":17.32,"lon":124.2,"psfc":94618,"wind":8.6},{"t":204,"lat":17.41,"lon":124.11,"psfc":94392,"wind":15.1},{"t":205,"lat":17.62,"lon":123.64,"psfc":94353,"wind":11.1},{"t":206,"lat":17.54,"lon":123.34,"psfc":94375,"wind":6.2},{"t":207,"lat":17.74,"lon":123.16,"psfc":94503,"wind":13.7},{"t":208,"lat":17.76,"lon":122.67,"psfc":94480,"wind":7.7},{"t":209,"lat":17.66,"lon":122.67,"psfc":94635,"wind":8.1},{"t":210,"lat":17.86,"lon":122.39,"psfc":94841,"wind":10.4},{"t":211,"lat":17.77,"lon":122.29,"psfc":95090,"wind":21.1},{"t":212,"lat":18.34,"lon":121.92,"psfc":95371,"wind":32.1},{"t":213,"lat":18.44,"lon":121.63,"psfc":95519,"wind":35.9},{"t":214,"lat":18.44,"lon":121.63,"psfc":96120,"wind":29.4},{"t":215,"lat":18.2,"lon":120.45,"psfc":96315,"wind":28.1},{"t":216,"lat":18.2,"lon":120.45,"psfc":95834,"wind":24.8},{"t":217,"lat":18.2,"lon":120.45,"psfc":95542,"wind":8.0},{"t":218,"lat":18.2,"lon":120.36,"psfc":95605,"wind":5.0},{"t":219,"lat":18.3,"lon":120.16,"psfc":95629,"wind":5.1},{"t":220,"lat":18.3,"lon":120.07,"psfc":95661,"wind":5.7},{"t":221,"lat":18.48,"lon":120.07,"psfc":95653,"wind":7.5},{"t":222,"lat":18.77,"lon":119.88,"psfc":95655,"wind":11.0},{"t":223,"lat":19.05,"lon":119.3,"psfc":95611,"wind":11.7},{"t":224,"lat":18.87,"lon":119.2,"psfc":95521,"wind":2.6},{"t":225,"lat":19.15,"lon":119.11,"psfc":95561,"wind":10.6},{"t":226,"lat":19.34,"lon":118.82,"psfc":95575,"wind":11.3},{"t":227,"lat":19.43,"lon":118.52,"psfc":95616,"wind":11.0},{"t":228,"lat":19.44,"lon":118.23,"psfc":95642,"wind":6.7},{"t":229,"lat":19.53,"lon":117.93,"psfc":95656,"wind":10.5},{"t":230,"lat":19.53,"lon":117.74,"psfc":95652,"wind":8.4},{"t":231,"lat":19.72,"lon":117.44,"psfc":95625,"wind":9.4},{"t":232,"lat":19.72,"lon":117.15,"psfc":95614,"wind":7.5},{"t":233,"lat":19.72,"lon":117.05,"psfc":95578,"wind":6.9},{"t":234,"lat":19.91,"lon":116.95,"psfc":95492,"wind":10.0},{"t":235,"lat":20.18,"lon":116.65,"psfc":95464,"wind":10.3},{"t":236,"lat":20.37,"lon":116.36,"psfc":95515,"wind":10.1},{"t":237,"lat":20.46,"lon":115.96,"psfc":95530,"wind":9.1},{"t":238,"lat":20.46,"lon":115.76,"psfc":95556,"wind":6.6},{"t":239,"lat":20.64,"lon":115.56,"psfc":95589,"wind":5.4},{"t":240,"lat":20.82,"lon":115.26,"psfc":95667,"wind":9.1},{"t":241,"lat":21.1,"lon":114.96,"psfc":95711,"wind":6.7},{"t":242,"lat":21.18,"lon":114.56,"psfc":95807,"wind":10.6},{"t":243,"lat":20.91,"lon":114.56,"psfc":95816,"wind":5.7},{"t":244,"lat":21.55,"lon":114.35,"psfc":95867,"wind":16.0},{"t":245,"lat":21.72,"lon":113.65,"psfc":95926,"wind":12.4},{"t":246,"lat":21.44,"lon":113.26,"psfc":95913,"wind":6.2},{"t":247,"lat":21.44,"lon":113.36,"psfc":95952,"wind":7.1},{"t":248,"lat":21.61,"lon":112.95,"psfc":96080,"wind":10.6},{"t":249,"lat":21.71,"lon":112.95,"psfc":96180,"wind":18.5},{"t":250,"lat":21.6,"lon":112.35,"psfc":96580,"wind":12.0},{"t":251,"lat":21.59,"lon":112.25,"psfc":96942,"wind":26.0},{"t":252,"lat":21.39,"lon":111.76,"psfc":97507,"wind":27.7},{"t":253,"lat":21.38,"lon":111.46,"psfc":97645,"wind":28.5},{"t":254,"lat":21.37,"lon":111.36,"psfc":98060,"wind":27.9},{"t":255,"lat":21.26,"lon":110.87,"psfc":98548,"wind":22.6}]
+            },
+            '杜苏芮': {
+                start: new Date('2023-07-18T00:00:00Z'),
+                minT: 50, maxT: 311, defaultT: 230,
+                ticks: [
+                    { t: 110, label: '生成', major: true },
+                    { t: 189, label: '巅峰1', major: true },
+                    { t: 243, label: '巅峰2', major: true },
+                    { t: 245, label: '消散', major: true },
+                ],
+                windDir: '杜苏芮/',
+                windDirCorrected: '杜苏芮_corr/',
+                track: [{"t":110,"lat":14.18,"lon":129.51,"psfc":99991,"wind":2.7},{"t":111,"lat":14.27,"lon":129.52,"psfc":99924,"wind":1.2},{"t":112,"lat":14.47,"lon":129.35,"psfc":99835,"wind":1.5},{"t":113,"lat":14.02,"lon":129.21,"psfc":99680,"wind":7.7},{"t":114,"lat":14.19,"lon":129.32,"psfc":99513,"wind":9.8},{"t":115,"lat":14.47,"lon":129.26,"psfc":99366,"wind":11.6},{"t":116,"lat":14.68,"lon":128.99,"psfc":99245,"wind":9.8},{"t":117,"lat":14.61,"lon":128.79,"psfc":99195,"wind":7.5},{"t":118,"lat":14.44,"lon":128.59,"psfc":99181,"wind":6.7},{"t":119,"lat":14.34,"lon":128.67,"psfc":99201,"wind":2.9},{"t":120,"lat":14.33,"lon":128.86,"psfc":99164,"wind":4.0},{"t":121,"lat":14.31,"lon":129.05,"psfc":99113,"wind":13.8},{"t":122,"lat":14.69,"lon":128.9,"psfc":98893,"wind":7.2},{"t":123,"lat":14.81,"lon":128.62,"psfc":98822,"wind":6.6},{"t":124,"lat":14.83,"lon":128.34,"psfc":98784,"wind":9.4},{"t":125,"lat":14.75,"lon":128.24,"psfc":98675,"wind":3.0},{"t":126,"lat":14.56,"lon":128.31,"psfc":98562,"wind":2.7},{"t":127,"lat":15.08,"lon":128.65,"psfc":98328,"wind":8.7},{"t":128,"lat":15.29,"lon":128.28,"psfc":98152,"wind":10.9},{"t":129,"lat":15.06,"lon":127.79,"psfc":98083,"wind":9.1},{"t":130,"lat":14.76,"lon":128.05,"psfc":97898,"wind":3.5},{"t":131,"lat":14.94,"lon":128.16,"psfc":97746,"wind":10.7},{"t":132,"lat":15.32,"lon":127.9,"psfc":97644,"wind":11.3},{"t":133,"lat":15.27,"lon":127.42,"psfc":97515,"wind":9.6},{"t":134,"lat":15.18,"lon":127.42,"psfc":97552,"wind":7.3},{"t":135,"lat":15.37,"lon":127.34,"psfc":97371,"wind":8.9},{"t":136,"lat":15.3,"lon":126.95,"psfc":97143,"wind":6.8},{"t":137,"lat":15.11,"lon":127.03,"psfc":96897,"wind":4.9},{"t":138,"lat":15.3,"lon":126.95,"psfc":96785,"wind":3.9},{"t":139,"lat":15.32,"lon":126.76,"psfc":96709,"wind":7.2},{"t":140,"lat":15.23,"lon":126.75,"psfc":96604,"wind":5.1},{"t":141,"lat":15.33,"lon":126.57,"psfc":96549,"wind":3.1},{"t":142,"lat":15.25,"lon":126.37,"psfc":96564,"wind":6.9},{"t":143,"lat":15.24,"lon":126.56,"psfc":96649,"wind":6.8},{"t":144,"lat":15.26,"lon":126.28,"psfc":96531,"wind":3.4},{"t":145,"lat":15.08,"lon":126.17,"psfc":96436,"wind":11.2},{"t":146,"lat":15.44,"lon":126.29,"psfc":96037,"wind":3.9},{"t":147,"lat":15.45,"lon":126.1,"psfc":96092,"wind":7.7},{"t":148,"lat":15.45,"lon":126.2,"psfc":95973,"wind":4.5},{"t":149,"lat":15.64,"lon":126.02,"psfc":95900,"wind":5.8},{"t":150,"lat":15.64,"lon":126.02,"psfc":95842,"wind":3.3},{"t":151,"lat":15.83,"lon":125.94,"psfc":95726,"wind":5.3},{"t":152,"lat":15.64,"lon":126.02,"psfc":95529,"wind":7.8},{"t":153,"lat":16.02,"lon":125.95,"psfc":95309,"wind":9.5},{"t":154,"lat":15.84,"lon":125.84,"psfc":95313,"wind":5.4},{"t":155,"lat":16.11,"lon":125.96,"psfc":95202,"wind":4.5},{"t":156,"lat":16.22,"lon":125.68,"psfc":95122,"wind":5.0},{"t":157,"lat":16.3,"lon":125.78,"psfc":95141,"wind":9.9},{"t":158,"lat":16.5,"lon":125.6,"psfc":95173,"wind":5.8},{"t":159,"lat":16.5,"lon":125.5,"psfc":95280,"wind":3.9},{"t":160,"lat":16.88,"lon":125.33,"psfc":95181,"wind":7.9},{"t":161,"lat":16.88,"lon":125.33,"psfc":95141,"wind":8.8},{"t":162,"lat":17.1,"lon":124.87,"psfc":95065,"wind":8.8},{"t":163,"lat":17.08,"lon":125.06,"psfc":94968,"wind":5.0},{"t":164,"lat":17.29,"lon":124.78,"psfc":94981,"wind":1.6},{"t":165,"lat":17.46,"lon":124.89,"psfc":95053,"wind":8.9},{"t":166,"lat":17.48,"lon":124.6,"psfc":95045,"wind":5.7},{"t":167,"lat":17.66,"lon":124.71,"psfc":95146,"wind":10.4},{"t":168,"lat":17.68,"lon":124.32,"psfc":95162,"wind":2.0},{"t":169,"lat":18.14,"lon":124.35,"psfc":95148,"wind":18.8},{"t":170,"lat":17.89,"lon":123.85,"psfc":94914,"wind":10.9},{"t":171,"lat":18.16,"lon":123.96,"psfc":94779,"wind":11.4},{"t":172,"lat":18.08,"lon":123.66,"psfc":94791,"wind":2.0},{"t":173,"lat":18.28,"lon":123.48,"psfc":94740,"wind":10.4},{"t":174,"lat":18.36,"lon":123.58,"psfc":94653,"wind":7.2},{"t":175,"lat":18.46,"lon":123.49,"psfc":94674,"wind":9.0},{"t":176,"lat":18.47,"lon":123.19,"psfc":94636,"wind":1.4},{"t":177,"lat":18.66,"lon":123.1,"psfc":94530,"wind":6.6},{"t":178,"lat":18.58,"lon":122.91,"psfc":94531,"wind":0.6},{"t":179,"lat":18.86,"lon":122.82,"psfc":94575,"wind":9.7},{"t":180,"lat":18.78,"lon":122.52,"psfc":94558,"wind":2.7},{"t":181,"lat":18.88,"lon":122.33,"psfc":94608,"wind":7.2},{"t":182,"lat":18.89,"lon":122.14,"psfc":94616,"wind":4.7},{"t":183,"lat":18.89,"lon":122.14,"psfc":94748,"wind":12.3},{"t":184,"lat":18.99,"lon":121.75,"psfc":94767,"wind":15.2},{"t":185,"lat":18.81,"lon":121.64,"psfc":94791,"wind":7.1},{"t":186,"lat":18.9,"lon":121.65,"psfc":94804,"wind":3.2},{"t":187,"lat":18.9,"lon":121.65,"psfc":94821,"wind":5.9},{"t":188,"lat":19.09,"lon":121.46,"psfc":94952,"wind":19.0},{"t":189,"lat":18.92,"lon":121.16,"psfc":95065,"wind":24.4},{"t":190,"lat":18.73,"lon":121.25,"psfc":95174,"wind":12.4},{"t":191,"lat":18.92,"lon":121.16,"psfc":95322,"wind":13.5},{"t":192,"lat":18.92,"lon":121.16,"psfc":95425,"wind":15.6},{"t":193,"lat":18.92,"lon":121.16,"psfc":95412,"wind":8.9},{"t":194,"lat":18.92,"lon":121.16,"psfc":95288,"wind":6.2},{"t":195,"lat":18.92,"lon":121.16,"psfc":95622,"wind":15.3},{"t":196,"lat":19.29,"lon":121.17,"psfc":95339,"wind":7.1},{"t":197,"lat":19.3,"lon":120.88,"psfc":95417,"wind":9.4},{"t":198,"lat":19.2,"lon":120.87,"psfc":95409,"wind":4.6},{"t":199,"lat":19.2,"lon":120.97,"psfc":95381,"wind":3.2},{"t":200,"lat":19.29,"lon":121.07,"psfc":95383,"wind":2.6},{"t":201,"lat":19.48,"lon":121.08,"psfc":95339,"wind":3.5},{"t":202,"lat":19.57,"lon":121.08,"psfc":95471,"wind":2.1},{"t":203,"lat":19.67,"lon":120.99,"psfc":95633,"wind":5.0},{"t":204,"lat":19.95,"lon":120.9,"psfc":95762,"wind":7.9},{"t":205,"lat":20.04,"lon":120.7,"psfc":95856,"wind":8.3},{"t":206,"lat":20.14,"lon":120.61,"psfc":95869,"wind":8.2},{"t":207,"lat":20.14,"lon":120.41,"psfc":95899,"wind":7.6},{"t":208,"lat":20.15,"lon":120.31,"psfc":95908,"wind":5.8},{"t":209,"lat":20.15,"lon":120.31,"psfc":95820,"wind":4.2},{"t":210,"lat":20.33,"lon":120.31,"psfc":95750,"wind":9.0},{"t":211,"lat":20.43,"lon":120.22,"psfc":95732,"wind":5.0},{"t":212,"lat":20.52,"lon":120.12,"psfc":95698,"wind":6.1},{"t":213,"lat":20.62,"lon":120.02,"psfc":95708,"wind":3.8},{"t":214,"lat":20.71,"lon":119.93,"psfc":95732,"wind":7.8},{"t":215,"lat":20.71,"lon":119.83,"psfc":95764,"wind":4.0},{"t":216,"lat":20.71,"lon":119.93,"psfc":95650,"wind":7.1},{"t":217,"lat":20.81,"lon":119.73,"psfc":95487,"wind":0.8},{"t":218,"lat":20.99,"lon":119.74,"psfc":95401,"wind":4.6},{"t":219,"lat":21.0,"lon":119.54,"psfc":95424,"wind":5.4},{"t":220,"lat":21.09,"lon":119.64,"psfc":95320,"wind":8.9},{"t":221,"lat":21.28,"lon":119.44,"psfc":95100,"wind":5.3},{"t":222,"lat":21.37,"lon":119.54,"psfc":94994,"wind":8.2},{"t":223,"lat":21.37,"lon":119.44,"psfc":94829,"wind":1.3},{"t":224,"lat":21.56,"lon":119.45,"psfc":94733,"wind":3.0},{"t":225,"lat":21.65,"lon":119.45,"psfc":94741,"wind":2.6},{"t":226,"lat":21.84,"lon":119.45,"psfc":94727,"wind":7.3},{"t":227,"lat":21.93,"lon":119.36,"psfc":94768,"wind":4.1},{"t":228,"lat":22.02,"lon":119.36,"psfc":94776,"wind":6.0},{"t":229,"lat":22.3,"lon":119.16,"psfc":94735,"wind":10.7},{"t":230,"lat":22.4,"lon":119.16,"psfc":94679,"wind":5.5},{"t":231,"lat":22.49,"lon":119.06,"psfc":94624,"wind":2.0},{"t":232,"lat":22.68,"lon":119.07,"psfc":94524,"wind":7.2},{"t":233,"lat":22.86,"lon":119.07,"psfc":94485,"wind":11.7},{"t":234,"lat":23.05,"lon":119.07,"psfc":94261,"wind":8.8},{"t":235,"lat":23.33,"lon":119.08,"psfc":94491,"wind":12.7},{"t":236,"lat":23.52,"lon":119.08,"psfc":94828,"wind":13.3},{"t":237,"lat":23.7,"lon":118.98,"psfc":95389,"wind":13.2},{"t":238,"lat":23.98,"lon":118.99,"psfc":95271,"wind":14.4},{"t":239,"lat":24.17,"lon":118.89,"psfc":95519,"wind":3.0},{"t":240,"lat":24.26,"lon":118.89,"psfc":96083,"wind":18.2},{"t":241,"lat":24.54,"lon":118.79,"psfc":96183,"wind":2.3},{"t":242,"lat":24.73,"lon":118.9,"psfc":96971,"wind":24.5},{"t":243,"lat":24.73,"lon":118.9,"psfc":98086,"wind":35.3},{"t":244,"lat":24.91,"lon":119.1,"psfc":98864,"wind":28.5},{"t":245,"lat":24.91,"lon":119.1,"psfc":99117,"wind":22.9}]
             }
         };
         // === AUTO:TYPHOON_DATA:END ===
@@ -882,12 +1157,28 @@
             return 'wind_field/' + windFieldKey(t);
         }
 
+        function originalFieldKey(t) {
+            var d = currentTyphoonData() || {};
+            var dir = d.windDir || '';
+            return dir + 'wind_field_' + String(t).padStart(4, '0') + '.bin';
+        }
+
+        function originalFieldUrl(t) {
+            return 'wind_field/' + originalFieldKey(t);
+        }
+
+        function correctedFieldKey(t) {
+            var d = currentTyphoonData() || {};
+            var dir = d.windDirCorrected || d.windDir || '';
+            return dir + 'wind_field_' + String(t).padStart(4, '0') + '.bin';
+        }
+
         // ===== Configuration =====
         const CONFIG = {
             wrfStart: new Date('2025-09-15T00:00:00Z'),
             psfcThreshold: 100000,
             distanceThreshold: 3,
-            minT: 61,
+            minT: 93,
             maxT: 263,
             defaultT: 135,
             playSpeed: 267,
@@ -907,7 +1198,21 @@
             { id: 'futian-station', name: '福田站', type: '重要设施', lat: 22.54, lon: 114.05, direction: 'bottom' },
             { id: 'shenzhen-bay-port', name: '深圳湾口岸', type: '重要设施', lat: 22.50, lon: 113.94, direction: 'left' },
             { id: 'daya-bay-nuclear', name: '大亚湾核电基地', type: '重要设施', lat: 22.60, lon: 114.54, direction: 'right' },
-            { id: 'dapeng-lng', name: '大鹏LNG接收站', type: '重要设施', lat: 22.58, lon: 114.52, direction: 'bottom' }
+            { id: 'dapeng-lng', name: '大鹏LNG接收站', type: '重要设施', lat: 22.58, lon: 114.52, direction: 'bottom' },
+            { id: 'nansha', name: '广州南沙港', type: '港口', lat: 22.72, lon: 113.65, direction: 'left' },
+            { id: 'huangpu', name: '广州黄埔港', type: '港口', lat: 23.10, lon: 113.45, direction: 'top' },
+            { id: 'gaolan', name: '珠海高栏港', type: '港口', lat: 21.94, lon: 113.24, direction: 'bottom' },
+            { id: 'jiuzhou', name: '珠海九洲港', type: '港口', lat: 22.26, lon: 113.58, direction: 'left' },
+            { id: 'dongguan', name: '东莞港', type: '港口', lat: 22.97, lon: 113.65, direction: 'top' },
+            { id: 'huizhou', name: '惠州港', type: '港口', lat: 22.71, lon: 114.65, direction: 'right' },
+            { id: 'baiyun-airport', name: '广州白云机场', type: '重要设施', lat: 23.39, lon: 113.30, direction: 'top' },
+            { id: 'hk-airport', name: '香港国际机场', type: '重要设施', lat: 22.31, lon: 113.91, direction: 'bottom' },
+            { id: 'macau-airport', name: '澳门国际机场', type: '重要设施', lat: 22.15, lon: 113.59, direction: 'bottom' },
+            { id: 'hzm-bridge', name: '港珠澳大桥', type: '重要设施', lat: 22.28, lon: 113.80, direction: 'left' },
+            { id: 'szc-channel', name: '深中通道', type: '重要设施', lat: 22.55, lon: 113.67, direction: 'left' },
+            { id: 'guangzhou-south', name: '广州南站', type: '重要设施', lat: 22.99, lon: 113.27, direction: 'bottom' },
+            { id: 'taishan-nuclear', name: '台山核电站', type: '重要设施', lat: 21.92, lon: 112.98, direction: 'bottom' },
+            { id: 'guangzhou-tower', name: '广州塔', type: '重要设施', lat: 23.11, lon: 113.32, direction: 'right' }
         ];
         const RISK_LEVELS = [
             { level: 'I', name: '低', max: 10.8, color: '#2e7d32' },
@@ -949,6 +1254,202 @@
                 if (wind <= cat.max) return cat;
             }
             return WIND_CATEGORIES[WIND_CATEGORIES.length - 1];
+        }
+
+        // ===== Shipping Routes & Typhoon Impact =====
+        var SHIPPING_ROUTES = [
+            { id: 'scs-malacca', name: '南海-马六甲航线', points: [[1.2,104.0],[3.0,106.0],[6.0,108.5],[9.5,110.5],[13.0,112.0],[16.5,113.5],[20.0,115.0],[22.5,118.0],[25.0,120.5]] },
+            { id: 'pacific-japan', name: '太平洋西行主干线', points: [[14.5,121.5],[18.0,122.5],[21.5,123.5],[25.0,125.0],[28.0,127.5],[31.0,131.0]] },
+            { id: 'taiwan-strait', name: '台湾海峡航线', points: [[21.8,120.2],[23.5,120.1],[25.3,120.4]] },
+            { id: 'ph-sc', name: '菲律宾-华南航线', points: [[13.0,124.0],[15.5,122.5],[18.5,120.5],[21.0,117.5],[22.5,114.8]] },
+            { id: 'scs-mid', name: '南海中部航线', points: [[12.0,110.5],[13.5,115.0],[14.5,119.5],[15.0,121.5]] },
+            { id: 'yd-ryukyu', name: '粤东-琉球航线', points: [[22.8,116.5],[24.0,120.0],[25.5,123.5],[27.5,127.0]] },
+            { id: 'hn-bashi', name: '海南-巴士海峡航线', points: [[19.0,110.5],[20.0,115.5],[20.5,120.5],[21.0,121.5]] }
+        ];
+        var ROUTE_LEVELS = [
+            { key: 'high', name: '强影响', color: '#e53935', max: 300 },
+            { key: 'mid', name: '中影响', color: '#fb8c00', max: 600 },
+            { key: 'watch', name: '注意', color: '#1e88e5', max: 900 },
+            { key: 'safe', name: '暂未受影响', color: '#43a047', max: Infinity }
+        ];
+        var routeLayers = [];
+        var routeSegsCache = [];
+        var routeLabelLayers = [];
+
+        function routeLevelFor(distKm) {
+            for (var i = 0; i < ROUTE_LEVELS.length; i++) {
+                if (distKm < ROUTE_LEVELS[i].max) return ROUTE_LEVELS[i];
+            }
+            return ROUTE_LEVELS[ROUTE_LEVELS.length - 1];
+        }
+
+        function routeMinDistance(pt, route) {
+            var best = Infinity;
+            for (var i = 0; i < route.points.length; i++) {
+                var d = distanceKm(pt.lat, pt.lon, route.points[i][0], route.points[i][1]);
+                if (d < best) best = d;
+            }
+            return best;
+        }
+
+        function densifyRoute(route, stepDeg) {
+            var out = [];
+            for (var i = 0; i < route.points.length - 1; i++) {
+                var a = route.points[i], b = route.points[i + 1];
+                var n = Math.max(1, Math.ceil(
+                    Math.sqrt(Math.pow(b[0] - a[0], 2) + Math.pow(b[1] - a[1], 2)) / (stepDeg || 0.35)
+                ));
+                for (var k = 0; k < n; k++) {
+                    out.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]);
+                }
+            }
+            out.push(route.points[route.points.length - 1]);
+            return out;
+        }
+
+        function seaSegmentsFor(route) {
+            var dense = densifyRoute(route, 0.35);
+            var runs = [], cur = [];
+            for (var i = 0; i < dense.length; i++) {
+                var sea = !isLandPoint(dense[i][1], dense[i][0]);
+                if (sea) {
+                    cur.push(dense[i]);
+                } else if (cur.length >= 2) {
+                    runs.push(cur);
+                    cur = [];
+                } else {
+                    cur = [];
+                }
+            }
+            if (cur.length >= 2) runs.push(cur);
+            return runs;
+        }
+
+        function seaLabelPointFor(segs, route) {
+            var candidates = segs.slice().sort(function(a, b) { return b.length - a.length; });
+            for (var s = 0; s < candidates.length; s++) {
+                var seg = candidates[s];
+                if (seg.length < 2) continue;
+                var mid = seg[Math.floor(seg.length / 2)];
+                var ok = true;
+                for (var dx = -0.3; dx <= 0.3 && ok; dx += 0.15) {
+                    for (var dy = -0.3; dy <= 0.3 && ok; dy += 0.15) {
+                        if (isLandPoint(mid[1] + dx, mid[0] + dy)) { ok = false; }
+                    }
+                }
+                if (ok) return mid;
+            }
+            return segs.length ? segs[0][Math.floor(segs[0].length / 2)] : route.points[Math.floor(route.points.length / 2)];
+        }
+
+        function trackPointList() {
+            var pts = typhoonTrack.slice();
+            if (compareTarget && compareTarget !== currentTyphoonName) {
+                var d = TYPHOON_DATA[compareTarget];
+                if (d && d.track) pts = pts.concat(d.track);
+            }
+            return pts;
+        }
+
+        function bestSeaLabelPoint(segs, route, avoidPts) {
+            var best = null, bestScore = -1;
+            for (var s = 0; s < segs.length; s++) {
+                var seg = segs[s];
+                if (seg.length < 2) continue;
+                var mid = seg[Math.floor(seg.length / 2)];
+                var ok = true;
+                for (var dx = -0.3; dx <= 0.3 && ok; dx += 0.15) {
+                    for (var dy = -0.3; dy <= 0.3 && ok; dy += 0.15) {
+                        if (isLandPoint(mid[1] + dx, mid[0] + dy)) { ok = false; }
+                    }
+                }
+                if (!ok) continue;
+                var minD = Infinity;
+                for (var k = 0; k < avoidPts.length; k++) {
+                    var dd = distanceKm(mid[0], mid[1], avoidPts[k].lat, avoidPts[k].lon);
+                    if (dd < minD) minD = dd;
+                }
+                if (minD > bestScore) { bestScore = minD; best = mid; }
+            }
+            if (best) return best;
+            return segs.length ? segs[0][Math.floor(segs[0].length / 2)] : route.points[Math.floor(route.points.length / 2)];
+        }
+
+        function placeRouteLabels() {
+            if (!routeSegsCache.length) return;
+            var avoidPts = trackPointList();
+            SHIPPING_ROUTES.forEach(function(route, idx) {
+                var label = routeLabelLayers[idx];
+                if (!label) return;
+                var segs = routeSegsCache[idx] || [];
+                var pt = bestSeaLabelPoint(segs, route, avoidPts);
+                label.setLatLng(pt);
+            });
+        }
+
+        function buildRouteLayers() {
+            routeLayers.forEach(function(l) { if (map.hasLayer(l)) map.removeLayer(l); });
+            routeLayers = [];
+            routeLabelLayers.forEach(function(l) { if (map.hasLayer(l)) map.removeLayer(l); });
+            routeLabelLayers = [];
+            SHIPPING_ROUTES.forEach(function(route) {
+                var segs = seaSegmentsFor(route);
+                routeSegsCache.push(segs);
+                var group = L.featureGroup();
+                for (var s = 0; s < segs.length; s++) {
+                    var line = L.polyline(segs[s], {
+                        color: '#43a047', weight: 5, opacity: 1.0, dashArray: '10,8', interactive: true
+                    });
+                    line.bindTooltip(route.name + ' · 暂未受影响', { sticky: true, direction: 'top' });
+                    group.addLayer(line);
+                }
+                routeLayers.push(group);
+                var mid = seaLabelPointFor(segs, route);
+                var label = L.marker(mid, {
+                    icon: L.divIcon({
+                        className: 'route-name-label',
+                        html: '<span>' + route.name + '</span>',
+                        iconSize: [0, 0], iconAnchor: [0, 0]
+                    }),
+                    interactive: false, zIndexOffset: 500
+                });
+                routeLabelLayers.push(label);
+            });
+        }
+
+        function updateRouteImpacts(pt) {
+            if (!routeLayers.length) buildRouteLayers();
+            placeRouteLabels();
+            var entries = SHIPPING_ROUTES.map(function(route, idx) {
+                var dist = pt ? routeMinDistance(pt, route) : Infinity;
+                return { idx: idx, dist: dist, level: routeLevelFor(dist) };
+            });
+            entries.sort(function(a, b) { return a.dist - b.dist; });
+            var topCount = 3;
+            for (var e = 0; e < entries.length; e++) {
+                var entry = entries[e];
+                var layer = routeLayers[entry.idx];
+                var label = routeLabelLayers[entry.idx];
+                var show = e < topCount && Number.isFinite(entry.dist);
+                if (show) {
+                    if (!map.hasLayer(layer)) layer.addTo(map);
+                    layer.setStyle({ color: entry.level.color, weight: 5, opacity: 1.0, dashArray: '10,8' });
+                    layer.eachLayer(function(ll) {
+                        ll.setTooltipContent(SHIPPING_ROUTES[entry.idx].name + ' · ' + entry.level.name +
+                            '（距台风中心 ' + Math.round(entry.dist) + ' km）');
+                    });
+                    label.setIcon(L.divIcon({
+                        className: 'route-name-label',
+                        html: '<span style="border-color:' + entry.level.color + ';color:' + entry.level.color + ';">' +
+                            SHIPPING_ROUTES[entry.idx].name + '</span>',
+                        iconSize: [0, 0], iconAnchor: [0, 0]
+                    }));
+                    if (!map.hasLayer(label)) label.addTo(map);
+                } else {
+                    if (map.hasLayer(layer)) map.removeLayer(layer);
+                    if (map.hasLayer(label)) map.removeLayer(label);
+                }
+            }
         }
 
         // ===== Time Conversion =====
@@ -1443,6 +1944,10 @@
         var windCanvasCtx = null;
         var windCanvasSize = 0;
         var windBarbColor = '#222';
+        var windDiffScale = 1;
+        var hazardPoint = null;
+        var hazardRadarShow = false;
+        var hazardSeq = 0;
         var landMaskFeatures = null;
         var windQueryPopup = null;
         var windQueryTimer = null;
@@ -1518,6 +2023,8 @@
         function updateRiskSiteVisibility() {
             if (!riskGroupMarker) return;
             var showDetails = map.getZoom() >= 8;
+            var gbaLabel = document.getElementById('gba-label');
+            if (gbaLabel) gbaLabel.classList.toggle('show', showDetails);
             riskSiteMarkers.forEach(function(entry) {
                 if (showDetails && !map.hasLayer(entry.marker)) entry.marker.addTo(map);
                 if (!showDetails && map.hasLayer(entry.marker)) map.removeLayer(entry.marker);
@@ -1540,14 +2047,14 @@
                 marker.bindPopup(sitePopupHtml(site, null, getSiteRisk(NaN), null));
                 riskSiteMarkers.push({ site: site, marker: marker, risk: getSiteRisk(NaN) });
             });
-            riskGroupMarker = L.circleMarker([22.54, 114.04], {
+            riskGroupMarker = L.circleMarker([22.65, 113.80], {
                 pane: 'portPane', radius: 10, color: '#fff', weight: 3,
                 fillColor: '#757575', fillOpacity: 0.95
             });
-            riskGroupMarker.bindTooltip('深圳重点目标 · --', {
+            riskGroupMarker.bindTooltip('粤港澳大湾区重点目标 · --', {
                 permanent: true, direction: 'top', offset: [0, -6], className: 'port-name-label'
             });
-            riskGroupMarker.bindPopup('<div class="port-risk-popup"><strong>深圳重点目标</strong><div>危险等级：暂无数据</div></div>');
+            riskGroupMarker.bindPopup('<div class="port-risk-popup"><strong>粤港澳大湾区重点目标</strong><div>危险等级：暂无数据</div></div>');
             map.on('zoomend', updateRiskSiteVisibility);
             updateRiskSiteVisibility();
         }
@@ -1570,10 +2077,10 @@
                 rows += '<div class="port-risk-row"><span>' + entry.site.name + '</span><span style="color:' + risk.color + ';font-weight:700">' + risk.level + ' ' + risk.name + '</span></div>';
             });
             riskGroupMarker.setStyle({ fillColor: maxRisk.color });
-            riskGroupMarker.setTooltipContent('深圳重点目标 · ' + maxRisk.level);
+            riskGroupMarker.setTooltipContent('粤港澳大湾区重点目标 · ' + maxRisk.level);
             var warningHtml = maxWarning ?
                 '<div>综合预警：<span class="port-risk-level" style="color:' + maxWarning.color + (maxWarning.text ? ';background:' + maxWarning.color + ';color:' + maxWarning.text : '') + '">' + maxWarning.level + '</span></div>' : '';
-            riskGroupMarker.setPopupContent('<div class="port-risk-popup"><strong>深圳重点目标</strong>' +
+            riskGroupMarker.setPopupContent('<div class="port-risk-popup"><strong>粤港澳大湾区重点目标</strong>' +
                 '<div>综合危险等级：<span class="port-risk-level" style="color:' + maxRisk.color + '">' + maxRisk.level + ' ' + maxRisk.name + '</span></div>' +
                 warningHtml +
                 '<div class="port-risk-summary">' + rows + '</div>' +
@@ -1689,6 +2196,8 @@
             }).addTo(map);
             watchLine24.bindTooltip('24小时警戒线', { sticky: true, direction: 'top', offset: [0, -10] });
 
+            buildRouteLayers();
+
             // Load country boundaries
             fetch('data/countries-50m.json')
                 .then(function(res) { return res.json(); })
@@ -1696,6 +2205,8 @@
                     var countries = topojson.feature(world, world.objects.countries);
                     buildLandMask(countries.features);
                     landRaster = null; // 掩膜数据就绪后强制重建栅格
+                    buildRouteLayers();
+                    updateRouteImpacts(lastTyphoonPt);
                     L.geoJSON(countries, {
                         style: { color: '#555555', weight: 1.5, fillColor: 'transparent', fillOpacity: 0 }
                     }).addTo(map);
@@ -1720,11 +2231,281 @@
                 })
                 .catch(function(err) { console.error('Failed to load provinces:', err); });
 
+            // ===== Hazard Warning Six-Dimension Radar =====
+            var HAZARD_LABELS = ['风速', '风浪', '大风时长', '台风中心', '路径逼近', '设施暴露'];
+            var HAZARD_UNITS = ['m/s', 'm', 'h', 'km', 'km', 'km'];
+
+            function clamp100(x) {
+                return Math.max(0, Math.min(100, x));
+            }
+
+            function distToSegmentKm(lat, lon, lat1, lon1, lat2, lon2) {
+                var rad = Math.PI / 180;
+                var cosLat = Math.cos(lat * rad);
+                var x = lon * cosLat, y = lat;
+                var x1 = lon1 * cosLat, y1 = lat1;
+                var x2 = lon2 * cosLat, y2 = lat2;
+                var dx = x2 - x1, dy = y2 - y1;
+                var len2 = dx * dx + dy * dy;
+                var t = len2 ? ((x - x1) * dx + (y - y1) * dy) / len2 : 0;
+                t = Math.max(0, Math.min(1, t));
+                var px = x1 + t * dx, py = y1 + t * dy;
+                return Math.sqrt((x - px) * (x - px) + (y - py) * (y - py)) * 111.32;
+            }
+
+            function computeHazard(lat, lon, t, data) {
+                var v = { wind: 0, wave: 0, duration: 0, center: 0, path: 0, expose: 0 };
+                var raw = [0, 0, 0, null, null, null];
+                var sample = findNearestSiteWind({ lat: lat, lon: lon }, data);
+                var spd = sample ? sample.speed : 0;
+
+                v.wind = clamp100(spd / 35 * 100);
+                raw[0] = spd;
+                var waveH = 0.02 * spd * spd;
+                v.wave = clamp100(waveH / 8 * 100);
+                raw[1] = waveH;
+
+                // 大风持续时间：该点处于 ≥17.2 m/s 大风中的小时数（基于台风路径与强度）
+                var durHours = 0;
+                for (var k = 0; k < typhoonTrack.length; k++) {
+                    var tp2 = typhoonTrack[k];
+                    if (tp2.wind < 17.2) continue;
+                    var dk2 = distanceKm(lat, lon, tp2.lat, tp2.lon);
+                    var rk2 = getWindRadius(tp2.wind, 17.2) * 111;
+                    if (dk2 <= rk2) durHours++;
+                }
+                v.duration = clamp100(Math.pow(durHours / 24, 0.5) * 100);
+                raw[2] = durHours;
+
+                var tp = getTyphoonPointAt(t);
+                if (tp) {
+                    var dc = distanceKm(lat, lon, tp.lat, tp.lon);
+                    var inten = Math.max(10, tp.wind || 10);
+                    v.center = clamp100((200 / (dc + 200)) * (inten / 35) * 100);
+                    raw[3] = dc;
+                }
+
+                var dmin = Infinity;
+                for (var i = 0; i < typhoonTrack.length - 1; i++) {
+                    var dseg = distToSegmentKm(lat, lon, typhoonTrack[i].lat, typhoonTrack[i].lon,
+                        typhoonTrack[i + 1].lat, typhoonTrack[i + 1].lon);
+                    if (dseg < dmin) dmin = dseg;
+                }
+                if (isFinite(dmin)) { v.path = clamp100((300 / (dmin + 300)) * 100); raw[4] = dmin; }
+
+                var demin = Infinity;
+                for (var j = 0; j < RISK_SITES.length; j++) {
+                    var ds = distanceKm(lat, lon, RISK_SITES[j].lat, RISK_SITES[j].lon);
+                    if (ds < demin) demin = ds;
+                }
+                if (isFinite(demin)) { v.expose = clamp100((200 / (demin + 200)) * 100); raw[5] = demin; }
+
+                return { norm: [v.wind, v.wave, v.duration, v.center, v.path, v.expose], raw: raw };
+            }
+
+            function radarAngle(i) {
+                return -Math.PI / 2 + i * Math.PI / 3;
+            }
+
+            function drawRadarPolygon(ctx, cx, cy, R, vals, stroke, fill) {
+                var n = vals.length;
+                ctx.beginPath();
+                for (var i = 0; i < n; i++) {
+                    var ang = radarAngle(i);
+                    var r = R * clamp100(vals[i]) / 100;
+                    var x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+                if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+            }
+
+            function setRadarTextAlign(ctx, ang) {
+                var c = Math.cos(ang);
+                if (c > 0.3) ctx.textAlign = 'left';
+                else if (c < -0.3) ctx.textAlign = 'right';
+                else ctx.textAlign = 'center';
+            }
+
+            function renderHazardRadar(origVals, corrVals) {
+                var canvas = document.getElementById('hazard-radar-canvas');
+                if (!canvas) return;
+                var dpr = window.devicePixelRatio || 1;
+                var cssW = 280, cssH = 190;
+                canvas.width = cssW * dpr; canvas.height = cssH * dpr;
+                canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+                var ctx = canvas.getContext('2d');
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                ctx.clearRect(0, 0, cssW, cssH);
+
+                var cx = cssW / 2, cy = cssH / 2;
+                var R = 48;
+                var n = 6;
+
+                for (var ring = 1; ring <= 4; ring++) {
+                    ctx.beginPath();
+                    for (var i = 0; i <= n; i++) {
+                        var ang = radarAngle(i % n);
+                        var r = R * ring / 4;
+                        var x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
+                        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    }
+                    ctx.strokeStyle = 'rgba(21,101,192,0.14)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                for (var s = 0; s < n; s++) {
+                    var ang = radarAngle(s);
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx + R * Math.cos(ang), cy + R * Math.sin(ang));
+                    ctx.strokeStyle = 'rgba(21,101,192,0.18)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                var showCompare = document.getElementById('hazard-radar-compare').checked;
+                var factor = parseFloat(document.getElementById('hazard-radar-amp').value) || 1;
+                if (showCompare && origVals) {
+                    var origNorm = origVals.norm.slice();
+                    if (factor !== 1) {
+                        for (var ai = 0; ai < n; ai++) {
+                            var dlt = corrVals.norm[ai] - origVals.norm[ai];
+                            origNorm[ai] = clamp100(corrVals.norm[ai] - dlt * factor);
+                        }
+                    }
+                    drawRadarPolygon(ctx, cx, cy, R, origNorm, '#b0bec5', 'rgba(176,190,197,0.14)');
+                }
+                drawRadarPolygon(ctx, cx, cy, R, corrVals.norm, '#1976d2', 'rgba(25,118,210,0.22)');
+
+                for (var v = 0; v < n; v++) {
+                    var ang2 = radarAngle(v);
+                    var r2 = R * clamp100(corrVals.norm[v]) / 100;
+                    var x2 = cx + r2 * Math.cos(ang2), y2 = cy + r2 * Math.sin(ang2);
+                    ctx.beginPath(); ctx.arc(x2, y2, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = '#0d47a1'; ctx.fill();
+                }
+
+                // two-line outer labels: name / value+unit(+Δ)
+                ctx.textBaseline = 'middle';
+                for (var l = 0; l < n; l++) {
+                    var ang3 = radarAngle(l);
+                    var lr = R + 18;
+                    var x3 = cx + lr * Math.cos(ang3), y3 = cy + lr * Math.sin(ang3);
+                    setRadarTextAlign(ctx, ang3);
+                    var align = ctx.textAlign;
+
+                    ctx.font = '10px "Microsoft YaHei", sans-serif';
+                    ctx.fillStyle = '#37474f';
+                    ctx.fillText(HAZARD_LABELS[l], x3, y3 - 7);
+
+                    var valTxt = fmtHazardVal(corrVals.raw[l]) + HAZARD_UNITS[l];
+                    var deltaTxt = '';
+                    var deltaColor = '#1565c0';
+                    if (showCompare && origVals && l < 3) {
+                        var dl = corrVals.raw[l] - origVals.raw[l];
+                        if (Math.abs(dl) > 0.049) {
+                            deltaTxt = (dl > 0 ? '+' : '') + fmtHazardVal(dl);
+                            deltaColor = dl > 0 ? '#e53935' : '#2e7d32';
+                        }
+                    }
+                    ctx.font = '9px "Microsoft YaHei", sans-serif';
+                    ctx.textAlign = 'left';
+                    var valW = ctx.measureText(valTxt).width;
+                    var dW = deltaTxt ? ctx.measureText('  ' + deltaTxt).width : 0;
+                    var totalW = valW + dW;
+                    var startX = (align === 'left') ? x3 : (align === 'right') ? (x3 - totalW) : (x3 - totalW / 2);
+                    ctx.fillStyle = '#1565c0';
+                    ctx.fillText(valTxt, startX, y3 + 7);
+                    if (deltaTxt) {
+                        ctx.fillStyle = deltaColor;
+                        ctx.fillText('  ' + deltaTxt, startX + valW, y3 + 7);
+                    }
+                }
+            }
+
+            function fmtHazardVal(x) {
+                if (x == null) return '--';
+                return (x >= 100) ? Math.round(x).toString() : x.toFixed(1);
+            }
+
+            function renderHazardValues(origVals, corrVals) {
+                var el = document.getElementById('hazard-radar-values');
+                if (!el) return;
+                var units = HAZARD_UNITS;
+                var html = '<div class="hr-row hr-head">' +
+                    '<span class="hr-dim">维度</span><span class="hr-val orig">原场</span>' +
+                    '<span class="hr-val corr">订正</span><span class="hr-delta">Δ</span></div>';
+                for (var i = 0; i < HAZARD_LABELS.length; i++) {
+                    var c = corrVals.raw[i];
+                    var o = origVals ? origVals.raw[i] : null;
+                    var cu = units[i];
+                    var cTxt = (c == null) ? '--' : (fmtHazardVal(c) + cu);
+                    var oTxt = (o == null) ? '--' : (fmtHazardVal(o) + cu);
+                    var dHtml = '<span class="hr-delta zero">—</span>';
+                    if (o != null && c != null && i < 3) {
+                        var d = c - o;
+                        if (Math.abs(d) > 0.049) {
+                            var cls = d > 0 ? 'up' : 'down';
+                            dHtml = '<span class="hr-delta ' + cls + '">' + (d > 0 ? '+' : '') + fmtHazardVal(d) + '</span>';
+                        }
+                    }
+                    html += '<div class="hr-row">' +
+                        '<span class="hr-dim">' + HAZARD_LABELS[i] + '</span>' +
+                        '<span class="hr-val orig">' + oTxt + '</span>' +
+                        '<span class="hr-val corr">' + cTxt + '</span>' + dHtml + '</div>';
+                }
+                el.innerHTML = html;
+            }
+
+            async function ensureHazardFields(t) {
+                async function fetchField(k) {
+                    if (windFieldCache[k]) return windFieldCache[k];
+                    try {
+                        var res = await fetch('wind_field/' + k);
+                        if (!res.ok) return null;
+                        var buf = await res.arrayBuffer();
+                        var data = msgpack.decode(new Uint8Array(buf));
+                        windFieldCache[k] = data;
+                        return data;
+                    } catch (e) { return null; }
+                }
+                var cData = await fetchField(correctedFieldKey(t));
+                var oData = await fetchField(originalFieldKey(t));
+                return { corrected: cData, original: oData };
+            }
+
+            function updateHazardPosText(lat, lon, t, vals) {
+                var el = document.getElementById('hazard-radar-pos');
+                if (!el) return;
+                el.textContent = lat.toFixed(2) + '°N, ' + lon.toFixed(2) + '°E · ' + tToBeijingTime(t);
+            }
+
+            async function updateHazardRadar(t) {
+                if (!hazardRadarShow || !hazardPoint) return;
+                var seq = ++hazardSeq;
+                var lat = hazardPoint.lat, lon = hazardPoint.lon;
+                var fields = await ensureHazardFields(t);
+                if (seq !== hazardSeq || !hazardRadarShow || !hazardPoint) return;
+                var corrVals = fields.corrected ? computeHazard(lat, lon, t, fields.corrected) : null;
+                var origVals = fields.original ? computeHazard(lat, lon, t, fields.original) : null;
+                if (!corrVals) return;
+                renderHazardRadar(origVals, corrVals);
+                renderHazardValues(origVals, corrVals);
+                updateHazardPosText(lat, lon, t, corrVals);
+            }
+
             // Click map to query wind speed/direction at that point
             map.on('click', function(e) {
                 if (measureActive || focusDrawActive) return;
                 var lat = e.latlng.lat, lon = e.latlng.lng;
                 var t = parseInt(document.getElementById('time-slider').value);
+                hazardPoint = { lat: lat, lon: lon };
+                if (hazardRadarShow) {
+                    document.getElementById('hazard-radar').classList.add('show');
+                    updateHazardRadar(t);
+                }
                 var key = windFieldKey(t);
                 var data = windFieldCache[key];
                 var html = '<div class="port-risk-popup"><strong>位置风速查询</strong>' +
@@ -1758,6 +2539,7 @@
             document.getElementById('time-display').textContent = tToBeijingTime(val);
             updateTyphoonPosition(val);
             drawHistoryChart(val);
+            if (typeof updateHazardRadar === 'function') updateHazardRadar(val);
         }
 
         function updateTyphoonPosition(t) {
@@ -1779,6 +2561,7 @@
                 watchCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
                 watchCircleLayers = [];
                 document.getElementById('time-display').textContent = tToBeijingTime(t) + ' (台风尚未生成)';
+                updateRouteImpacts(null);
                 updateInfoPanel(null);
                 updateNewsTicker(null);
                 updateLeftPanelHighlight(-1);
@@ -1812,6 +2595,7 @@
                 watchCircleLayers.forEach(function(layer) { map.removeLayer(layer); });
                 watchCircleLayers = [];
                 document.getElementById('time-display').textContent = tToBeijingTime(t) + ' (台风已消散)';
+                updateRouteImpacts(null);
                 updateInfoPanel(null);
                 updateNewsTicker(null);
                 updateLeftPanelHighlight(-1);
@@ -1873,6 +2657,7 @@
             updateNewsTicker(pt);
             updateWindCircles(pt);
             updateWatchCircles(pt);
+            updateRouteImpacts(pt);
             if (focusMiniMap) syncMiniTyphoon(t);
             if (typhoonLock) map.setView([pt.lat, pt.lon], map.getZoom(), { animate: false });
             loadWindField(t);
@@ -1948,6 +2733,7 @@
         var windCorrected = false;
         var compareMode = false;
         var compareLayers = [];
+        var compareTarget = null;
 
         function getTyphoonSpeed(pt) {
             var idx = -1;
@@ -2026,12 +2812,6 @@
         }
 
         function enterCleanMode() {
-            savedPlaySpeed = playSpeed;
-            savedPlaying = isPlaying;
-            playSpeed = 267;
-            document.getElementById('speed-select').value = '267';
-            loopPlayback = true;
-            if (!isPlaying) startPlayback();
             document.body.classList.add('clean-mode');
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(function() {});
@@ -2039,14 +2819,6 @@
         }
 
         function exitCleanMode() {
-            loopPlayback = false;
-            if (savedPlaySpeed !== null) {
-                playSpeed = savedPlaySpeed;
-                document.getElementById('speed-select').value = String(savedPlaySpeed);
-                savedPlaySpeed = null;
-            }
-            if (!savedPlaying) pausePlayback();
-            savedPlaying = false;
             document.body.classList.remove('clean-mode');
             if (document.fullscreenElement && document.exitFullscreen) {
                 document.exitFullscreen();
@@ -2188,38 +2960,41 @@
                 loadWindField(val);
             } else {
                 windCanvasCtx.clearRect(0, 0, windCanvasSize.x, windCanvasSize.y);
+                hideDiffLegend();
                 if (focusMiniMap) syncMiniWind(null);
             }
         }
 
-        function loadWindField(t) {
+        async function loadWindField(t) {
             windCurrentT = t;
             var seq = ++windRequestSeq;
             var key = windFieldKey(t);
-            if (windFieldCache[key]) {
-                updateRiskSiteRisks(windFieldCache[key], t);
-                if (windLayerActive) drawWindFieldOnCanvas(windFieldCache[key]);
-                syncMiniWind(windFieldCache[key]);
-                return;
+            var origKey = originalFieldKey(t);
+            var needBoth = windCorrected;
+
+            async function fetchField(k) {
+                if (windFieldCache[k]) return windFieldCache[k];
+                var res = await fetch('wind_field/' + k);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var buf = await res.arrayBuffer();
+                var data = msgpack.decode(new Uint8Array(buf));
+                windFieldCache[k] = data;
+                return data;
             }
-            fetch(windFieldUrl(t))
-                .then(function(res) {
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    return res.arrayBuffer();
-                })
-                .then(function(buf) {
-                    var data = msgpack.decode(new Uint8Array(buf));
-                    windFieldCache[key] = data;
-                    if (seq === windRequestSeq && windCurrentT === t) {
-                        updateRiskSiteRisks(data, t);
-                        if (windLayerActive) drawWindFieldOnCanvas(data);
-                        syncMiniWind(data);
-                    }
-                })
-                .catch(function(err) {
-                    console.error('Failed to load wind field:', err);
-                    if (seq === windRequestSeq && windCurrentT === t) updateRiskSiteRisks(null, t);
-                });
+
+            try {
+                var data = await fetchField(key);
+                if (needBoth) {
+                    try { await fetchField(origKey); } catch (e) { console.warn('Original wind field missing:', e); }
+                }
+                if (seq !== windRequestSeq || windCurrentT !== t) return;
+                updateRiskSiteRisks(data, t);
+                if (windLayerActive) drawWindFieldOnCanvas(data);
+                syncMiniWind(data);
+            } catch (err) {
+                console.error('Failed to load wind field:', err);
+                if (seq === windRequestSeq && windCurrentT === t) updateRiskSiteRisks(null, t);
+            }
         }
 
         function drawWindBarb(ctx, x, y, speed, direction, size, color) {
@@ -2453,12 +3228,90 @@
             return false;
         }
 
+        // ===== Wind Field Difference (corrected − original) =====
+        function buildSpeedLookup(origData) {
+            var map = {};
+            if (!origData) return map;
+            for (var i = 0; i < origData.length; i++) {
+                map[origData[i][0].toFixed(4) + ',' + origData[i][1].toFixed(4)] = origData[i][2];
+            }
+            return map;
+        }
+
+        function diffColor(ds, scale) {
+            var limit = scale || windDiffScale || 1;
+            var t = ds / limit;
+            if (t > 1) t = 1;
+            if (t < -1) t = -1;
+            var a = Math.abs(t);
+            var r, g, b;
+            if (t >= 0) {
+                r = 255;
+                g = Math.round(255 - 198 * a);
+                b = Math.round(255 - 202 * a);
+            } else {
+                r = Math.round(255 - 234 * a);
+                g = Math.round(255 - 154 * a);
+                b = Math.round(255 - 63 * a);
+            }
+            return 'rgb(' + r + ',' + g + ',' + b + ')';
+        }
+
+        function fmtDiffScale(v) {
+            return v >= 10 ? String(Math.round(v)) : v.toFixed(1);
+        }
+
+        function renderDiffLegend(scale) {
+            var el = document.getElementById('diff-legend');
+            if (!el) return;
+            el.style.display = 'flex';
+            var canvas = document.getElementById('diff-legend-canvas');
+            var w = 200, h = 12;
+            if (canvas.width !== w) canvas.width = w;
+            if (canvas.height !== h) canvas.height = h;
+            var ctx = canvas.getContext('2d');
+            var grad = ctx.createLinearGradient(0, 0, w, 0);
+            grad.addColorStop(0, '#1565c0');
+            grad.addColorStop(0.5, '#ffffff');
+            grad.addColorStop(1, '#e53935');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, w, h);
+            document.getElementById('diff-legend-min').textContent = '-' + fmtDiffScale(scale);
+            document.getElementById('diff-legend-max').textContent = '+' + fmtDiffScale(scale);
+        }
+
+        function hideDiffLegend() {
+            var el = document.getElementById('diff-legend');
+            if (el) el.style.display = 'none';
+        }
+
         function drawWindFieldOnCanvas(data) {
             if (!windCanvasCtx || !windCanvasSize) return;
             var ctx = windCanvasCtx;
             var size = windCanvasSize;
             ctx.clearRect(0, 0, size.x, size.y);
             if (!data || !data.length) return;
+
+            // 差值模式：订正场 − 原场，按风速差着色（发散蓝白红）
+            var diffMode = windCorrected;
+            var origLookup = null;
+            if (diffMode) {
+                var origData = windFieldCache[originalFieldKey(windCurrentT)];
+                origLookup = buildSpeedLookup(origData);
+                var maxDs = 0;
+                for (var di = 0; di < data.length; di++) {
+                    var ok = data[di][0].toFixed(4) + ',' + data[di][1].toFixed(4);
+                    var os = origLookup[ok];
+                    if (os == null) continue;
+                    var dabs = Math.abs(data[di][2] - os);
+                    if (dabs > maxDs) maxDs = dabs;
+                }
+                windDiffScale = maxDs > 0 ? maxDs : 1;
+                if (windDiffScale < 0.5) windDiffScale = 0.5;
+                renderDiffLegend(windDiffScale);
+            } else {
+                hideDiffLegend();
+            }
 
             var pointsDrawn = 0;
             var mapBounds = map.getBounds();
@@ -2498,14 +3351,29 @@
                 }
                 if (tooClose) continue;
                 (grid[gx + ',' + gy] = grid[gx + ',' + gy] || []).push([pt.x, pt.y]);
-                drawWindBarb(ctx, pt.x, pt.y, spd, dire, 28);
+                var barbColor = windBarbColor;
+                if (diffMode && origLookup) {
+                    var dk = lo.toFixed(4) + ',' + la.toFixed(4);
+                    var os2 = origLookup[dk];
+                    if (os2 != null) barbColor = diffColor(spd - os2, windDiffScale);
+                }
+                drawWindBarb(ctx, pt.x, pt.y, spd, dire, 28, barbColor);
                 pointsDrawn++;
             }
         }
 
         // ===== Left Panel =====
         function toggleLeftPanel() {
-            document.getElementById('left-panel').classList.toggle('open');
+            var lp = document.getElementById('left-panel');
+            lp.classList.toggle('open');
+            if (lp.classList.contains('open')) setChartVisible(false);
+        }
+
+        function setChartVisible(show) {
+            var hc = document.getElementById('history-chart');
+            if (hc) hc.classList.toggle('show', show);
+            var btn = document.getElementById('btn-chart');
+            if (btn) btn.classList.toggle('active', show);
         }
 
         function initLeftPanel() {
@@ -2616,11 +3484,21 @@
                 ];
             }
             var container = document.getElementById('time-ticks');
+            var range = CONFIG.maxT - CONFIG.minT;
+            var positions = ticks.map(function(tick) {
+                return Math.max(0, Math.min(100, (tick.t - CONFIG.minT) / range * 100));
+            });
+            // 自动避让：相邻里程碑太近时向右错开
+            var minGap = 7;
+            for (var i = 1; i < positions.length; i++) {
+                if (positions[i] - positions[i - 1] < minGap) {
+                    positions[i] = Math.min(100, positions[i - 1] + minGap);
+                }
+            }
             var html = '';
             for (var i = 0; i < ticks.length; i++) {
                 var tick = ticks[i];
-                var pct = ((tick.t - CONFIG.minT) / (CONFIG.maxT - CONFIG.minT)) * 100;
-                html += '<div class="time-tick' + (tick.major ? ' major' : '') + '" style="margin-left:' + pct + '%;" title="' + tToBeijingTime(tick.t) + ' ' + tick.label + '">' + tick.label + '</div>';
+                html += '<div class="time-tick' + (tick.major ? ' major' : '') + '" style="left:' + positions[i] + '%;" title="' + tToBeijingTime(tick.t) + ' ' + tick.label + '">' + tick.label + '</div>';
             }
             container.innerHTML = html;
         }
@@ -3056,8 +3934,9 @@
 
         // ===== Typhoon Switching =====
         function updateTyphoonBrand() {
-            document.getElementById('title').textContent = currentTyphoonName;
             document.title = currentTyphoonName + ' - 台风路径可视化';
+            var tn = document.querySelector('#title .title-name');
+            if (tn) tn.textContent = currentTyphoonName;
         }
 
         function updateHistoryList() {
@@ -3071,10 +3950,14 @@
                     var t1 = d.start.getTime() + d.track[d.track.length - 1].t * 3600 * 1000 + 8 * 3600 * 1000;
                     period = new Date(t0).toISOString().slice(0, 10) + ' ~ ' + new Date(t1).toISOString().slice(0, 10);
                 }
+                var ico = (name && name.length) ? name.charAt(0) : '🌀';
                 var active = name === currentTyphoonName;
                 return '<div class="history-item' + (active ? ' active' : '') + '" data-name="' + name + '">' +
-                    '<span class="history-name">' + name + '</span>' +
-                    '<span class="history-period">' + period + '</span>' +
+                    '<div class="history-ico">' + ico + '</div>' +
+                    '<div class="history-info">' +
+                        '<span class="history-name">' + name + '</span>' +
+                        '<span class="history-period">' + period + '</span>' +
+                    '</div>' +
                     (active ? '<span class="history-now">当前</span>' : '') +
                     '</div>';
             }).join('');
@@ -3127,37 +4010,112 @@
             updateTyphoonBrand();
             updateHistoryList();
             windCorrected = false;
+            hideDiffLegend();
+            hazardPoint = null;
+            hazardRadarShow = false;
+            var hazardBtn = document.getElementById('btn-hazard');
+            if (hazardBtn) hazardBtn.classList.remove('active');
+            var hazardPanel = document.getElementById('hazard-radar');
+            if (hazardPanel) hazardPanel.classList.remove('show');
             var cmpBtn = document.getElementById('btn-compare');
             if (cmpBtn) cmpBtn.classList.remove('active');
+            compareTarget = null;
+            compareMode = false;
+            var mbBtn = document.getElementById('btn-multi');
+            if (mbBtn) mbBtn.classList.remove('active');
+            buildVsMenu();
             if (compareMode) updateCompareLayers();
 
             var bounds = L.latLngBounds([]);
             typhoonTrack.forEach(function(p) { bounds.extend([p.lat, p.lon]); });
             map.fitBounds(bounds, { padding: [40, 40] });
 
-            document.getElementById('history-menu').classList.remove('open');
+            document.getElementById('typhoon-menu').classList.remove('open');
+            var tEl2 = document.getElementById('title');
+            if (tEl2) tEl2.classList.remove('open');
             updateTimeDisplay();
+        }
+
+        function buildVsMenu() {
+            var menu = document.getElementById('vs-menu');
+            if (!menu) return;
+            var others = Object.keys(TYPHOON_DATA).filter(function(n) { return n !== currentTyphoonName; });
+            menu.innerHTML = others.map(function(n) {
+                var d = TYPHOON_DATA[n];
+                var period = '';
+                if (d.track && d.track.length) {
+                    var t0 = d.start.getTime() + d.track[0].t * 3600 * 1000 + 8 * 3600 * 1000;
+                    var t1 = d.start.getTime() + d.track[d.track.length - 1].t * 3600 * 1000 + 8 * 3600 * 1000;
+                    period = new Date(t0).toISOString().slice(0, 10) + ' ~ ' + new Date(t1).toISOString().slice(0, 10);
+                }
+                return '<div class="vs-item' + (n === compareTarget ? ' active' : '') + '" data-name="' + n + '">' +
+                    '<span class="vs-check"></span><span>' + n + '</span>' +
+                    '<span style="margin-left:auto;font-size:0.7rem;color:#888;">' + period + '</span></div>';
+            }).join('');
         }
 
         function updateCompareLayers() {
             compareLayers.forEach(function(layer) { map.removeLayer(layer); });
             compareLayers = [];
-            if (!compareMode) return;
-            var names = Object.keys(TYPHOON_DATA);
-            names.forEach(function(name) {
-                if (name === currentTyphoonName) return;
-                var d = TYPHOON_DATA[name];
+            var chip = document.getElementById('compare-legend');
+            if (!compareMode) {
+                if (chip) chip.classList.remove('show');
+                return;
+            }
+            if (chip) chip.classList.add('show');
+
+            var curEl = document.getElementById('compare-current');
+            if (curEl) curEl.textContent = currentTyphoonName;
+            var selBtn = document.getElementById('compare-select');
+            if (selBtn) selBtn.textContent = compareTarget ? (compareTarget + ' ▾') : '选择台风 ▾';
+
+            var menu = document.getElementById('compare-menu');
+            if (menu) {
+                var others = Object.keys(TYPHOON_DATA).filter(function(n) { return n !== currentTyphoonName; });
+                menu.innerHTML = others.map(function(n) {
+                    return '<div class="compare-item' + (n === compareTarget ? ' active' : '') + '" data-name="' + n + '">' + n + '</div>';
+                }).join('');
+            }
+
+            if (compareTarget && compareTarget !== currentTyphoonName) {
+                var d = TYPHOON_DATA[compareTarget];
                 var track = d.track || [];
-                if (!track.length) return;
-                var layer = L.polyline(track.map(function(p) { return [p.lat, p.lon]; }), {
-                    color: '#9e9e9e', weight: 2, dashArray: '6,6', opacity: 0.85,
-                    interactive: false
-                }).addTo(map);
-                compareLayers.push(layer);
-            });
+                if (track.length) {
+                    var layer = L.polyline(track.map(function(p) { return [p.lat, p.lon]; }), {
+                        color: '#1e88e5', weight: 2.5, dashArray: '6,6', opacity: 0.9,
+                        interactive: false
+                    }).addTo(map);
+                    compareLayers.push(layer);
+                    var startPt = track[0];
+                    var endPt = track[track.length - 1];
+                    [startPt, endPt].forEach(function(pt, idx) {
+                        var m = L.marker([pt.lat, pt.lon], {
+                            icon: L.divIcon({
+                                className: 'compare-name-label',
+                                html: '<span style="border-color:#1e88e5;color:#1e88e5;">' + (idx === 0 ? compareTarget + '（生成）' : compareTarget + '（消散）') + '</span>',
+                                iconSize: [0, 0],
+                                iconAnchor: [0, 0]
+                            }),
+                            interactive: false,
+                            zIndexOffset: 600
+                        }).addTo(map);
+                        compareLayers.push(m);
+                    });
+                }
+            }
+            placeRouteLabels();
         }
 
         // ===== Initialization =====
+        function fitCompareBounds() {
+            if (!compareTarget) return;
+            var b = L.latLngBounds([]);
+            typhoonTrack.forEach(function(p) { b.extend([p.lat, p.lon]); });
+            var d = TYPHOON_DATA[compareTarget];
+            (d.track || []).forEach(function(p) { b.extend([p.lat, p.lon]); });
+            if (b.isValid()) map.fitBounds(b, { padding: [50, 50] });
+        }
+
         function init() {
             initMap();
             updateLegend(currentLayer);
@@ -3188,19 +4146,22 @@
 
             document.getElementById('left-panel-toggle').addEventListener('click', toggleLeftPanel);
             document.getElementById('left-panel-close').addEventListener('click', toggleLeftPanel);
-            document.getElementById('title').addEventListener('click', function(e) {
-                e.stopPropagation();
-                document.getElementById('history-menu').classList.toggle('open');
-            });
             document.getElementById('history-list').addEventListener('click', function(e) {
                 var item = e.target.closest('.history-item');
                 if (item && item.getAttribute('data-name')) {
                     switchTyphoon(item.getAttribute('data-name'));
                 }
             });
+            document.getElementById('title').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('typhoon-menu').classList.toggle('open');
+                this.classList.toggle('open');
+            });
             document.addEventListener('click', function(e) {
-                if (!e.target.closest('#typhoon-switcher') && !e.target.closest('#title')) {
-                    document.getElementById('history-menu').classList.remove('open');
+                if (!e.target.closest('#title')) {
+                    document.getElementById('typhoon-menu').classList.remove('open');
+                    var tEl = document.getElementById('title');
+                    if (tEl) tEl.classList.remove('open');
                 }
             });
             document.getElementById('time-date-btn').addEventListener('click', function(e) {
@@ -3228,6 +4189,42 @@
                 var hc = document.getElementById('history-chart');
                 var collapsed = hc.classList.toggle('collapsed');
                 this.textContent = collapsed ? '+' : '−';
+            });
+            document.getElementById('btn-chart').addEventListener('click', function() {
+                var hc = document.getElementById('history-chart');
+                var show = !hc.classList.contains('show');
+                setChartVisible(show);
+                if (show) document.getElementById('left-panel').classList.remove('open');
+            });
+            document.getElementById('btn-hazard').addEventListener('click', function() {
+                hazardRadarShow = !hazardRadarShow;
+                this.classList.toggle('active', hazardRadarShow);
+                document.getElementById('hazard-radar').classList.toggle('show', hazardRadarShow);
+                if (hazardRadarShow) {
+                    if (hazardPoint) {
+                        if (typeof updateHazardRadar === 'function') updateHazardRadar(parseInt(document.getElementById('time-slider').value));
+                    }
+                } else {
+                    hazardPoint = null;
+                }
+            });
+            document.getElementById('hazard-radar-close').addEventListener('click', function() {
+                hazardRadarShow = false;
+                hazardPoint = null;
+                var hb = document.getElementById('btn-hazard');
+                if (hb) hb.classList.remove('active');
+                document.getElementById('hazard-radar').classList.remove('show');
+            });
+            document.getElementById('hazard-radar-compare').addEventListener('change', function() {
+                if (hazardRadarShow && hazardPoint) {
+                    if (typeof updateHazardRadar === 'function') updateHazardRadar(parseInt(document.getElementById('time-slider').value));
+                }
+            });
+            document.getElementById('hazard-radar-amp').addEventListener('input', function() {
+                document.getElementById('hazard-radar-amp-val').textContent = '×' + this.value;
+                if (hazardRadarShow && hazardPoint) {
+                    if (typeof updateHazardRadar === 'function') updateHazardRadar(parseInt(document.getElementById('time-slider').value));
+                }
             });
 
             // Tool buttons
@@ -3302,10 +4299,45 @@
                 this.classList.toggle('active', windCorrected);
                 if (windLayerActive && windCurrentT >= 0) loadWindField(windCurrentT);
             });
-            document.getElementById('btn-multi').addEventListener('click', function() {
-                compareMode = !compareMode;
-                this.classList.toggle('active', compareMode);
+            document.getElementById('btn-multi').addEventListener('click', function(e) {
+                e.stopPropagation();
+                buildVsMenu();
+                document.getElementById('vs-menu').classList.toggle('open');
+            });
+            document.getElementById('vs-menu').addEventListener('click', function(e) {
+                var item = e.target.closest('.vs-item');
+                if (!item) return;
+                var name = item.getAttribute('data-name');
+                compareTarget = name;
+                compareMode = true;
+                document.getElementById('btn-multi').classList.add('active');
+                document.getElementById('vs-menu').classList.remove('open');
+                document.getElementById('compare-menu').classList.remove('open');
                 updateCompareLayers();
+                fitCompareBounds();
+            });
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#vs-menu-wrap')) {
+                    document.getElementById('vs-menu').classList.remove('open');
+                }
+            });
+            document.getElementById('compare-select').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('compare-menu').classList.toggle('open');
+            });
+            document.getElementById('compare-menu').addEventListener('click', function(e) {
+                var item = e.target.closest('.compare-item');
+                if (item && item.getAttribute('data-name')) {
+                    compareTarget = item.getAttribute('data-name');
+                    this.classList.remove('open');
+                    updateCompareLayers();
+                    fitCompareBounds();
+                }
+            });
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#compare-legend')) {
+                    document.getElementById('compare-menu').classList.remove('open');
+                }
             });
             document.getElementById('btn-loop').addEventListener('click', function() {
                 loopPlayback = !loopPlayback;
