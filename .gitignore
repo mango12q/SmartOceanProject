@@ -21,3 +21,6 @@ Thumbs.db
 
 # Local dev/test harness (vendored assets fetched from server)
 .dev/
+
+# Node deps (仅本地工具链，不参与交付)
+node_modules/
