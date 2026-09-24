@@ -143,6 +143,28 @@
         }
         .qr-btn:hover { background: #e3f2fd; border-color: #1976d2; }
         .qr-btn:active { transform: scale(0.96); }
+        /* 右上角「语言切换」入口（中 ⇄ EN，需求 4）：与 .qr-btn 同款外观，
+           文案由 window.I18N 写入（显示的是**目标语言**），故不参与词表翻译。 */
+        .lang-btn {
+            background: rgba(255,255,255,0.94); color: #0d47a1;
+            border: 1px solid rgba(21,101,192,0.25);
+            padding: 5px 11px; border-radius: 6px;
+            cursor: pointer; font-size: 0.82rem; font-weight: 700;
+            letter-spacing: 0.04em; transition: all 0.2s;
+            box-shadow: 0 2px 10px rgba(21,101,192,0.12);
+            position: relative; white-space: nowrap; min-width: 44px;
+        }
+        .lang-btn:hover { background: #e3f2fd; border-color: #1976d2; }
+        .lang-btn:active { transform: scale(0.96); }
+        /* 桌面端：语言键**脱离文档流**，挂在工具栏正下方右对齐。
+           若让它作为流内子项，#top-controls 会向左加宽 52px，把「行政地图 / 卫星地图 /
+           地形图 / 手机扫码」整条左移；并在 769~960px 这类窄桌面下与居中的 #title 药丸
+           重叠（实测：base 只在 ≤800px 重叠，加按钮后扩大到 ≤960px）。
+           绝对定位后工具栏几何**完全不变** —— 差异只剩新按钮本身，满足「不干扰 PC 画面」。
+           769px 及以下（手机端）由 mobile.css 接管，按钮回到顶栏右侧。 */
+        @media (min-width: 769px) {
+            #btn-lang { position: absolute; top: 100%; right: 0; margin-top: 6px; }
+        }
         #focus-menu-wrap { position: relative; }
         #focus-menu {
             position: absolute; top: 0; left: calc(100% + 4px); right: auto;
@@ -805,10 +827,26 @@
     --md-safe-b: env(safe-area-inset-bottom, 0px);
     --md-blue: #1565c0;
     --md-line: rgba(21, 101, 192, 0.18);
-    --md-sheet-bg: rgba(255, 255, 255, 0.98);
+    --md-sheet-bg: #ffffff;
     --md-shadow: 0 -2px 10px rgba(13, 71, 161, 0.18);
+    /* 关键色：Dock 必须完全不透明 —— 半透明时拖动地图会透出底图，形成「白框」观感 */
+    --md-dock-bg: #ffffff;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+
+    /* ------------------------------------------------------------------
+       文字自适配屏幕缩放（需求 3）
+       根字号随视口宽度线性变化，所有 rem 尺寸的文字一起缩放：
+         320px → 15.6px   390px → 16.0px   430px → 16.2px   768px → 18px（封顶）
+       桌面端不生效：本文件全部规则都在 @media (max-width:768px) 内，
+       且需要 html.mobile-ui 类（由 JS 仅在移动端加上）—— 双保险。
+       ------------------------------------------------------------------ */
+    font-size: clamp(15px, calc(13.9px + 0.53vw), 18px);
+  }
+
+  /* 横屏矮屏不再放大字号（可用高度比宽度更紧张） */
+  @media (max-height: 480px) {
+    html.mobile-ui { font-size: clamp(14px, calc(13.4px + 0.4vw), 16px); }
   }
 
   html.mobile-ui body {
@@ -833,17 +871,16 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 4px;
+    gap: 3px;
     box-sizing: border-box;
-    padding: 6px 8px calc(10px + var(--md-safe-b, env(safe-area-inset-bottom, 0px)));
-    background: rgba(255, 255, 255, 0.98);          /* §2.2.18：不透明纯色，不用 backdrop-filter */
+    padding: 4px 8px calc(5px + var(--md-safe-b, env(safe-area-inset-bottom, 0px)));
+    background: var(--md-dock-bg);                  /* §2.2.18：完全不透明纯色，不用 backdrop-filter */
     border-top: 1px solid var(--md-line);
     box-shadow: var(--md-shadow);                   /* 模糊 ≤12px */
     color: #222;
     font-size: 0.82rem;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.18s ease, opacity 0.18s ease;
   }
 
   /* 行1：时间/坐标 + 播放控制 + 速度 */
@@ -858,7 +895,10 @@
     min-width: 0;
   }
 
-  /* 行2：时间滑块 + 刻度 */
+  /* 行2：时间滑块 + 刻度
+     ⚠ 试过把刻度改成「叠加在滑块行内的绝对定位」以省 12px，但实测滑块拇指
+     （26px，垂直居中于 32px 的 input）会压住刻度文字：滑到起点时「生成」被拇指吃掉一半。
+     刻度是有语义的事件标记（生成/登陆/巅峰/消散），可读性优先 → 保持独立流内一行。 */
   html.mobile-ui #mobile-dock .md-slider {
     display: flex;
     flex-direction: column;
@@ -893,7 +933,7 @@
     border-radius: 10px;
     color: #37474f;
     font-family: inherit;
-    font-size: 0.66rem;                             /* 标签 ≥10px */
+    font-size: 0.72rem;                             /* 标签 ≥10px（原 0.66rem=10.6px 偏小，需求 3/5 上调） */
     line-height: 1.1;
     cursor: pointer;
     touch-action: manipulation;
@@ -910,7 +950,7 @@
 
   html.mobile-ui #mobile-dock .md-tab .md-label,
   html.mobile-ui #mobile-dock .md-tab > :last-child {
-    font-size: 0.66rem;
+    font-size: 0.72rem;
     line-height: 1.1;
     white-space: nowrap;
   }
@@ -936,12 +976,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 2px;
   }
 
   html.mobile-ui #mobile-dock #playback-controls button {
-    flex: 0 1 38px;
-    min-width: 28px;
+    flex: 0 1 44px;
+    min-width: 34px;
     min-height: 44px;
     padding: 0;
     font-size: 1rem;
@@ -951,9 +991,9 @@
   html.mobile-ui #mobile-dock #speed-select {
     flex: 0 0 auto;
     min-height: 44px;
-    max-width: 54px;
+    max-width: 48px;
     padding: 0 2px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
   }
 
   html.mobile-ui #mobile-dock #time-display {
@@ -1033,8 +1073,9 @@
   html.mobile-ui #mobile-dock #time-ticks {
     position: relative;
     width: 100%;
-    height: 12px;
+    height: 11px;
     overflow: hidden;
+    pointer-events: none;
   }
 
   html.mobile-ui #mobile-dock #time-ticks .time-tick {
@@ -1052,10 +1093,21 @@
     height: 5px;
   }
 
-  /* JS：地图触摸时 Dock 下沉半透明（§3.5） */
-  html.mobile-ui.md-interacting #mobile-dock {
-    transform: translateY(12px);
-    opacity: 0.55;
+  /* JS：地图触摸时 Dock「让位」（§3.5）
+     ------------------------------------------------------------------
+     ⚠ 曾经的实现是 `transform: translateY(12px); opacity: 0.55;`，有两个真实缺陷：
+       1) opacity 让**白色 Dock 整体半透明** → 拖动地图时底图与地图注记透出来，
+          用户看到的是一块忽明忽暗的「白框」（抬手后还要等 1.4s 才消失）；
+       2) translateY 让 Dock 下移 12px，底边被裁掉，可视高度跳变。
+     现改为：Dock 背景始终**完全不透明且不动**，只把内部控件淡一点 —— 既保留
+     「手势时界面后退」的观感，又不会透出底图、不会位移。
+     ------------------------------------------------------------------ */
+  html.mobile-ui #mobile-dock > * {
+    transition: opacity 0.18s ease;
+  }
+
+  html.mobile-ui.md-interacting #mobile-dock > * {
+    opacity: 0.5;
   }
 
   /* ==========================================================================
@@ -1111,11 +1163,20 @@
     box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.18);   /* §2.2.18 模糊 ≤12px */
     backdrop-filter: none;
     transform: translateY(105%);
-    transition: transform 0.28s ease;
+    /* ⚠ 收起时必须 visibility:hidden。仅仅 translateY(105%) 不够：面板高 60vh、
+       底边停在 --dock-h 处，下移 105% 后其**顶边仍在视口内**，会露出一条 130px 左右
+       的「幽灵」内容（实测可看到表头「时间/纬度/经度/气压/风速」透在 Dock 上）。
+       延迟 0s 的 visibility 切换保证展开动画不被吃掉。 */
+    visibility: hidden;
+    transition: transform 0.28s ease, visibility 0s linear 0.28s;
     overscroll-behavior: contain;
   }
 
-  html.mobile-ui #left-panel.open { transform: translateY(0); }
+  html.mobile-ui #left-panel.open {
+    transform: translateY(0);
+    visibility: visible;
+    transition: transform 0.28s ease, visibility 0s linear 0s;
+  }
 
   html.mobile-ui #left-panel-header {
     padding: 4px 12px;
@@ -1315,21 +1376,25 @@
 
   /* Dock 里的时钟徽标：JS 只给了一个 24×24 viewBox 的 SVG（无 width/height，
      不写 CSS 会撑成 374×374）。这里钉在 Dock 行1 右上角，绝对定位 → 不占 Dock 高度。
-     行1 用 padding-right 让位，保证 161px ≤ 168px 预算不变。 */
+     行1 用 padding-right 让位。
+     为「拥挤 + 触控」让路的两处收紧（需求 5）：
+       - 隐藏装饰性 SVG 图标，只留 HH:MM 文本 → 让位宽度 72px 收到 50px；
+       - 于是 6 个播放键能从 40px 放宽到 ≈44px（SPEC §2.2.14 要求 min-height 44px，
+         原实现 40×44 偏窄，点按时容易误触）。 */
   html.mobile-ui #mobile-dock .md-clock {
     position: absolute;
     top: 6px;
     right: 8px;
     height: 44px;
-    max-width: 66px;
+    max-width: 46px;
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 0;
     padding: 0 5px;
     border-radius: 8px;
     background: rgba(21, 101, 192, 0.08);
     color: #1565c0;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -1337,20 +1402,15 @@
     pointer-events: none;
   }
 
-  html.mobile-ui #mobile-dock .md-clock svg {
-    width: 14px;
-    height: 14px;
-    flex: 0 0 14px;
-    display: block;
-  }
+  html.mobile-ui #mobile-dock .md-clock svg { display: none; }
 
   html.mobile-ui #mobile-dock #md-clock-text {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  html.mobile-ui #mobile-dock .md-time { padding-right: 72px; }
+  html.mobile-ui #mobile-dock .md-time { padding-right: 50px; }
 
   /* 设置面板：图标按钮 3 列网格，.md-wide（退出全屏）独占整行 */
   html.mobile-ui .md-sheet-body .md-grid {
@@ -1515,7 +1575,7 @@
     transform: none;
     margin: 0 auto;
     width: max-content;
-    max-width: calc(100vw - 96px);
+    max-width: calc(100vw - 128px);   /* 右侧给 #btn-lang 留位（需求 4） */
     padding: 7px 14px;
     font-size: 0.95rem;
     letter-spacing: 0.06em;
@@ -1524,7 +1584,7 @@
 
   html.mobile-ui #title .title-name {
     display: inline-block;
-    max-width: calc(100vw - 150px);
+    max-width: calc(100vw - 180px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1797,6 +1857,13 @@
     font-weight: 700;
   }
 
+  /* #legend 的文字是 CSS 生成内容，DOM 翻译器遍历不到文本节点 →
+     英文版必须在这里显式给一份（需求 4）。语言由 I18N 写在 html[data-lang] 上。 */
+  html.mobile-ui[data-lang="en"] #legend::before {
+    content: 'Legend';
+    font-size: 0.66rem;
+  }
+
   html.mobile-ui #legend-modal {
     position: fixed;
     left: 0;
@@ -1837,41 +1904,54 @@
   html.mobile-ui #news-ticker {
     left: 8px;
     right: 8px;
-    top: 52px;
+    top: 46px;
     transform: none;
     max-width: none;
     min-width: 0;
     width: auto;
     box-sizing: border-box;
-    min-height: 46px;
+    min-height: 34px;                               /* 原 46px 白占高度（需求 5 拥挤） */
     display: flex;
     align-items: center;
     padding: 4px 50px 4px 10px;
     border-radius: 8px;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     z-index: 1230;
   }
 
-  html.mobile-ui #news-ticker .ticker-content { font-size: 0.72rem; }
+  /* 快讯是「滚动字幕」，在窄屏上大半时间文字都在屏幕外 → 手机端改为静态单行省略号，
+     并把整句作为 title 提示，信息不丢、界面不抖（需求 3/5）。 */
+  html.mobile-ui #news-ticker .ticker-content {
+    font-size: 0.74rem;
+    display: block;
+    animation: none;
+    transform: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
 
   html.mobile-ui #news-ticker-close {
     right: 2px;
     top: 50%;
     transform: translateY(-50%);
-    width: 44px;
-    height: 44px;
-    min-height: 44px;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
     font-size: 1rem;
   }
 
   /* ==========================================================================
-     §10 · 大湾区标签（§2.2.10）：不与 #title 重叠
+     §10 · 大湾区标签（§2.2.10）：不与 #title / #news-ticker 重叠
+     快讯条常驻在 top:46px、高 34px → 标签让到它下面；快讯被关掉时上移，不留空洞。
+     是否可见由 JS 同步 html.md-ticker-on（主逻辑只改 #news-ticker 的 display）。
      ========================================================================== */
   html.mobile-ui #gba-label {
-    top: 52px;
+    top: 86px;
     left: 8px;
     right: auto;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     padding: 5px 10px;
     border-radius: 12px;
     max-width: calc(100vw - 16px);
@@ -1879,6 +1959,12 @@
     text-overflow: ellipsis;
     z-index: 1220;
   }
+
+  /* 快讯被用户关掉后，标签上移补位（JS 维护 html.md-ticker-off） */
+  html.mobile-ui.md-ticker-off #gba-label { top: 50px; }
+
+  /* 快讯被关掉后，其余顶部浮层也可上移 */
+  html.mobile-ui.md-ticker-off #title { top: 8px; }
 
   /* ==========================================================================
      §11 · 测距信息条（§2.2.11）
@@ -2021,6 +2107,43 @@
   html.mobile-ui #news-ticker .ticker-content { pointer-events: none; }
 
   /* ==========================================================================
+     §19 · 全屏（洁净模式）在手机上的收尾（需求 1）
+     ========================================================================== */
+  /* 退出键避开刘海/圆角安全区，全屏下是唯一逃生出口，必须够大够显眼 */
+  html.mobile-ui body.clean-mode > #btn-clean-exit {
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    right: calc(env(safe-area-inset-right, 0px) + 10px);
+    min-height: 48px;
+    padding: 10px 16px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    z-index: 2900;
+  }
+
+  /* 洁净模式下 Dock 被 display:none，任何以 --dock-h 定位的浮层都必须贴底。
+     JS 会在 fullscreenchange 时把 --dock-h 归零（权威值）；这条是零时差兜底：
+     `:has()` 不支持的浏览器会整条丢弃，不影响其它规则。 */
+  html.mobile-ui:has(body.clean-mode) {
+    --dock-h: 0px !important;
+  }
+
+  /* ==========================================================================
+     §20 · 语言切换键（需求 4）
+     #btn-lang 由 index.html 静态放在 #top-controls 内 —— 桌面端本就有一栏，
+     手机端 #layer-switcher / #btn-qr 都不显示，右上角只剩它，正好 44×44。
+     #title 相应让出宽度，避免与右上角按钮重叠。
+     ========================================================================== */
+  html.mobile-ui #btn-lang {
+    min-width: 46px;
+    min-height: 44px;
+    padding: 0 9px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  /* ==========================================================================
      §18 · 性能（§2.2.18）：大面积元素去 backdrop-filter、收小阴影
      ========================================================================== */
   html.mobile-ui #mobile-dock,
@@ -2040,8 +2163,10 @@
      ========================================================================== */
   @media (max-width: 374px) {
     html.mobile-ui #mobile-dock #eye-coord { display: none; }
-    html.mobile-ui #mobile-dock #speed-select { max-width: 50px; font-size: 0.68rem; }
+    html.mobile-ui #mobile-dock #speed-select { max-width: 44px; font-size: 0.66rem; }
     html.mobile-ui #mobile-dock #time-display { max-width: 92px; font-size: 0.72rem; }
+    html.mobile-ui #mobile-dock .md-clock { max-width: 42px; }
+    html.mobile-ui #mobile-dock .md-time { padding-right: 46px; }
   }
 
   /* ==========================================================================
@@ -2173,6 +2298,7 @@
             <button data-layer="terrain">地形图</button>
         </div>
         <button id="btn-qr" class="qr-btn" type="button" title="手机扫码进入离线网站">📱 手机扫码</button>
+        <button id="btn-lang" class="lang-btn" type="button" data-i18n-skip title="Switch to English" aria-label="Switch to English UI">EN</button>
     </div>
 
         <div id="tool-controls">
@@ -2352,6 +2478,666 @@
         <script src="vendor/leaflet.js"></script>
         <script src="vendor/topojson-client.min.js"></script>
         <script src="vendor/html2canvas.min.js"></script>
+        <!-- === I18N:JS:BEGIN === -->
+        <script>
+        /* === I18N:JS:BEGIN === */
+/* mobile/i18n-dict.js — 中→英词表（window.__I18N_DICT）
+ * ---------------------------------------------------------------------------
+ * 由 .dev/gen-i18n-dict.mjs 生成，请勿手改：
+ *   基础词表 .dev/i18n-en.json（263 条，覆盖 HTML 文本节点 + JS 字符串字面量）
+ *   + 属性值补充 37 条（title / data-tip / aria-label… 的**值**）
+ *   + 扫描器拆分修复 1 条
+ *   + 台风首字徽标 3 条
+ *   + 从 HTML 片段派生的纯文本词条 54 条（运行时拿到的是文本节点，不是片段）
+ *   + 实体别名 6 条（源码 &lt; ↔ 运行时 <）
+ * 共 364 条。
+ * 重新生成：node .dev/gen-i18n-dict.mjs
+ */
+window.__I18N_DICT = {
+  " (台风尚未生成)": " (Typhoon not yet formed)",
+  " (台风已消散)": " (Typhoon dissipated)",
+  " (未来)</b><br>": " (Future)</b><br>",
+  " - 台风路径可视化": " - Typhoon Track Visualization",
+  " hPa，最大风力": " hPa, maximum wind speed ",
+  " · 暂未受影响": " · Not affected",
+  " · 模块 ": " · Modules ",
+  " · 纠错 ": " · Error correction ",
+  " 字符 · 版本 ": " chars · Version ",
+  "10级风圈": "Force-10 wind radius",
+  "10级风圈（≥24.5 m/s）": "Force-10 wind radius (≥24.5 m/s)",
+  "12级风圈": "Force-12 wind radius",
+  "12级风圈（≥32.7 m/s，停工停课阈值）": "Force-12 wind radius (≥32.7 m/s, work and school suspension threshold)",
+  "24小时警戒线": "24-hour warning line",
+  "3°断开）": "3° break)",
+  "41.4 m/s 以上": "above 41.4 m/s",
+  "48小时警戒线": "48-hour warning line",
+  "7级风圈": "Force-7 wind radius",
+  "7级风圈（≥17.2 m/s，8级）": "Force-7 wind radius (≥17.2 m/s, force 8)",
+  "<br>风速 ": "<br>Wind speed ",
+  "<button type=\"button\" class=\"md-close\" aria-label=\"关闭\">": "<button type=\"button\" class=\"md-close\" aria-label=\"Close\">",
+  "<button type=\"button\" class=\"qr-act primary\" data-act=\"copy\">复制链接</button>": "<button type=\"button\" class=\"qr-act primary\" data-act=\"copy\">Copy link</button>",
+  "<button type=\"button\" class=\"qr-act\" data-act=\"cur\">用当前地址</button>": "<button type=\"button\" class=\"qr-act\" data-act=\"cur\">Use current address</button>",
+  "<button type=\"button\" class=\"qr-act\" data-act=\"lan\">换成局域网 IP</button>": "<button type=\"button\" class=\"qr-act\" data-act=\"lan\">Switch to LAN IP</button>",
+  "<button type=\"button\" class=\"qr-act\" data-act=\"open\">在新标签打开</button>": "<button type=\"button\" class=\"qr-act\" data-act=\"open\">Open in new tab</button>",
+  "<button type=\"button\" class=\"qr-close\" aria-label=\"关闭\">✕</button></div>": "<button type=\"button\" class=\"qr-close\" aria-label=\"Close\">✕</button></div>",
+  "<button type=\"button\" data-act=\"cancel\">✕ 取消</button>": "<button type=\"button\" data-act=\"cancel\">✕ Cancel</button>",
+  "<button type=\"button\" data-act=\"done\">✓ 完成</button>": "<button type=\"button\" data-act=\"done\">✓ Done</button>",
+  "<div class=\"legend-route-title\">航线影响等级</div>": "<div class=\"legend-route-title\">Route impact level</div>",
+  "<div class=\"port-risk-note\">基于最近风场网格的参考评估</div></div>": "<div class=\"port-risk-note\">Reference assessment based on the nearest wind-field grid</div></div>",
+  "<div class=\"port-risk-note\">综合等级取全部重点目标最高值，仅供参考</div></div>": "<div class=\"port-risk-note\">Overall level is the highest value among all key facilities, for reference only</div></div>",
+  "<div class=\"port-risk-note\">距最近网格点约 ": "<div class=\"port-risk-note\">Distance to nearest grid point approx. ",
+  "<div class=\"port-risk-popup\"><strong>位置风速查询</strong>": "<div class=\"port-risk-popup\"><strong>Location wind speed query</strong>",
+  "<div class=\"port-risk-popup\"><strong>粤港澳大湾区重点目标</strong>": "<div class=\"port-risk-popup\"><strong>Key facilities in the Greater Bay Area</strong>",
+  "<div class=\"port-risk-popup\"><strong>粤港澳大湾区重点目标</strong><div>危险等级：暂无数据</div></div>": "<div class=\"port-risk-popup\"><strong>Key facilities in the Greater Bay Area</strong><div>Hazard level: no data</div></div>",
+  "<div class=\"port-risk-title\">重点目标危险等级</div>": "<div class=\"port-risk-title\">Key facility hazard levels</div>",
+  "<div class=\"port-risk-types\">实线港口 · 虚线重要设施</div>": "<div class=\"port-risk-types\">Solid lines: ports · Dashed lines: key facilities</div>",
+  "<div class=\"qr-box\" role=\"dialog\" aria-modal=\"true\" aria-label=\"手机扫码进入\">": "<div class=\"qr-box\" role=\"dialog\" aria-modal=\"true\" aria-label=\"Scan with phone to open\">",
+  "<div class=\"qr-head\"><h3>📱 手机扫码进入</h3>": "<div class=\"qr-head\"><h3>📱 Scan with phone to open</h3>",
+  "<div class=\"qr-sub\">用手机相机 / 微信扫一扫，直接打开下面这个地址（无需联网外网）。</div>": "<div class=\"qr-sub\">Use your phone camera / WeChat Scan to open the address below directly (no external network needed).</div>",
+  "<div class=\"typhoon-marker-pulse\" title=\"点击查看详情\"><img src=\"": "<div class=\"typhoon-marker-pulse\" title=\"Click for details\"><img src=\"",
+  "<div class=\"wind-speed-title\">风速比例尺（m/s）</div>": "<div class=\"wind-speed-title\">Wind speed scale (m/s)</div>",
+  "<div style=\"margin-top:4px;padding-top:4px;border-top:1px solid rgba(0,0,0,0.12);font-weight:600;margin-bottom:2px;\">台风强度分级 (m/s)</div>": "<div style=\"margin-top:4px;padding-top:4px;border-top:1px solid rgba(0,0,0,0.12);font-weight:600;margin-bottom:2px;\">Typhoon intensity classification (m/s)</div>",
+  "<div>位置：": "<div>Location: ",
+  "<div>危险等级：<span class=\"port-risk-level\" style=\"color:": "<div>Hazard level: <span class=\"port-risk-level\" style=\"color:",
+  "<div>时间：": "<div>Time: ",
+  "<div>类型：": "<div>Type: ",
+  "<div>综合危险等级：<span class=\"port-risk-level\" style=\"color:": "<div>Overall hazard level: <span class=\"port-risk-level\" style=\"color:",
+  "<div>综合预警：<span class=\"port-risk-level\" style=\"color:": "<div>Overall warning: <span class=\"port-risk-level\" style=\"color:",
+  "<div>距台风中心：": "<div>Distance from typhoon center: ",
+  "<div>附近风速：": "<div>Nearby wind speed: ",
+  "<div>附近风速：<b>": "<div>Nearby wind speed: <b>",
+  "<div>附近风速：暂无数据</div>": "<div>Nearby wind speed: no data</div>",
+  "<div>预警级别：<span class=\"port-risk-level\" style=\"color:": "<div>Warning level: <span class=\"port-risk-level\" style=\"color:",
+  "<div>风向：": "<div>Wind direction: ",
+  "<span class=\"dashed-sample\"></span>省界": "<span class=\"dashed-sample\"></span>Provincial boundary",
+  "<span class=\"history-now\">当前</span>": "<span class=\"history-now\">Current</span>",
+  "<span class=\"hr-dim\">维度</span><span class=\"hr-val orig\">原场</span>": "<span class=\"hr-dim\">Dimension</span><span class=\"hr-val orig\">Original</span>",
+  "<span class=\"hr-val corr\">订正</span><span class=\"hr-delta\">Δ</span></div>": "<span class=\"hr-val corr\">Corrected</span><span class=\"hr-delta\">Δ</span></div>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#29b6f6\"></i>热带低压（≤10.8）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#29b6f6\"></i>Tropical Depression (≤10.8)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#aa00ff\"></i>超强台风（≥41.5）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#aa00ff\"></i>Super Typhoon (≥41.5)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#d50000\"></i>强台风（32.7-41.4）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#d50000\"></i>Severe Typhoon (32.7-41.4)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#f44336\"></i>台风（24.5-32.6）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#f44336\"></i>Typhoon (24.5-32.6)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#ff9800\"></i>强热带风暴（17.2-24.4）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#ff9800\"></i>Severe Tropical Storm (17.2-24.4)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#ffca28\"></i>热带风暴（10.9-17.1）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#ffca28\"></i>Tropical Storm (10.9-17.1)</span>",
+  "<span class=\"line-sample\" style=\"background:#555;\"></span>国界/海岸线": "<span class=\"line-sample\" style=\"background:#555;\"></span>National border / coastline",
+  "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#2e7d32\"></i>I 低</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#2e7d32\"></i>I Low</span>",
+  "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#7b1fa2\"></i>V 极高</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#7b1fa2\"></i>V Very high</span>",
+  "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#d32f2f\"></i>IV 高</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#d32f2f\"></i>IV High</span>",
+  "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#ef6c00\"></i>III 较高</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#ef6c00\"></i>III Relatively high</span>",
+  "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#f9a825\"></i>II 一般</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#f9a825\"></i>II Moderate</span>",
+  "<span class=\"typhoon-sample\"></span>台风中心": "<span class=\"typhoon-sample\"></span>Typhoon center",
+  "<span class=\"vortex-sample\"></span>气流漩涡": "<span class=\"vortex-sample\"></span>Vortex",
+  "<span style=\"display:inline-block;width:12px;height:12px;border:1.5px dashed #9c27b0;border-radius:50%;vertical-align:middle;margin-right:7px;\"></span>12级风圈": "<span style=\"display:inline-block;width:12px;height:12px;border:1.5px dashed #9c27b0;border-radius:50%;vertical-align:middle;margin-right:7px;\"></span>Force-12 wind radius",
+  "<span style=\"display:inline-block;width:12px;height:12px;border:1.5px dashed #f44336;border-radius:50%;vertical-align:middle;margin-right:7px;\"></span>10级风圈": "<span style=\"display:inline-block;width:12px;height:12px;border:1.5px dashed #f44336;border-radius:50%;vertical-align:middle;margin-right:7px;\"></span>Force-10 wind radius",
+  "<span style=\"display:inline-block;width:12px;height:12px;border:1.5px dashed #ff9800;border-radius:50%;vertical-align:middle;margin-right:7px;\"></span>7级风圈": "<span style=\"display:inline-block;width:12px;height:12px;border:1.5px dashed #ff9800;border-radius:50%;vertical-align:middle;margin-right:7px;\"></span>Force-7 wind radius",
+  "<span style=\"display:inline-block;width:20px;height:0;border-top:2px dashed #1e88e5;vertical-align:middle;margin-right:7px;\"></span>48小时警戒线": "<span style=\"display:inline-block;width:20px;height:0;border-top:2px dashed #1e88e5;vertical-align:middle;margin-right:7px;\"></span>48-hour warning line",
+  "<span style=\"display:inline-block;width:20px;height:3px;background:#fbc02d;vertical-align:middle;margin-right:7px;\"></span>24小时警戒线": "<span style=\"display:inline-block;width:20px;height:3px;background:#fbc02d;vertical-align:middle;margin-right:7px;\"></span>24-hour warning line",
+  "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #1e88e5;vertical-align:middle;margin-right:7px;\"></span><b>航线·注意</b> (&lt;900km)": "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #1e88e5;vertical-align:middle;margin-right:7px;\"></span><b>Route · Caution</b> (&lt;900km)",
+  "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #43a047;vertical-align:middle;margin-right:7px;\"></span><b>航线·暂未受影响</b>": "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #43a047;vertical-align:middle;margin-right:7px;\"></span><b>Route · Not affected</b>",
+  "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #e53935;vertical-align:middle;margin-right:7px;\"></span><b>航线·强影响</b> (&lt;300km)": "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #e53935;vertical-align:middle;margin-right:7px;\"></span><b>Route · Severe impact</b> (&lt;300km)",
+  "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #fb8c00;vertical-align:middle;margin-right:7px;\"></span><b>航线·中影响</b> (&lt;600km)": "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #fb8c00;vertical-align:middle;margin-right:7px;\"></span><b>Route · Moderate impact</b> (&lt;600km)",
+  "localhost / 127.0.0.1 只在本机有效，手机扫码打不开。请点「换成局域网 IP」并把 IP 改成你电脑的地址。": "localhost / 127.0.0.1 only works on this machine, so the QR code will not open on a phone. Click \"Switch to LAN IP\" and change the IP to your computer's address.",
+  "✓ 已复制": "✓ Copied",
+  "　总计：<b>": "　Total: <b>",
+  "【台风快讯】加载中...": "[Typhoon Bulletin] Loading...",
+  "【台风快讯】台风\"": "[Typhoon Bulletin] Typhoon \"",
+  "一": "Mon",
+  "一般": "Moderate",
+  "三": "Wed",
+  "东莞港": "Dongguan Port",
+  "中影响": "Moderate impact",
+  "中心气压": "Central pressure ",
+  "中心气压 (hPa)": "Central pressure (hPa)",
+  "二": "Tue",
+  "二维码组件未加载": "QR code component not loaded",
+  "五": "Fri",
+  "位于": "Located at ",
+  "低": "Low",
+  "六": "Sat",
+  "共 ": "Total ",
+  "关注区域": "Area of interest",
+  "分段：": "Segments: ",
+  "南海-马六甲航线": "South China Sea–Malacca Route",
+  "南海中部航线": "Central South China Sea Route",
+  "卫星地图": "Satellite map",
+  "原场": "Original",
+  "原场 ⇄ 订正场对比": "Original ⇄ Corrected comparison",
+  "台山核电站": "Taishan Nuclear Power Plant",
+  "台湾海峡航线": "Taiwan Strait Route",
+  "台风": "Typhoon",
+  "台风_": "Typhoon_",
+  "台风中心": "Typhoon center",
+  "台风中心（大小/颜色表示强度）": "Typhoon center (size/color indicates intensity)",
+  "台风强度演变": "Typhoon intensity trend",
+  "台风强度等级（根据最大风速）": "Typhoon intensity category (based on maximum wind speed)",
+  "台风路径数据": "Typhoon track data",
+  "四": "Thu",
+  "国界/海岸线": "National border / coastline",
+  "图例": "Legend",
+  "图例说明": "Legend",
+  "图层": "Layers",
+  "地址格式无法识别，建议以 http:// 或 https:// 开头，例如 http://192.168.1.20:8899/": "Unrecognised address format. Use an address starting with http:// or https://, for example http://192.168.1.20:8899/",
+  "地址过长，无法生成二维码（": "Address too long to generate a QR code (",
+  "地形图": "Terrain map",
+  "多边形": "Polygon",
+  "多边形模式：点击添加顶点，双击闭合": "Polygon mode: click to add vertices, double-click to close",
+  "大亚湾核电基地": "Daya Bay Nuclear Power Base",
+  "大铲湾港": "Dachan Bay Port",
+  "大风时长": "Gale duration",
+  "大鹏LNG接收站": "Dapeng LNG Terminal",
+  "太平洋西行主干线": "Pacific Westward Trunk Route",
+  "妈湾港": "Mawan Port",
+  "完成": "Done",
+  "宝安国际机场": "Shenzhen Bao'an International Airport",
+  "对比导出": "Export comparison",
+  "局域网地址：手机需连同一个 Wi-Fi / 同一网段。": "LAN address: your phone must be on the same Wi-Fi / subnet.",
+  "山竹": "Mangkhut",
+  "山竹/": "山竹/",
+  "山竹_corr/": "山竹_corr/",
+  "峰值 ": "Peak ",
+  "巅峰": "Peak",
+  "巅峰1": "Peak 1",
+  "巅峰2": "Peak 2",
+  "工具": "Tools",
+  "差值放大": "Difference amplification",
+  "年": "-",
+  "广州南沙港": "Guangzhou Nansha Port",
+  "广州南站": "Guangzhou South Railway Station",
+  "广州塔": "Canton Tower",
+  "广州白云机场": "Guangzhou Baiyun Airport",
+  "广州黄埔港": "Guangzhou Huangpu Port",
+  "强台风": "Severe Typhoon",
+  "强度": "Intensity",
+  "强影响": "Severe impact",
+  "强热带风暴": "Severe Tropical Storm",
+  "惠州港": "Huizhou Port",
+  "截图组件未加载，请检查网络后重试": "Screenshot component not loaded. Please check your network and try again.",
+  "手机与电脑需在同一网络（局域网 IP），或使用公网地址。": "The phone and the computer must be on the same network (LAN IP), or use a public address.",
+  "数据": "Data",
+  "日": "Sun",
+  "日期定位 ▾": "Go to date ▾",
+  "时间": "Time",
+  "时间: ": "Time: ",
+  "暂无": "N/A",
+  "暂无其他历史台风数据，后续数据处理后会自动出现在这里": "No other historical typhoon data yet; it will appear here automatically once processed",
+  "暂无数据": "No data",
+  "暂未受影响": "Not affected",
+  "最大风速 (m/s)": "Maximum wind speed (m/s)",
+  "月</div><div class=\"cal-grid\">": "</div><div class=\"cal-grid\">",
+  "杜苏芮": "Doksuri",
+  "杜苏芮/": "杜苏芮/",
+  "杜苏芮_corr/": "杜苏芮_corr/",
+  "极高": "Very high",
+  "桦加沙": "Ragasa",
+  "桦加沙_corr/": "桦加沙_corr/",
+  "橙&lt;32.6": "Orange &lt;32.6",
+  "橙色预警": "Orange warning",
+  "橙色预警（10-11级风，24.5-32.6 m/s）": "Orange warning (force 10-11 winds, 24.5-32.6 m/s)",
+  "气压(hPa)": "Pressure (hPa)",
+  "气流漩涡": "Vortex",
+  "气流漩涡（螺旋云带+台风眼）": "Vortex (spiral cloud bands + typhoon eye)",
+  "气象预警级别（依据最大风速）": "Weather warning level (based on maximum wind speed)",
+  "注意": "Caution",
+  "测距模式：点击添加测距点，双击结束": "Measure mode: click to add measurement points, double-click to finish",
+  "海南-巴士海峡航线": "Hainan–Bashi Channel Route",
+  "消散": "Dissipation",
+  "深中通道": "Shenzhen–Zhongshan Link",
+  "深圳北站": "Shenzhen North Railway Station",
+  "深圳湾口岸": "Shenzhen Bay Port",
+  "清除": "Clear",
+  "港口": "Port",
+  "港珠澳大桥": "Hong Kong–Zhuhai–Macao Bridge",
+  "澳门国际机场": "Macao International Airport",
+  "灾害预警六维雷达": "Hazard alert six-axis radar",
+  "点击地图任意点查看该处预警": "Click anywhere on the map to view the warning there",
+  "点击地图添加测距点，双击结束": "Click the map to add measurement points, double-click to finish",
+  "点数: ": "Points: ",
+  "热带低压": "Tropical Depression",
+  "热带风暴": "Tropical Storm",
+  "珠海九洲港": "Zhuhai Jiuzhou Port",
+  "珠海高栏港": "Zhuhai Gaolan Port",
+  "生成": "Formation",
+  "登陆": "Landfall",
+  "盐田港": "Yantian Port",
+  "省界": "Provincial boundary",
+  "矩形": "Rectangle",
+  "矩形模式：按住拖拽绘制矩形，松开完成": "Rectangle mode: press and drag to draw a rectangle, release to finish",
+  "福田站": "Futian Station",
+  "符号说明": "Symbols",
+  "粤东-琉球航线": "East Guangdong–Ryukyu Route",
+  "粤港澳大湾区重点目标": "Key facilities in the Greater Bay Area",
+  "粤港澳大湾区重点目标 · ": "Key facilities in the Greater Bay Area · ",
+  "粤港澳大湾区重点目标 · --": "Key facilities in the Greater Bay Area · --",
+  "红≥32.6 m/s": "Red ≥32.6 m/s",
+  "红色预警": "Red warning",
+  "红色预警（12级以上风，≥32.7 m/s）": "Red warning (force 12+ winds, ≥32.7 m/s)",
+  "纬度": "Lat",
+  "经度": "Lon",
+  "绘图测量": "Draw & measure",
+  "缩放": "Zoom",
+  "菲律宾-华南航线": "Philippines–South China Route",
+  "蓝&lt;17.1": "Blue &lt;17.1",
+  "蓝色预警": "Blue warning",
+  "蓝色预警（6-7级风，10.8-17.1 m/s）": "Blue warning (force 6-7 winds, 10.8-17.1 m/s)",
+  "蛇口港": "Shekou Port",
+  "行政地图": "Administrative map",
+  "视图": "View",
+  "订正后风速变化 (m/s)": "Wind speed change after correction (m/s)",
+  "订正场": "Corrected",
+  "设施暴露": "Facility exposure",
+  "设置": "Settings",
+  "请输入要编码的地址。": "Please enter an address to encode.",
+  "赤湾港": "Chiwan Port",
+  "超强台风": "Super Typhoon",
+  "路径数据": "Track data",
+  "路径线": "Track line",
+  "路径逼近": "Track approach",
+  "较高": "Relatively high",
+  "这是本地文件路径（file://），手机无法访问。请改用电脑的局域网 IP 或公网地址。": "This is a local file path (file://), which a phone cannot access. Use your computer's LAN IP or a public address instead.",
+  "退出全屏": "Exit fullscreen",
+  "选择台风 ▾": "Select typhoon ▾",
+  "透明度": "Opacity",
+  "重要设施": "Key facility",
+  "风场": "Wind field",
+  "风浪": "Wind–wave",
+  "风羽（风速m/s）": "Wind barb (wind speed m/s)",
+  "风速": "Wind speed",
+  "风速(m/s)": "Wind (m/s)",
+  "风速(国家预警)：": "Wind speed (national warning): ",
+  "香港国际机场": "Hong Kong International Airport",
+  "香港葵青港": "Hong Kong Kwai Tsing Port",
+  "高": "High",
+  "黄&lt;24.4": "Yellow &lt;24.4",
+  "黄色预警": "Yellow warning",
+  "黄色预警（8-9级风，17.2-24.4 m/s）": "Yellow warning (force 8-9 winds, 17.2-24.4 m/s)",
+  "🆚 双台风对比：": "🆚 Compare typhoons: ",
+  "📱 手机扫码": "📱 Scan QR",
+  "（消散）": " (dissipated)",
+  "（生成）": " (formed)",
+  "（距台风中心 ": " (distance from typhoon center ",
+  "），请注意防范。": "), please take precautions.",
+  "；大风时长为该点≥17.2 m/s 的持续小时数；中心/路径/设施越近威胁越大": "; gale duration is the number of consecutive hours with ≥17.2 m/s at that point; the closer the center / track / facility, the greater the threat",
+  "全屏": "Fullscreen",
+  "原场/订正场": "Original/Corrected",
+  "双台风对比": "Compare typhoons",
+  "复位视图": "Reset view",
+  "强度演变": "Intensity trend",
+  "循环播放": "Loop playback",
+  "截图导出": "Export PNG",
+  "放大": "Zoom in",
+  "测距": "Measure",
+  "灾害预警": "Hazard alert",
+  "绘制关注区": "Draw focus area",
+  "缩小": "Zoom out",
+  "警戒线": "Warning lines",
+  "锁定风眼": "Lock eye",
+  "关闭": "Close",
+  "关闭快讯": "Close bulletin",
+  "前进一帧": "Next frame",
+  "原场/订正场风场对比": "Original / corrected wind field",
+  "台风强度演变图": "Typhoon intensity trend chart",
+  "后退一帧": "Previous frame",
+  "回到起点": "Go to start",
+  "复位到台风全路径视野": "Reset to full track view",
+  "循环播放开关": "Toggle loop playback",
+  "截图导出当前画面为PNG": "Export the current view as PNG",
+  "手机扫码进入离线网站": "Open this offline site on a phone (scan QR)",
+  "折叠/展开": "Collapse / expand",
+  "拖拽绘制矩形关注区域": "Drag to draw a rectangular focus area",
+  "播放/暂停": "Play / pause",
+  "播放速度": "Playback speed",
+  "显示/隐藏24、48小时警戒线": "Show / hide the 24 h and 48 h warning lines",
+  "点击地图测距，双击结束": "Click the map to measure distance; double-click to finish",
+  "绘制关注区域": "Draw a focus area",
+  "绘制多边形关注重点区域，双击闭合": "Draw a polygon focus area; double-click to close",
+  "跳到终点": "Go to end",
+  "选择要对比的台风": "Select a typhoon to compare",
+  "锁定台风风眼，视图跟随台风": "Lock the typhoon eye and follow it",
+  "风场透明度": "Wind field opacity",
+  "台风路径（按强度分段着色，两点间距>3°断开）": "Typhoon track (coloured by intensity; broken where points are more than 3° apart)",
+  "桦": "R",
+  "山": "M",
+  "杜": "D",
+  " (未来)": " (Future)",
+  "风速 ": "Wind speed ",
+  "button type=\"button\" class=\"md-close\" aria-label=\"关闭\"": "button type=\"button\" class=\"md-close\" aria-label=\"Close\"",
+  "复制链接": "Copy link",
+  "用当前地址": "Use current address",
+  "换成局域网 IP": "Switch to LAN IP",
+  "在新标签打开": "Open in new tab",
+  "button type=\"button\" class=\"qr-close\" aria-label=\"关闭\"": "button type=\"button\" class=\"qr-close\" aria-label=\"Close\"",
+  "✕ 取消": "✕ Cancel",
+  "✓ 完成": "✓ Done",
+  "航线影响等级": "Route impact level",
+  "基于最近风场网格的参考评估": "Reference assessment based on the nearest wind-field grid",
+  "综合等级取全部重点目标最高值，仅供参考": "Overall level is the highest value among all key facilities, for reference only",
+  "距最近网格点约 ": "Distance to nearest grid point approx. ",
+  "位置风速查询": "Location wind speed query",
+  "危险等级：暂无数据": "Hazard level: no data",
+  "重点目标危险等级": "Key facility hazard levels",
+  "实线港口 · 虚线重要设施": "Solid lines: ports · Dashed lines: key facilities",
+  "div class=\"qr-box\" role=\"dialog\" aria-modal=\"true\" aria-label=\"手机扫码进入\"": "div class=\"qr-box\" role=\"dialog\" aria-modal=\"true\" aria-label=\"Scan with phone to open\"",
+  "📱 手机扫码进入": "📱 Scan with phone to open",
+  "用手机相机 / 微信扫一扫，直接打开下面这个地址（无需联网外网）。": "Use your phone camera / WeChat Scan to open the address below directly (no external network needed).",
+  "div class=\"typhoon-marker-pulse\" title=\"点击查看详情\"": "div class=\"typhoon-marker-pulse\" title=\"Click for details\"",
+  "风速比例尺（m/s）": "Wind speed scale (m/s)",
+  "台风强度分级 (m/s)": "Typhoon intensity classification (m/s)",
+  "位置：": "Location: ",
+  "危险等级：": "Hazard level: ",
+  "时间：": "Time: ",
+  "类型：": "Type: ",
+  "综合危险等级：": "Overall hazard level: ",
+  "综合预警：": "Overall warning: ",
+  "距台风中心：": "Distance from typhoon center: ",
+  "附近风速：": "Nearby wind speed: ",
+  "附近风速：暂无数据": "Nearby wind speed: no data",
+  "预警级别：": "Warning level: ",
+  "风向：": "Wind direction: ",
+  "当前": "Current",
+  "维度": "Dimension",
+  "订正": "Corrected",
+  "热带低压（≤10.8）": "Tropical Depression (≤10.8)",
+  "超强台风（≥41.5）": "Super Typhoon (≥41.5)",
+  "强台风（32.7-41.4）": "Severe Typhoon (32.7-41.4)",
+  "台风（24.5-32.6）": "Typhoon (24.5-32.6)",
+  "强热带风暴（17.2-24.4）": "Severe Tropical Storm (17.2-24.4)",
+  "热带风暴（10.9-17.1）": "Tropical Storm (10.9-17.1)",
+  "I 低": "I Low",
+  "V 极高": "V Very high",
+  "IV 高": "IV High",
+  "III 较高": "III Relatively high",
+  "II 一般": "II Moderate",
+  "航线·注意": "Route · Caution",
+  "航线·暂未受影响": "Route · Not affected",
+  "航线·强影响": "Route · Severe impact",
+  "航线·中影响": "Route · Moderate impact",
+  "　总计：": "　Total: ",
+  "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #1e88e5;vertical-align:middle;margin-right:7px;\"></span><b>航线·注意</b> (<900km)": "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #1e88e5;vertical-align:middle;margin-right:7px;\"></span><b>Route · Caution</b> (<900km)",
+  "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #e53935;vertical-align:middle;margin-right:7px;\"></span><b>航线·强影响</b> (<300km)": "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #e53935;vertical-align:middle;margin-right:7px;\"></span><b>Route · Severe impact</b> (<300km)",
+  "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #fb8c00;vertical-align:middle;margin-right:7px;\"></span><b>航线·中影响</b> (<600km)": "<span style=\"display:inline-block;width:26px;height:0;border-top:4px dashed #fb8c00;vertical-align:middle;margin-right:7px;\"></span><b>Route · Moderate impact</b> (<600km)",
+  "橙<32.6": "Orange <32.6",
+  "蓝<17.1": "Blue <17.1",
+  "黄<24.4": "Yellow <24.4"
+};
+
+/* ============================================================================
+ * mobile/i18n.js — 中英双语层（经典脚本，唯一全局 window.I18N）
+ * ----------------------------------------------------------------------------
+ * 设计目标（需求 4：添加英文版本与语言切换键）
+ *
+ *  1) **桌面端零风险**：默认语言是中文，此时本脚本只在 DOM 上做「记录原文」，
+ *     不改任何可见文本；只有用户主动切到 English 才会替换。切回中文会**逐字
+ *     还原**最初的中文（不是再翻译一次），所以来回切换不会累积误差。
+ *
+ *  2) **不改主逻辑**：主 module 里有 200+ 处动态拼接的中文（快讯、弹窗、表格、
+ *     图例……）。这里用「精确查表 + 长串优先短语替换」的 t()，再叠加
+ *     MutationObserver 监听新增/变更的文本节点 —— 主逻辑写什么，这里就译什么，
+ *     不需要去改它一行代码。
+ *
+ *  3) **不动地图内容**：瓦片上的地名是图片像素，本来就不该被 DOM 翻译逻辑碰到；
+ *     #map 内部仍然遍历（Leaflet 弹窗是主逻辑生成的 DOM，需要翻译），
+ *     但纯 Leaflet 自带的英文注记不在词表里，原样保留。
+ *
+ *  4) 词表来自 mobile/i18n-dict.js（window.__I18N_DICT），由 .dev/i18n-en.json
+ *     生成 —— 词表与引擎分离，方便复核与再生成。
+ *
+ * 接口（对内/对测试冻结）：
+ *   I18N.lang                 当前语言 'zh' | 'en'
+ *   I18N.t(s)                 翻译一个字符串（含拼接句）
+ *   I18N.apply(root)          对子树做一次翻译/还原
+ *   I18N.set(lang)            切换语言（持久化 + 派发 onChange）
+ *   I18N.onChange(fn)         注册语言变化回调
+ *   I18N.toggle()             中 ⇄ 英
+ * ==========================================================================*/
+(function () {
+    'use strict';
+    if (window.I18N) return;
+
+    var STORE_KEY = 'smartocean-lang';
+    var ZH = 'zh', EN = 'en';
+    var DICT = window.__I18N_DICT || {};
+
+    /* ------------------------------------------------------------ 短语表 */
+    /*
+     * 主逻辑的句子是拼出来的，例如
+     *   '【台风快讯】台风"' + name + tToBeijingTime(t) + '位于' + lat + '°N, ' + ...
+     * 整句不在词表里，但每个中文**片段**在。于是构造「长串优先」的替换表：
+     *   - 只收纯文本片段（不含 HTML 标签）——含标签的交给精确查表；
+     *   - 长度 ≥2 —— 单字（'一'/'年'/'月'/'日'）参与替换会把句子拆烂；
+     *   - 按长度降序 —— '台风中心' 必须先于 '台风' 命中。
+     */
+    function buildPhrases(dict) {
+        var out = [];
+        for (var k in dict) {
+            if (!Object.prototype.hasOwnProperty.call(dict, k)) continue;
+            if (k.length < 2) continue;
+            if (/[<>]/.test(k)) continue;              // HTML 片段：只走精确匹配
+            if (!/[\u4e00-\u9fa5]/.test(k)) continue;  // 没有汉字，无需替换
+            out.push([k, dict[k]]);
+        }
+        out.sort(function (a, b) { return b[0].length - a[0].length; });
+        return out;
+    }
+    var PHRASES = buildPhrases(DICT);
+    var HAS_CN = /[\u4e00-\u9fa5]/;
+
+    /* --------------------------------------------------------------- t() */
+    var exact = Object.create(null);
+    for (var dk in DICT) if (Object.prototype.hasOwnProperty.call(DICT, dk)) exact[dk] = DICT[dk];
+
+    function t(s) {
+        if (typeof s !== 'string' || !s || !HAS_CN.test(s)) return s;
+        var hit = exact[s];
+        if (hit !== undefined) return hit;
+        // 拼接句：长串优先做字面替换
+        var out = s;
+        for (var i = 0; i < PHRASES.length; i++) {
+            if (out.indexOf(PHRASES[i][0]) >= 0) {
+                out = out.split(PHRASES[i][0]).join(PHRASES[i][1]);
+            }
+            if (!HAS_CN.test(out)) break;              // 已经全英文，提前收工
+        }
+        return out;
+    }
+
+    /* ------------------------------------------------- 原文记录 / 还原 */
+    /*
+     * 每个被改写的文本节点/属性都留一份最初的中文，切回中文时逐字还原。
+     * 用 WeakMap 而不是自定义属性，避免污染 DOM、也避免被 innerHTML 序列化带走。
+     */
+    var zhText = new WeakMap();     // TextNode -> 原始 data
+    var zhAttr = new WeakMap();     // Element  -> { attr: 原始值 }
+
+    var SKIP_TAG = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEXTAREA: 1, CODE: 1, PRE: 1 };
+    var ATTRS = ['title', 'placeholder', 'aria-label', 'data-tip', 'alt'];
+
+    function translatableText(node) {
+        var p = node.parentNode;
+        if (!p || p.nodeType !== 1) return false;
+        if (SKIP_TAG[p.tagName]) return false;
+        if (p.closest && p.closest('[data-i18n-skip]')) return false;
+        return true;
+    }
+
+    function doTextNode(node, lang) {
+        if (!translatableText(node)) return;
+        if (lang === EN) {
+            var cur = node.data;
+            if (!cur || !HAS_CN.test(cur)) return;
+            if (!zhText.has(node)) zhText.set(node, cur);
+            var next = t(zhText.get(node));
+            if (next !== cur) node.data = next;
+        } else if (zhText.has(node)) {
+            var orig = zhText.get(node);
+            if (node.data !== orig) node.data = orig;
+        }
+    }
+
+    function doElementAttrs(el, lang) {
+        if (SKIP_TAG[el.tagName]) return;
+        if (el.hasAttribute && el.hasAttribute('data-i18n-skip')) return;
+        for (var i = 0; i < ATTRS.length; i++) {
+            var a = ATTRS[i];
+            if (!el.hasAttribute || !el.hasAttribute(a)) continue;
+            if (lang === EN) {
+                var v = el.getAttribute(a);
+                if (!v || !HAS_CN.test(v)) continue;
+                var rec = zhAttr.get(el);
+                if (!rec) { rec = {}; zhAttr.set(el, rec); }
+                if (!(a in rec)) rec[a] = v;
+                var nv = t(rec[a]);
+                if (nv !== v) el.setAttribute(a, nv);
+            } else {
+                var r = zhAttr.get(el);
+                if (r && (a in r) && el.getAttribute(a) !== r[a]) el.setAttribute(a, r[a]);
+            }
+        }
+    }
+
+    function walk(root, lang) {
+        if (!root) return;
+        if (root.nodeType === 3) { doTextNode(root, lang); return; }
+        if (root.nodeType !== 1 && root.nodeType !== 9 && root.nodeType !== 11) return;
+        if (root.nodeType === 1) doElementAttrs(root, lang);
+        var tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null, false);
+        var n;
+        while ((n = tw.nextNode())) {
+            if (n.nodeType === 3) doTextNode(n, lang);
+            else doElementAttrs(n, lang);
+        }
+    }
+
+    var lang = ZH;
+
+    /* -------------------------------------------------- 对外：apply / set */
+    /*
+     * ⚠ 根节点必须是 documentElement，不能是 body。
+     * `#mobile-dock`、`.md-sheet`、`#md-scrim` 都由 mobile-ui.js 挂在 **<html> 下**
+     * （body 的兄弟节点，见 mobile-ui.js 的说明），只走 body 会把整套手机端 UI 漏掉
+     * —— 实测：切到英文后 Dock 标签仍是「图层/工具/设置」。
+     */
+    function root() { return document.documentElement; }
+
+    function apply(node) {
+        walk(node || root(), lang);
+    }
+
+    var listeners = [];
+    function emit() {
+        for (var i = 0; i < listeners.length; i++) {
+            try { listeners[i](lang); } catch (e) { /* 单个回调出错不影响其它 */ }
+        }
+    }
+
+    var booted = false;
+    function boot() {
+        if (booted) return;
+        booted = true;
+        var el = root();
+        if (!el) return;
+
+        // 动态内容：主逻辑插入的表格行/弹窗/图例/快讯文本，以及 mobile-ui.js 建的 Dock/Sheet
+        var scheduled = false;
+        new MutationObserver(function (recs) {
+            if (lang !== EN) return;
+            for (var i = 0; i < recs.length; i++) {
+                var r = recs[i];
+                if (r.type === 'childList') {
+                    for (var j = 0; j < r.addedNodes.length; j++) {
+                        var an = r.addedNodes[j];
+                        if (an.nodeType === 3 || an.nodeType === 1) walk(an, EN);
+                    }
+                }
+            }
+            // characterData（textContent 被整体替换的句子）合并到下一帧统一处理，
+            // 避免逐字抖动、也避免观察器回调里再触发回调造成风暴。
+            if (!scheduled) {
+                scheduled = true;
+                requestAnimationFrame(function () { scheduled = false; walk(el, lang); });
+            }
+        }).observe(el, { childList: true, subtree: true, characterData: true });
+
+        if (lang === EN) apply(el);
+    }
+
+    function set(next, opts) {
+        next = (next === EN) ? EN : ZH;
+        var changed = next !== lang;
+        lang = next;
+        document.documentElement.lang = (next === EN) ? 'en' : 'zh-CN';
+        document.documentElement.setAttribute('data-lang', next);
+        try { localStorage.setItem(STORE_KEY, next); } catch (e) { /* 隐私模式 */ }
+        apply(root());
+        if (changed || (opts && opts.force)) emit();
+    }
+
+    function onChange(fn) { if (typeof fn === 'function') listeners.push(fn); }
+    function toggle() { set(lang === EN ? ZH : EN); }
+
+    /* ------------------------------------------------------ 语言切换键 */
+    /*
+     * #btn-lang 是 index.html 里的静态按钮（放在 #top-controls 内）：
+     *   - 桌面端：右上角工具栏多一个 46×44 的按钮，与既有按钮同款；
+     *   - 手机端：#layer-switcher / #btn-qr 都不显示，右上角只剩它，正好 44×44。
+     * 按钮文字显示**目标语言**（中文界面显示 "EN"，英文界面显示 "中文"）。
+     */
+    function label() {
+        var b = document.getElementById('btn-lang');
+        if (!b) return;
+        var text = (lang === EN) ? '中文' : 'EN';
+        b.textContent = text;
+        b.setAttribute('title', (lang === EN) ? '切换到中文' : 'Switch to English');
+        b.setAttribute('aria-label', (lang === EN) ? '切换到中文界面' : 'Switch to English UI');
+        // 按钮自身的文案不参与词表翻译（它是语言名，翻译会自我指涉）
+        b.setAttribute('data-i18n-skip', '');
+    }
+
+    function bindButton() {
+        var b = document.getElementById('btn-lang');
+        if (!b || b.__i18nBound) return;
+        b.__i18nBound = true;
+        b.addEventListener('click', function (e) {
+            e.preventDefault();
+            toggle();
+        });
+    }
+
+    function init() {
+        var saved = null;
+        try { saved = localStorage.getItem(STORE_KEY); } catch (e) { /* ignore */ }
+        var qs = null;
+        try { qs = new URLSearchParams(location.search).get('lang'); } catch (e) { /* ignore */ }
+        var want = (qs === EN || qs === ZH) ? qs : (saved === EN ? EN : ZH);
+
+        bindButton();
+        lang = want;
+        document.documentElement.lang = (want === EN) ? 'en' : 'zh-CN';
+        document.documentElement.setAttribute('data-lang', want);
+        label();
+        boot();
+        apply(root());
+        onChange(label);
+    }
+
+    window.I18N = {
+        t: t,
+        apply: apply,
+        set: set,
+        onChange: onChange,
+        toggle: toggle,
+        dictSize: Object.keys(DICT).length,
+        get lang() { return lang; }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        setTimeout(init, 0);
+    }
+})();
+/* === I18N:JS:END === */
+        </script>
+        <!-- === I18N:JS:END === -->
         <script>
         /* === QR:JS:BEGIN === */
 /*!
@@ -3346,7 +4132,7 @@
             'html.mobile-ui #qr-modal{display:none !important;}' +
             'html.mobile-ui .md-sheet-body #wind-toggle{min-width:96px;min-height:48px;font-size:0.9rem;}' +
             'html.mobile-ui #mobile-dock #eye-coord{display:none;}' +
-            'html.mobile-ui #mobile-dock #playback-controls button{min-width:40px;}' +
+            'html.mobile-ui #mobile-dock #playback-controls button{min-width:34px;}' +
             // 洁净（全屏）模式：Dock 必须让位，否则「全屏」名不副实。
             // ⚠ #mobile-dock 挂在 <html> 下（是 <body> 的**兄弟节点**，不是子节点），
             //   所以 `body.clean-mode #mobile-dock`（后代）永远不匹配 —— 实测踩到。
@@ -3388,11 +4174,22 @@
         hookFocusWindow();
         bindTabs();
         bindMapInteracting();
+        bindTickerState();
+        bindDockClock();
+        bindViewportSync();
         syncDockHeight();
 
         window.addEventListener('resize', syncDockHeight, { passive: true });
         window.addEventListener('orientationchange', function () { setTimeout(syncDockHeight, 260); });
         doc.addEventListener('keydown', onKeydown);
+
+        // 语言切换后，Sheet/Dock 里的标题与标签需要重新按新语言渲染（需求 4）
+        if (window.I18N && window.I18N.onChange) {
+            window.I18N.onChange(function () {
+                resyncViewport();
+                syncTickerState();
+            });
+        }
     }
 
     /* ------------------------------------------------------------- Dock */
@@ -3658,13 +4455,48 @@
         }, { passive: true });
     }
 
+    /* ------------------------------------------------ Dock 时钟（需求 5） */
+    /*
+     * 实测缺陷：`.md-clock` 是 mobile-ui.js 自己造的徽标，`#md-clock-text` 初值 '--'
+     * **从来没有人更新过** —— 于是 Dock 右上角永远显示一个没意义的「--」，白占 50px 宽度。
+     * 主逻辑真正的读数在 `#time-display`（格式 'YYYY-MM-DD HH:MM'），手机端被 .md-hidden
+     * 藏起来了。这里只读不写地把它镜像成 HH:MM 到徽标里，徽标才有存在意义。
+     */
+    function syncDockClock() {
+        var src = $('time-display');
+        var dst = $('md-clock-text');
+        if (!src || !dst) return;
+        var txt = (src.textContent || '').trim();
+        var m = /(\d{2}:\d{2})/.exec(txt);
+        var val = m ? m[1] : (txt || '--');
+        if (dst.textContent !== val) dst.textContent = val;
+        // 完整日期放进 title，长按/悬停仍可看到
+        var chip = $('md-clock');
+        if (chip) chip.setAttribute('title', txt);
+    }
+
+    function bindDockClock() {
+        var src = $('time-display');
+        if (!src) return;
+        syncDockClock();
+        new MutationObserver(syncDockClock)
+            .observe(src, { childList: true, characterData: true, subtree: true });
+    }
+
     /* -------------------------------------------------------- Dock 高度 */
     var syncing = false;
     function syncDockHeight() {
         var dock = $('mobile-dock');
         if (!dock) return;
+        /*
+         * ⚠ 全屏（洁净模式）下 Dock 被 `display:none`，此时 getBoundingClientRect().height
+         * 是 0 —— 正是我们要的：所有 `bottom: calc(var(--dock-h) + Npx)` 的浮层必须贴底。
+         * 老实现只在 resize 时同步，而「进/出全屏」在手机上不一定派发 resize，
+         * 于是 --dock-h 一直停在 161px：全屏后图例按钮、测距条、关注区小窗全部悬在半空
+         * —— 这就是「全屏后操作有 bug」的主因之一（需求 1）。
+         */
         var h = Math.round(dock.getBoundingClientRect().height);
-        if (h > 0) html.style.setProperty('--dock-h', h + 'px');
+        html.style.setProperty('--dock-h', (h > 0 ? h : 0) + 'px');
         // 关注区小窗 / 迷你地图需要在 Dock 变化后让 Leaflet 重算尺寸。
         // 注意：dispatchEvent 是同步派发 —— 本函数自身就是 resize 监听器，
         // 没有这道重入保护会 sync→dispatch→sync 无限递归爆栈。
@@ -3672,6 +4504,67 @@
         syncing = true;
         window.dispatchEvent(new Event('resize'));
         syncing = false;
+    }
+
+    /* -------------------------------------------------- 全屏 / 视口变化（需求 1） */
+    /*
+     * 手机上进/出全屏会同时改变三样东西，而它们都不会自动同步：
+     *   1) --dock-h（Dock 被隐藏/恢复）
+     *   2) Leaflet 内部缓存的容器尺寸 → 瓦片只画旧范围、点击/拖拽坐标整体偏移
+     *   3) 风场 canvas（主逻辑按 devicePixelRatio 画的）→ 尺寸不匹配
+     * 这三样的统一解法就是「重算 --dock-h + 派发一次 resize」：主逻辑与 Leaflet
+     * 都监听了 window resize。全屏过渡是异步的，所以补两次延迟重算。
+     */
+    function resyncViewport() {
+        syncDockHeight();
+        setTimeout(syncDockHeight, 120);
+        setTimeout(syncDockHeight, 420);
+    }
+
+    function onFullscreenChange() {
+        // 进全屏后 Sheet 若还开着，会盖住大半个地图（实测就是「全屏后没法操作」的元凶）
+        if (document.body.classList.contains('clean-mode')) closeAll();
+        resyncViewport();
+    }
+
+    function bindViewportSync() {
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+        document.addEventListener('MSFullscreenChange', onFullscreenChange);
+        if (window.visualViewport) {
+            // 真机上「地址栏收起 / 键盘弹出」只改 visualViewport，不一定派发 window resize
+            visualViewport.addEventListener('resize', resyncViewport, { passive: true });
+        }
+        // 主逻辑的 enterCleanMode() 只加 body.clean-mode，我们在这里跟随（不改主模块一行）
+        new MutationObserver(function () {
+            if (document.body.classList.contains('clean-mode')) {
+                closeAll();
+                resyncViewport();
+            } else {
+                resyncViewport();
+            }
+        }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    /* ------------------------------------------------ 快讯条可见性（需求 5） */
+    /*
+     * #news-ticker 与 #gba-label 原来都定位在 top:52px，实测**完全重叠**。
+     * 主逻辑只改 #news-ticker 的 display，我们只读不写，把结果映射成 html 上的
+     * class，由 CSS 决定标签位置 —— 关掉快讯后不留空洞。
+     */
+    function syncTickerState() {
+        var t = $('news-ticker');
+        if (!t) return;
+        var vis = t.style.display !== 'none' && getComputedStyle(t).display !== 'none';
+        html.classList.toggle('md-ticker-off', !vis);
+    }
+
+    function bindTickerState() {
+        var t = $('news-ticker');
+        if (!t) return;
+        syncTickerState();
+        new MutationObserver(syncTickerState)
+            .observe(t, { attributes: true, attributeFilter: ['style', 'class'] });
     }
 
     /* ------------------------------------------------------------ 启动 */
@@ -3696,6 +4589,9 @@
         isMobile: true,
         closeAll: closeAll,
         syncDockHeight: syncDockHeight,
+        resyncViewport: resyncViewport,
+        syncTickerState: syncTickerState,
+        syncDockClock: syncDockClock,
         build: build
     };
 })();
@@ -5478,16 +6374,32 @@
             badge.style.color = (cat.color === '#ffeb3b' || cat.color === '#00bfff') ? '#333' : '#fff';
         }
 
-        function updateNewsTicker(pt) {
-            if (!pt) {
-                document.getElementById('ticker-text').textContent = '【台风快讯】加载中...';
-                return;
-            }
+        /*
+         * 快讯文案（中/英双版）。
+         * 中文是「拼」出来的句子，整串不在词表里 —— 英文若靠逐片段替换会得到
+         * 「Typhoon "Ragasa"2025-09-20 23:00Located at …，Center pressure …」
+         * 这种缺空格、留全角逗号的半成品。快讯是最显眼的一行动态文本，值得单独写英文版。
+         */
+        var lastTickerPt = null;
+        function tickerText(pt) {
+            if (!pt) return '【台风快讯】加载中...';
             var cat = getWindCategory(pt.wind);
-            var text = '【台风快讯】台风"' + currentTyphoonName + '"' + tToBeijingTime(pt.t) +
+            if (window.I18N && window.I18N.lang === 'en') {
+                var T = window.I18N.t;
+                return '[Typhoon Bulletin] Typhoon "' + T(currentTyphoonName) + '" was located at ' +
+                    pt.lat.toFixed(1) + '°N, ' + pt.lon.toFixed(1) + '°E at ' + tToBeijingTime(pt.t) +
+                    ' (Beijing time), with a central pressure of ' + pt.psfc.toFixed(0) +
+                    ' hPa and maximum winds of ' + pt.wind.toFixed(1) + ' m/s (' + T(cat.name) +
+                    '). Please take precautions.';
+            }
+            return '【台风快讯】台风"' + currentTyphoonName + '"' + tToBeijingTime(pt.t) +
                 '位于' + pt.lat.toFixed(1) + '°N, ' + pt.lon.toFixed(1) + '°E，' +
                 '中心气压' + pt.psfc.toFixed(0) + ' hPa，最大风力' + pt.wind.toFixed(1) + ' m/s（' + cat.name + '），请注意防范。';
-            document.getElementById('ticker-text').textContent = text;
+        }
+
+        function updateNewsTicker(pt) {
+            if (pt) lastTickerPt = pt;
+            document.getElementById('ticker-text').textContent = tickerText(pt);
         }
 
         // ===== Playback Controls =====
@@ -6157,6 +7069,15 @@
             }).join('');
         }
 
+        /*
+         * 时间轴里程碑的英文短标签。
+         * 中文 2 字 vs 英文 Formation/Landfall/Dissipation：后者宽 3~5 倍，而在 374px 宽的
+         * Dock 刻度条上「登陆/巅峰/消散」三个点挤在最右 25% 内 —— 中文只要 54px，英文要 105px，
+         * 实测直接糊成「LandfallPeakDissipation」。坐标轴标签用缩写是常规做法，
+         * 完整名称保留在 title 提示里。
+         */
+        var TICK_SHORT_EN = { '生成': 'Form', '登陆': 'Land', '巅峰': 'Peak', '消散': 'Dissip' };
+
         function initTimeTicks() {
             var d = currentTyphoonData() || {};
             var ticks = d.ticks;
@@ -6173,22 +7094,76 @@
             }
             var container = document.getElementById('time-ticks');
             var range = CONFIG.maxT - CONFIG.minT;
-            var positions = ticks.map(function(tick) {
+            var rawPct = ticks.map(function(tick) {
                 return Math.max(0, Math.min(100, (tick.t - CONFIG.minT) / range * 100));
             });
-            // 自动避让：相邻里程碑太近时向右错开
-            var minGap = 7;
-            for (var i = 1; i < positions.length; i++) {
-                if (positions[i] - positions[i - 1] < minGap) {
-                    positions[i] = Math.min(100, positions[i - 1] + minGap);
-                }
-            }
+            var isEn = !!(window.I18N && window.I18N.lang === 'en');
             var html = '';
             for (var i = 0; i < ticks.length; i++) {
                 var tick = ticks[i];
-                html += '<div class="time-tick' + (tick.major ? ' major' : '') + '" style="left:' + positions[i] + '%;" title="' + tToBeijingTime(tick.t) + ' ' + tick.label + '">' + tick.label + '</div>';
+                // 标签先按当前语言翻译好再量宽：否则会拿中文的宽度去排版英文标签
+                var full = isEn ? window.I18N.t(tick.label) : tick.label;
+                var label = (isEn && TICK_SHORT_EN[tick.label]) ? TICK_SHORT_EN[tick.label] : full;
+                html += '<div class="time-tick' + (tick.major ? ' major' : '') + '" style="left:' + rawPct[i] +
+                    '%;" title="' + tToBeijingTime(tick.t) + ' ' + full + '">' + label + '</div>';
             }
             container.innerHTML = html;
+
+            /*
+             * 里程碑标签防重叠。两条路径：
+             *
+             * A) 「真量宽度」重排（手机端 / 英文版走这条）
+             *    标签是 translateX(-50%) 居中的，相邻两个只要满足
+             *        pos[i] - pos[i-1] >= (w[i] + w[i-1]) / 2 + 4px
+             *    就不会叠；首尾再夹在容器内避免贴边被裁。写回**百分比**而非 px，
+             *    旋转/改窗口时随容器等比缩放。
+             *
+             * B) 旧版固定阈值（相邻 <7% 就右移）—— **桌面端 + 中文时原样保留**。
+             *    这条路径的像素必须与升级前完全一致：用户明确要求「不要干扰 PC 画面」，
+             *    实测改用 A 会让桌面底部时间轴的刻度标签整体位移（像素 diff 从 1251 涨到 1545）。
+             *    桌面+中文并不需要 A：中文标签只有 2 个字，旧阈值够用。
+             */
+            var useMeasured = document.documentElement.classList.contains('mobile-ui') || isEn;
+            if (!useMeasured) {
+                var legacy = rawPct.slice();
+                var minGap = 7;
+                for (var li = 1; li < legacy.length; li++) {
+                    if (legacy[li] - legacy[li - 1] < minGap) {
+                        legacy[li] = Math.min(100, legacy[li - 1] + minGap);
+                    }
+                }
+                for (var lj = 0; lj < container.children.length; lj++) {
+                    container.children[lj].style.left = legacy[lj] + '%';
+                }
+                return;
+            }
+
+            var nodes = container.children;
+            if (!nodes.length) return;
+            var cw = container.clientWidth || container.offsetWidth;
+            if (!cw) return;                       // 隐藏时量不到 → 保留百分比占位，等可测量时再来
+            var widths = [];
+            for (var k = 0; k < nodes.length; k++) widths.push(nodes[k].offsetWidth || 24);
+            var pos = [];
+            for (var m = 0; m < nodes.length; m++) pos.push(rawPct[m] / 100 * cw);
+            pos[0] = Math.max(widths[0] / 2, Math.min(cw - widths[0] / 2, pos[0]));
+            for (var n = 1; n < nodes.length; n++) {
+                var need = (widths[n] + widths[n - 1]) / 2 + 4;
+                if (pos[n] - pos[n - 1] < need) pos[n] = pos[n - 1] + need;
+            }
+            // 尾端越界则整体左移（保持相对间距）
+            var overflow = pos[pos.length - 1] + widths[widths.length - 1] / 2 - cw;
+            if (overflow > 0) {
+                for (var q = pos.length - 1; q >= 0; q--) {
+                    pos[q] -= overflow;
+                    if (q > 0 && pos[q] - pos[q - 1] < (widths[q] + widths[q - 1]) / 2 + 4) break;
+                }
+                if (pos[0] - widths[0] / 2 < 0) pos[0] = widths[0] / 2;
+            }
+            // 写回百分比：旋转/改窗口时随容器等比缩放，不会在新宽度下重新叠在一起
+            for (var r = 0; r < nodes.length; r++) {
+                nodes[r].style.left = (pos[r] / cw * 100).toFixed(3) + '%';
+            }
         }
 
         // ===== Measure Tool =====
@@ -7232,6 +8207,29 @@
             // Initial render
             document.getElementById('wind-toggle').classList.add('active');
             updateTimeDisplay();
+
+            /*
+             * 里程碑标签是「按真实文字宽度排版」的（见 initTimeTicks），所以容器宽度一变
+             * 就必须重排 —— 否则窄屏下英文标签会重新叠在一起。
+             * 防抖 150ms：拖窗口时不会反复量宽度引起布局抖动；
+             * 手机旋转由 mobile-ui.js 的 orientationchange → dispatch resize 覆盖。
+             */
+            var tickLayoutTimer = null;
+            window.addEventListener('resize', function () {
+                if (tickLayoutTimer) clearTimeout(tickLayoutTimer);
+                tickLayoutTimer = setTimeout(initTimeTicks, 150);
+            }, { passive: true });
+
+            // 语言切换后，快讯（主逻辑拼的句子）要按新语言重排一次；
+            // 时间轴里程碑标签也要用新语言重新量宽排版（英文标签宽 3~5 倍，不重排会叠在一起）。
+            // 其它静态/动态 DOM 由 I18N 自己的观察器处理，这里只补这两处。
+            if (window.I18N && window.I18N.onChange) {
+                window.I18N.onChange(function () {
+                    updateNewsTicker(lastTickerPt);
+                    initTimeTicks();
+                });
+            }
+
             // 通知 mobile-ui.js：主逻辑初始化完成，可以安全搬运节点了
             window.__mainReady = true;
         }

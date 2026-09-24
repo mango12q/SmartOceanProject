@@ -31,15 +31,18 @@
 
 | 文件 | 作用 |
 |------|------|
-| `mobile/mobile.css` | ≤768px 专用布局（底部 Dock / Sheet / 弹层 / 安全区 / 触控目标） |
-| `mobile/mobile-ui.js` | 手机端交互层（构建 Dock、搬移节点、Sheet 开合、手势让位、Dock 高度同步） |
+| `mobile/mobile.css` | ≤768px 专用布局（底部 Dock / Sheet / 弹层 / 安全区 / 触控目标 / 文字自适应缩放） |
+| `mobile/mobile-ui.js` | 手机端交互层（构建 Dock、搬移节点、Sheet 开合、手势让位、Dock 高度同步、全屏/视口重算） |
+| `mobile/i18n.js` | 中英双语引擎（`window.I18N`：精确查表 + 长串优先短语替换 + DOM 遍历 + 原文还原） |
+| `mobile/i18n-dict.js` | 中→英词表（364 条，生成物；重新生成见 `.dev/gen-i18n-dict.mjs`） |
 | `mobile/qr-encoder.js` | 零依赖二维码编码器（ISO/IEC 18004，byte mode UTF-8，经典脚本，`window.QRCode`） |
 | `mobile/qr-popup.js` | 「手机扫码」弹窗（地址编辑 / 复制链接 / 局域网提示，仅桌面端初始化） |
-| `mobile/build.py` | **把上面四个文件内联进 `index.html`**（幂等，可 `--check` 校验是否同步） |
+| `mobile/build.py` | **把上面这些文件内联进 `index.html`**（幂等，可 `--check` 校验是否同步） |
 | `mobile/mobile-ui.js` 内 `injectMobileOverrides()` | 组合层微调（手机端隐藏扫码入口、播放键宽度等实测补丁） |
 | `mobile/SPEC.md` | 接口契约与验收标准（DOM 契约、断点门控、各产物职责） |
 | `mobile/test-qr.mjs` | 二维码位级自检（860 断言：往返 / 全版本容量 / 8 掩码） |
-| `mobile/selftest-css.mjs` | CSS 自检（20 项：括号配平、无外链、门控、选择器矩阵、Dock 高度预算） |
+| `mobile/selftest-css.mjs` | CSS 自检（30 项：括号配平、无外链、门控、选择器矩阵、Dock 高度预算 + 需求回归守卫） |
+| `mobile/test-i18n.mjs` | 双语层自检（27 项：词表完整性、漏译、标签配平 + 引擎/集成回归守卫） |
 
 > **改手机端请改 `mobile/` 下的源码，然后运行 `python mobile/build.py` 重新内联**；
 > 直接改 `index.html` 的内联块会在下次构建时被覆盖。`python mobile/build.py --check` 可检测是否已同步。
@@ -48,9 +51,24 @@
 
 ```bash
 node mobile/test-qr.mjs          # 二维码编码器自检（ALL GREEN 才可发布）
-node mobile/selftest-css.mjs     # 移动端 CSS 自检
+node mobile/selftest-css.mjs     # 移动端 CSS 自检（含「白框」等需求回归守卫）
+node mobile/test-i18n.mjs        # 中英双语层自检（词表 + 引擎 + index.html 集成契约）
 python mobile/build.py --check   # index.html 是否与 mobile/ 源码一致
 ```
+
+### 移动端适配修复（2026-09，5 项）
+
+| # | 现象 | 根因 | 处理 |
+|---|------|------|------|
+| 1 | **全屏后操作有 bug** | ① 进全屏不关 Sheet，设置面板继续盖住大半地图；② Dock 被 `display:none` 但 `--dock-h` 仍停在 161px，图例/测距条/关注区小窗全部悬在半空；③ 视口变化后 Leaflet 未 `invalidateSize`，瓦片画在旧范围、点击坐标整体偏移 | 进全屏自动收 Sheet；`fullscreenchange` / `visualViewport.resize` 重算 `--dock-h`（含 `:has(body.clean-mode)` 零时差兜底）并派发 `resize`；退出键避安全区、44px+ |
+| 2 | **拖动地图时底部闪白框** | `.md-interacting` 给 Dock 整体加 `opacity:.55` + `translateY(12px)`：白色 Dock 半透明 → 底图与地图注记透出来；同时收起态的 `#left-panel` 只靠 `translateY(105%)` 挡不住，顶边留在视口内透出表头 | Dock 背景改纯 `#fff` 且不位移，只淡化**子元素**；`#left-panel` 收起加 `visibility:hidden`（延迟切换，不吃动画） |
+| 3 | **文字不随屏幕缩放** | 根字号恒为 16px | `html.mobile-ui { font-size: clamp(15px, calc(13.9px + .53vw), 18px) }` → 320px/15.6、390px/16.0、430px/16.2、768px/18.0；桌面端双门控（媒体查询 + `.mobile-ui` 类）不生效 |
+| 4 | **缺英文版与语言切换** | 无 i18n 层 | 新增 `mobile/i18n.js` + 364 条词表；`#btn-lang` 在 `#top-controls`（桌面端脱离文档流，**不推挤既有工具栏**）；覆盖静态 DOM、`title/data-tip/aria-label` 属性、动态拼接句、CSS 生成内容（`#legend::before`）；选择持久化 + `html[lang]` 同步；切回中文逐节点还原 |
+| 5 | **手机界面拥挤** | Dock 19.1% 屏高、顶部快讯条与湾区标签重叠、快讯滚动字幕大半时间在屏外、Dock 时钟永远显示 `--` | Dock 161→151px；播放键 40→43px 宽、标签字号 10.6→11.5px；快讯条 46→34px 且改静态省略、与标签错开；Dock 时钟接上真实读数；里程碑标签按真实宽度排版（英文用短标签），不再糊成一团 |
+
+> 桌面端（≥769px）保持像素级不变：`node .dev/verify-desktop.mjs` 对比升级前后的截图，
+> 差异**仅限**新增的 `#btn-lang` 按钮矩形（三档分辨率 22/22 全绿）。
+> 手机端验收：`node .dev/verify-mobile.mjs`（42 项）。
 
 ### 触摸/鼠标行为的两处必要修复（已内联进 `index.html` 主逻辑）
 

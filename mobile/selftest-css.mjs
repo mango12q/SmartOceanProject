@@ -416,7 +416,7 @@ check('§2.2 十八条的必需选择器覆盖', () => {
 });
 
 /* 7. Dock 高度预算 ------------------------------------------------------- */
-check('§2.2.1 Dock 总高 ≤168px（静态估算）', () => {
+check('§2.2.1 Dock 总高 ≤152px（需求 5 收紧后；SPEC 上限 168px，改前 161px）', () => {
   const flat = noComments.replace(/\s+/g, ' ');
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const blockOf = (sel) => {
@@ -447,15 +447,118 @@ check('§2.2.1 Dock 总高 ≤168px（静态估算）', () => {
   if (!padM) missing.push('padding');
   if (missing.length) return { ok: false, detail: '数值提取失败: ' + missing.join(',') };
 
+  // 刻度必须是**流内**独立一行：改成绝对定位叠加到滑块行上会省 12px，
+  // 但滑块拇指（26px，垂直居中）会压住刻度文字，实测「生成」被吃掉一半。
+  const ticksAbs = /position\s*:\s*absolute/.test(blockOf('#mobile-dock #time-ticks') || '');
   const padV = parseFloat(padM[1]) + parseFloat(padM[3]);
-  const row2 = sliderH + ticksH;
+  const row2 = ticksAbs ? sliderH : sliderH + ticksH;
   const total = row1 + row2 + tabH + gap * 2 + padV + 1; // 3 行 → 2 个行距；+1 = border-top
   return {
-    ok: total <= 168,
+    ok: total <= 152,
     detail:
-      '行1=' + row1 + ' 行2=' + row2 + '(' + sliderH + '+' + ticksH + ') 行3=' + tabH +
-      ' 行距=' + gap * 2 + ' 内边距=' + padV + ' 边框=1 → 合计 ' + total + 'px / 上限 168px',
+      '行1=' + row1 + ' 行2=' + row2 + '(' + sliderH + (ticksAbs ? '+刻度绝对定位' : '+' + ticksH) + ') 行3=' + tabH +
+      ' 行距=' + gap * 2 + ' 内边距=' + padV + ' 边框=1 → 合计 ' + total + 'px / 上限 152px（改前 161px）',
   };
+});
+
+/* ==========================================================================
+   9. 需求回归守卫（这四条都是「实测踩过的坑」，改动时不要再放开）
+   ========================================================================== */
+
+/* 需求 2：拖动地图时底部出现的「白框」
+   根因是 .md-interacting 给 Dock 整体加了 opacity + translateY：
+   白色 Dock 半透明 → 底图与地图注记透出来；translateY(12px) → 底边被裁掉。
+   现在只允许淡化 Dock 的**子元素**，Dock 自身必须保持不透明、不位移。 */
+check('需求2 Dock 手势态不得整体半透明/位移（白框回归守卫）', () => {
+  const flat = noComments.replace(/\s+/g, ' ');
+  const m = flat.match(/\.md-interacting\s+#mobile-dock\s*\{([^}]*)\}/);
+  if (m) return { ok: false, detail: '禁止直接给 #mobile-dock 加交互态样式: ' + m[1].trim() };
+  const child = flat.match(/\.md-interacting\s+#mobile-dock\s*>\s*\*\s*\{([^}]*)\}/);
+  if (!child) return { ok: false, detail: '未找到 .md-interacting #mobile-dock > * 规则' };
+  if (!/opacity\s*:\s*(0?\.\d+)/.test(child[1])) return { ok: false, detail: '子元素未做淡化' };
+  if (/transform|opacity\s*:\s*0\s*[;}]/.test(child[1])) return { ok: false, detail: '子元素规则不应含 transform' };
+  return { ok: true, detail: '仅子元素淡化 → ' + child[1].trim() };
+});
+
+check('需求2 Dock 背景为完全不透明纯色', () => {
+  const flat = noComments.replace(/\s+/g, ' ');
+  const m = flat.match(/#mobile-dock\s*\{([^}]*)\}/);
+  if (!m) return { ok: false, detail: '未找到 #mobile-dock 规则' };
+  if (/background\s*:\s*rgba\([^)]*,\s*0?\.\d+\s*\)/.test(m[1])) {
+    return { ok: false, detail: '背景含半透明 alpha（会透出底图）' };
+  }
+  const bg = (m[1].match(/background\s*:\s*([^;]+)/) || [])[1];
+  return { ok: /var\(--md-dock-bg\)|#fff|#ffffff|white/i.test(bg || ''), detail: 'background: ' + (bg || '').trim() };
+});
+
+/* 需求 2 附带：收起的 #left-panel 只靠 translateY(105%) 挡不住，
+   面板顶边仍留在视口内，会露出一条「幽灵」表头压在 Dock 上。 */
+check('需求2 收起的 #left-panel 必须 visibility:hidden', () => {
+  const flat = noComments.replace(/\s+/g, ' ');
+  const m = flat.match(/#left-panel\s*\{([^}]*)\}/);
+  if (!m) return { ok: false, detail: '未找到 #left-panel 规则' };
+  if (!/visibility\s*:\s*hidden/.test(m[1])) return { ok: false, detail: '缺少 visibility:hidden（幽灵内容会压在 Dock 上）' };
+  if (!/transition\s*:[^;]*visibility/.test(m[1])) return { ok: false, detail: 'visibility 需参与 transition，否则展开动画被吃掉' };
+  return { ok: true, detail: 'visibility:hidden + 延迟切换' };
+});
+
+/* 需求 1：全屏（洁净模式）下 Dock 被 display:none，--dock-h 必须归零 */
+check('需求1 洁净模式 --dock-h 零时差兜底', () =>
+  /:has\(\s*body\.clean-mode\s*\)\s*\{[^}]*--dock-h\s*:\s*0px\s*!important/.test(noComments.replace(/\s+/g, ' '))
+    ? { ok: true, detail: 'html.mobile-ui:has(body.clean-mode) → --dock-h:0px !important' }
+    : { ok: false, detail: '缺少 :has(body.clean-mode) 兜底规则' });
+
+check('需求1 全屏退出键避开安全区且够大', () => {
+  const flat = noComments.replace(/\s+/g, ' ');
+  const m = flat.match(/body\.clean-mode\s*>\s*#btn-clean-exit\s*\{([^}]*)\}/);
+  if (!m) return { ok: false, detail: '未找到 body.clean-mode > #btn-clean-exit 规则' };
+  const minH = parseFloat((m[1].match(/min-height\s*:\s*(\d+(?:\.\d+)?)px/) || [])[1] || '0');
+  const hasSafe = /env\(safe-area-inset-top/.test(m[1]);
+  return { ok: minH >= 44 && hasSafe, detail: 'min-height=' + minH + 'px safe-area=' + hasSafe };
+});
+
+/* 需求 3：文字自适配屏幕缩放 → 根字号用 vw + clamp */
+check('需求3 根字号随视口缩放（clamp + vw）', () => {
+  const flat = noComments.replace(/\s+/g, ' ');
+  const m = flat.match(/html\.mobile-ui\s*\{([^}]*)\}/);
+  if (!m) return { ok: false, detail: '未找到 html.mobile-ui 规则' };
+  const fs = (m[1].match(/font-size\s*:\s*([^;]+)/) || [])[1];
+  if (!fs) return { ok: false, detail: '未设置根 font-size' };
+  return { ok: /clamp\(/.test(fs) && /vw/.test(fs), detail: 'font-size: ' + fs.trim() };
+});
+
+/* 需求 4：语言切换键 */
+check('需求4 #btn-lang 在手机端有 44px 触控规格', () => {
+  const flat = noComments.replace(/\s+/g, ' ');
+  const m = flat.match(/#btn-lang\s*\{([^}]*)\}/);
+  if (!m) return { ok: false, detail: '未找到 #btn-lang 规则' };
+  const minH = parseFloat((m[1].match(/min-height\s*:\s*(\d+(?:\.\d+)?)px/) || [])[1] || '0');
+  return { ok: minH >= 44, detail: 'min-height=' + minH + 'px' };
+});
+
+check('需求4 #title 为 #btn-lang 让出宽度', () => {
+  const flat = noComments.replace(/\s+/g, ' ');
+  const m = flat.match(/#title\s*\{([^}]*)\}/);
+  const mw = m && (m[1].match(/max-width\s*:\s*calc\(100vw\s*-\s*(\d+)px\)/) || [])[1];
+  return { ok: !!mw && +mw >= 120, detail: 'max-width: calc(100vw - ' + mw + 'px)' };
+});
+
+/* 需求 5：顶部浮层不重叠 + 快讯不滚动 */
+check('需求5 快讯条与大湾区标签错开', () => {
+  const flat = noComments.replace(/\s+/g, ' ');
+  const tick = flat.match(/#news-ticker\s*\{([^}]*)\}/);
+  const gba = flat.match(/#gba-label\s*\{([^}]*)\}/);
+  const tTop = tick && parseFloat((tick[1].match(/top\s*:\s*(\d+(?:\.\d+)?)px/) || [])[1] || '0');
+  const tickH = tick && parseFloat((tick[1].match(/min-height\s*:\s*(\d+(?:\.\d+)?)px/) || [])[1] || '0');
+  const gTop = gba && parseFloat((gba[1].match(/top\s*:\s*(\d+(?:\.\d+)?)px/) || [])[1] || '0');
+  return { ok: gTop >= tTop + tickH, detail: 'ticker ' + tTop + '+' + tickH + '=' + (tTop + tickH) + ' ≤ gba ' + gTop };
+});
+
+check('需求5 手机端快讯改为静态省略（关闭 marquee）', () => {
+  const flat = noComments.replace(/\s+/g, ' ');
+  const m = flat.match(/#news-ticker\s+\.ticker-content\s*\{([^}]*)\}/);
+  if (!m) return { ok: false, detail: '未找到 .ticker-content 手机端规则' };
+  return { ok: /animation\s*:\s*none/.test(m[1]), detail: m[1].trim() };
 });
 
 /* 8. 统计 ---------------------------------------------------------------- */

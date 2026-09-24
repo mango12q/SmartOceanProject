@@ -14,10 +14,26 @@
     --md-safe-b: env(safe-area-inset-bottom, 0px);
     --md-blue: #1565c0;
     --md-line: rgba(21, 101, 192, 0.18);
-    --md-sheet-bg: rgba(255, 255, 255, 0.98);
+    --md-sheet-bg: #ffffff;
     --md-shadow: 0 -2px 10px rgba(13, 71, 161, 0.18);
+    /* 关键色：Dock 必须完全不透明 —— 半透明时拖动地图会透出底图，形成「白框」观感 */
+    --md-dock-bg: #ffffff;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+
+    /* ------------------------------------------------------------------
+       文字自适配屏幕缩放（需求 3）
+       根字号随视口宽度线性变化，所有 rem 尺寸的文字一起缩放：
+         320px → 15.6px   390px → 16.0px   430px → 16.2px   768px → 18px（封顶）
+       桌面端不生效：本文件全部规则都在 @media (max-width:768px) 内，
+       且需要 html.mobile-ui 类（由 JS 仅在移动端加上）—— 双保险。
+       ------------------------------------------------------------------ */
+    font-size: clamp(15px, calc(13.9px + 0.53vw), 18px);
+  }
+
+  /* 横屏矮屏不再放大字号（可用高度比宽度更紧张） */
+  @media (max-height: 480px) {
+    html.mobile-ui { font-size: clamp(14px, calc(13.4px + 0.4vw), 16px); }
   }
 
   html.mobile-ui body {
@@ -42,17 +58,16 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 4px;
+    gap: 3px;
     box-sizing: border-box;
-    padding: 6px 8px calc(10px + var(--md-safe-b, env(safe-area-inset-bottom, 0px)));
-    background: rgba(255, 255, 255, 0.98);          /* §2.2.18：不透明纯色，不用 backdrop-filter */
+    padding: 4px 8px calc(5px + var(--md-safe-b, env(safe-area-inset-bottom, 0px)));
+    background: var(--md-dock-bg);                  /* §2.2.18：完全不透明纯色，不用 backdrop-filter */
     border-top: 1px solid var(--md-line);
     box-shadow: var(--md-shadow);                   /* 模糊 ≤12px */
     color: #222;
     font-size: 0.82rem;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.18s ease, opacity 0.18s ease;
   }
 
   /* 行1：时间/坐标 + 播放控制 + 速度 */
@@ -67,7 +82,10 @@
     min-width: 0;
   }
 
-  /* 行2：时间滑块 + 刻度 */
+  /* 行2：时间滑块 + 刻度
+     ⚠ 试过把刻度改成「叠加在滑块行内的绝对定位」以省 12px，但实测滑块拇指
+     （26px，垂直居中于 32px 的 input）会压住刻度文字：滑到起点时「生成」被拇指吃掉一半。
+     刻度是有语义的事件标记（生成/登陆/巅峰/消散），可读性优先 → 保持独立流内一行。 */
   html.mobile-ui #mobile-dock .md-slider {
     display: flex;
     flex-direction: column;
@@ -102,7 +120,7 @@
     border-radius: 10px;
     color: #37474f;
     font-family: inherit;
-    font-size: 0.66rem;                             /* 标签 ≥10px */
+    font-size: 0.72rem;                             /* 标签 ≥10px（原 0.66rem=10.6px 偏小，需求 3/5 上调） */
     line-height: 1.1;
     cursor: pointer;
     touch-action: manipulation;
@@ -119,7 +137,7 @@
 
   html.mobile-ui #mobile-dock .md-tab .md-label,
   html.mobile-ui #mobile-dock .md-tab > :last-child {
-    font-size: 0.66rem;
+    font-size: 0.72rem;
     line-height: 1.1;
     white-space: nowrap;
   }
@@ -145,12 +163,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 2px;
   }
 
   html.mobile-ui #mobile-dock #playback-controls button {
-    flex: 0 1 38px;
-    min-width: 28px;
+    flex: 0 1 44px;
+    min-width: 34px;
     min-height: 44px;
     padding: 0;
     font-size: 1rem;
@@ -160,9 +178,9 @@
   html.mobile-ui #mobile-dock #speed-select {
     flex: 0 0 auto;
     min-height: 44px;
-    max-width: 54px;
+    max-width: 48px;
     padding: 0 2px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
   }
 
   html.mobile-ui #mobile-dock #time-display {
@@ -242,8 +260,9 @@
   html.mobile-ui #mobile-dock #time-ticks {
     position: relative;
     width: 100%;
-    height: 12px;
+    height: 11px;
     overflow: hidden;
+    pointer-events: none;
   }
 
   html.mobile-ui #mobile-dock #time-ticks .time-tick {
@@ -261,10 +280,21 @@
     height: 5px;
   }
 
-  /* JS：地图触摸时 Dock 下沉半透明（§3.5） */
-  html.mobile-ui.md-interacting #mobile-dock {
-    transform: translateY(12px);
-    opacity: 0.55;
+  /* JS：地图触摸时 Dock「让位」（§3.5）
+     ------------------------------------------------------------------
+     ⚠ 曾经的实现是 `transform: translateY(12px); opacity: 0.55;`，有两个真实缺陷：
+       1) opacity 让**白色 Dock 整体半透明** → 拖动地图时底图与地图注记透出来，
+          用户看到的是一块忽明忽暗的「白框」（抬手后还要等 1.4s 才消失）；
+       2) translateY 让 Dock 下移 12px，底边被裁掉，可视高度跳变。
+     现改为：Dock 背景始终**完全不透明且不动**，只把内部控件淡一点 —— 既保留
+     「手势时界面后退」的观感，又不会透出底图、不会位移。
+     ------------------------------------------------------------------ */
+  html.mobile-ui #mobile-dock > * {
+    transition: opacity 0.18s ease;
+  }
+
+  html.mobile-ui.md-interacting #mobile-dock > * {
+    opacity: 0.5;
   }
 
   /* ==========================================================================
@@ -320,11 +350,20 @@
     box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.18);   /* §2.2.18 模糊 ≤12px */
     backdrop-filter: none;
     transform: translateY(105%);
-    transition: transform 0.28s ease;
+    /* ⚠ 收起时必须 visibility:hidden。仅仅 translateY(105%) 不够：面板高 60vh、
+       底边停在 --dock-h 处，下移 105% 后其**顶边仍在视口内**，会露出一条 130px 左右
+       的「幽灵」内容（实测可看到表头「时间/纬度/经度/气压/风速」透在 Dock 上）。
+       延迟 0s 的 visibility 切换保证展开动画不被吃掉。 */
+    visibility: hidden;
+    transition: transform 0.28s ease, visibility 0s linear 0.28s;
     overscroll-behavior: contain;
   }
 
-  html.mobile-ui #left-panel.open { transform: translateY(0); }
+  html.mobile-ui #left-panel.open {
+    transform: translateY(0);
+    visibility: visible;
+    transition: transform 0.28s ease, visibility 0s linear 0s;
+  }
 
   html.mobile-ui #left-panel-header {
     padding: 4px 12px;
@@ -524,21 +563,25 @@
 
   /* Dock 里的时钟徽标：JS 只给了一个 24×24 viewBox 的 SVG（无 width/height，
      不写 CSS 会撑成 374×374）。这里钉在 Dock 行1 右上角，绝对定位 → 不占 Dock 高度。
-     行1 用 padding-right 让位，保证 161px ≤ 168px 预算不变。 */
+     行1 用 padding-right 让位。
+     为「拥挤 + 触控」让路的两处收紧（需求 5）：
+       - 隐藏装饰性 SVG 图标，只留 HH:MM 文本 → 让位宽度 72px 收到 50px；
+       - 于是 6 个播放键能从 40px 放宽到 ≈44px（SPEC §2.2.14 要求 min-height 44px，
+         原实现 40×44 偏窄，点按时容易误触）。 */
   html.mobile-ui #mobile-dock .md-clock {
     position: absolute;
     top: 6px;
     right: 8px;
     height: 44px;
-    max-width: 66px;
+    max-width: 46px;
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 0;
     padding: 0 5px;
     border-radius: 8px;
     background: rgba(21, 101, 192, 0.08);
     color: #1565c0;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -546,20 +589,15 @@
     pointer-events: none;
   }
 
-  html.mobile-ui #mobile-dock .md-clock svg {
-    width: 14px;
-    height: 14px;
-    flex: 0 0 14px;
-    display: block;
-  }
+  html.mobile-ui #mobile-dock .md-clock svg { display: none; }
 
   html.mobile-ui #mobile-dock #md-clock-text {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  html.mobile-ui #mobile-dock .md-time { padding-right: 72px; }
+  html.mobile-ui #mobile-dock .md-time { padding-right: 50px; }
 
   /* 设置面板：图标按钮 3 列网格，.md-wide（退出全屏）独占整行 */
   html.mobile-ui .md-sheet-body .md-grid {
@@ -724,7 +762,7 @@
     transform: none;
     margin: 0 auto;
     width: max-content;
-    max-width: calc(100vw - 96px);
+    max-width: calc(100vw - 128px);   /* 右侧给 #btn-lang 留位（需求 4） */
     padding: 7px 14px;
     font-size: 0.95rem;
     letter-spacing: 0.06em;
@@ -733,7 +771,7 @@
 
   html.mobile-ui #title .title-name {
     display: inline-block;
-    max-width: calc(100vw - 150px);
+    max-width: calc(100vw - 180px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1006,6 +1044,13 @@
     font-weight: 700;
   }
 
+  /* #legend 的文字是 CSS 生成内容，DOM 翻译器遍历不到文本节点 →
+     英文版必须在这里显式给一份（需求 4）。语言由 I18N 写在 html[data-lang] 上。 */
+  html.mobile-ui[data-lang="en"] #legend::before {
+    content: 'Legend';
+    font-size: 0.66rem;
+  }
+
   html.mobile-ui #legend-modal {
     position: fixed;
     left: 0;
@@ -1046,41 +1091,54 @@
   html.mobile-ui #news-ticker {
     left: 8px;
     right: 8px;
-    top: 52px;
+    top: 46px;
     transform: none;
     max-width: none;
     min-width: 0;
     width: auto;
     box-sizing: border-box;
-    min-height: 46px;
+    min-height: 34px;                               /* 原 46px 白占高度（需求 5 拥挤） */
     display: flex;
     align-items: center;
     padding: 4px 50px 4px 10px;
     border-radius: 8px;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     z-index: 1230;
   }
 
-  html.mobile-ui #news-ticker .ticker-content { font-size: 0.72rem; }
+  /* 快讯是「滚动字幕」，在窄屏上大半时间文字都在屏幕外 → 手机端改为静态单行省略号，
+     并把整句作为 title 提示，信息不丢、界面不抖（需求 3/5）。 */
+  html.mobile-ui #news-ticker .ticker-content {
+    font-size: 0.74rem;
+    display: block;
+    animation: none;
+    transform: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
 
   html.mobile-ui #news-ticker-close {
     right: 2px;
     top: 50%;
     transform: translateY(-50%);
-    width: 44px;
-    height: 44px;
-    min-height: 44px;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
     font-size: 1rem;
   }
 
   /* ==========================================================================
-     §10 · 大湾区标签（§2.2.10）：不与 #title 重叠
+     §10 · 大湾区标签（§2.2.10）：不与 #title / #news-ticker 重叠
+     快讯条常驻在 top:46px、高 34px → 标签让到它下面；快讯被关掉时上移，不留空洞。
+     是否可见由 JS 同步 html.md-ticker-on（主逻辑只改 #news-ticker 的 display）。
      ========================================================================== */
   html.mobile-ui #gba-label {
-    top: 52px;
+    top: 86px;
     left: 8px;
     right: auto;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     padding: 5px 10px;
     border-radius: 12px;
     max-width: calc(100vw - 16px);
@@ -1088,6 +1146,12 @@
     text-overflow: ellipsis;
     z-index: 1220;
   }
+
+  /* 快讯被用户关掉后，标签上移补位（JS 维护 html.md-ticker-off） */
+  html.mobile-ui.md-ticker-off #gba-label { top: 50px; }
+
+  /* 快讯被关掉后，其余顶部浮层也可上移 */
+  html.mobile-ui.md-ticker-off #title { top: 8px; }
 
   /* ==========================================================================
      §11 · 测距信息条（§2.2.11）
@@ -1230,6 +1294,43 @@
   html.mobile-ui #news-ticker .ticker-content { pointer-events: none; }
 
   /* ==========================================================================
+     §19 · 全屏（洁净模式）在手机上的收尾（需求 1）
+     ========================================================================== */
+  /* 退出键避开刘海/圆角安全区，全屏下是唯一逃生出口，必须够大够显眼 */
+  html.mobile-ui body.clean-mode > #btn-clean-exit {
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    right: calc(env(safe-area-inset-right, 0px) + 10px);
+    min-height: 48px;
+    padding: 10px 16px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    z-index: 2900;
+  }
+
+  /* 洁净模式下 Dock 被 display:none，任何以 --dock-h 定位的浮层都必须贴底。
+     JS 会在 fullscreenchange 时把 --dock-h 归零（权威值）；这条是零时差兜底：
+     `:has()` 不支持的浏览器会整条丢弃，不影响其它规则。 */
+  html.mobile-ui:has(body.clean-mode) {
+    --dock-h: 0px !important;
+  }
+
+  /* ==========================================================================
+     §20 · 语言切换键（需求 4）
+     #btn-lang 由 index.html 静态放在 #top-controls 内 —— 桌面端本就有一栏，
+     手机端 #layer-switcher / #btn-qr 都不显示，右上角只剩它，正好 44×44。
+     #title 相应让出宽度，避免与右上角按钮重叠。
+     ========================================================================== */
+  html.mobile-ui #btn-lang {
+    min-width: 46px;
+    min-height: 44px;
+    padding: 0 9px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  /* ==========================================================================
      §18 · 性能（§2.2.18）：大面积元素去 backdrop-filter、收小阴影
      ========================================================================== */
   html.mobile-ui #mobile-dock,
@@ -1249,8 +1350,10 @@
      ========================================================================== */
   @media (max-width: 374px) {
     html.mobile-ui #mobile-dock #eye-coord { display: none; }
-    html.mobile-ui #mobile-dock #speed-select { max-width: 50px; font-size: 0.68rem; }
+    html.mobile-ui #mobile-dock #speed-select { max-width: 44px; font-size: 0.66rem; }
     html.mobile-ui #mobile-dock #time-display { max-width: 92px; font-size: 0.72rem; }
+    html.mobile-ui #mobile-dock .md-clock { max-width: 42px; }
+    html.mobile-ui #mobile-dock .md-time { padding-right: 46px; }
   }
 
   /* ==========================================================================

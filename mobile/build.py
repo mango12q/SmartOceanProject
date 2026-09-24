@@ -15,9 +15,10 @@ build.py — 把 mobile/ 下的模块化源码内联进 index.html（离线单�
   python mobile/build.py --check    # 只检查 index.html 是否与 mobile/ 源码一致（不写文件）
 
 内联产物顺序（都在主 module script 之前）：
-  1) qr-encoder.js  -> window.QRCode
-  2) qr-popup.js    -> 使用 QRCode 渲染模态框
-  3) mobile-ui.js   -> 手机端交互层（等 __mainReady 后搬节点）
+  1) i18n-dict.js + i18n.js -> window.__I18N_DICT / window.I18N（中英双语层）
+  2) qr-encoder.js  -> window.QRCode
+  3) qr-popup.js    -> 使用 QRCode 渲染模态框
+  4) mobile-ui.js   -> 手机端交互层（等 __mainReady 后搬节点）
 """
 
 import argparse
@@ -30,6 +31,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INDEX = os.path.join(ROOT, "index.html")
 MOBILE = os.path.join(ROOT, "mobile")
 
+I18N_MARK = "/* === I18N:JS:BEGIN === */"
+I18N_END = "/* === I18N:JS:END === */"
 QR_MARK = "/* === QR:JS:BEGIN === */"
 QR_END = "/* === QR:JS:END === */"
 MUI_MARK = "/* === MOBILE:JS:BEGIN === */"
@@ -37,11 +40,15 @@ MUI_END = "/* === MOBILE:JS:END === */"
 CSS_MARK = "/* === MOBILE:CSS:BEGIN === */"
 CSS_END = "/* === MOBILE:CSS:END === */"
 
+HTML_I18N_MARK = "<!-- === I18N:JS:BEGIN === -->"
 HTML_QR_MARK = "<!-- === QR:JS:BEGIN === -->"
 HTML_QR_END = "<!-- === QR:JS:END === -->"
 HTML_MUI_MARK = "<!-- === MOBILE:JS:BEGIN === -->"
 HTML_MUI_END = "<!-- === MOBILE:JS:END === -->"
 HTML_CSS_MARK = "<!-- === MOBILE:CSS === -->"
+
+# 需要内联的源码（顺序即内联顺序）；--check 也会逐个报告字节数
+SOURCES = ("i18n-dict.js", "i18n.js", "qr-encoder.js", "qr-popup.js", "mobile-ui.js", "mobile.css")
 
 # 缩进：与 index.html 现有 <script> 标签保持一致（8 空格）
 IND = " " * 8
@@ -111,6 +118,12 @@ def build(html):
     popup = slurp("qr-popup.js")
     mui = slurp("mobile-ui.js")
     css = slurp("mobile.css")
+    i18n_dict = slurp("i18n-dict.js")
+    i18n = slurp("i18n.js")
+
+    # 0) 双语层（词表在前，引擎在后；两者都在主 module 之前 → 主逻辑能直接调 I18N.t）
+    html = normalize_block(html, I18N_MARK, I18N_END)
+    html = fill_block(html, I18N_MARK, I18N_END, block_body(i18n_dict + "\n\n" + i18n))
 
     # 1) QR 组件块（编码器 + 弹窗）：先归一化外壳，再填内容
     html = normalize_block(html, QR_MARK, QR_END)
@@ -156,7 +169,7 @@ def main():
     built = build(original)
 
     # 统计
-    sizes = {n: len(slurp(n)) for n in ("qr-encoder.js", "qr-popup.js", "mobile-ui.js", "mobile.css")}
+    sizes = {n: len(slurp(n)) for n in SOURCES}
 
     if args.check:
         if built == original:

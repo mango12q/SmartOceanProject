@@ -79,7 +79,7 @@
             'html.mobile-ui #qr-modal{display:none !important;}' +
             'html.mobile-ui .md-sheet-body #wind-toggle{min-width:96px;min-height:48px;font-size:0.9rem;}' +
             'html.mobile-ui #mobile-dock #eye-coord{display:none;}' +
-            'html.mobile-ui #mobile-dock #playback-controls button{min-width:40px;}' +
+            'html.mobile-ui #mobile-dock #playback-controls button{min-width:34px;}' +
             // 洁净（全屏）模式：Dock 必须让位，否则「全屏」名不副实。
             // ⚠ #mobile-dock 挂在 <html> 下（是 <body> 的**兄弟节点**，不是子节点），
             //   所以 `body.clean-mode #mobile-dock`（后代）永远不匹配 —— 实测踩到。
@@ -121,11 +121,22 @@
         hookFocusWindow();
         bindTabs();
         bindMapInteracting();
+        bindTickerState();
+        bindDockClock();
+        bindViewportSync();
         syncDockHeight();
 
         window.addEventListener('resize', syncDockHeight, { passive: true });
         window.addEventListener('orientationchange', function () { setTimeout(syncDockHeight, 260); });
         doc.addEventListener('keydown', onKeydown);
+
+        // 语言切换后，Sheet/Dock 里的标题与标签需要重新按新语言渲染（需求 4）
+        if (window.I18N && window.I18N.onChange) {
+            window.I18N.onChange(function () {
+                resyncViewport();
+                syncTickerState();
+            });
+        }
     }
 
     /* ------------------------------------------------------------- Dock */
@@ -391,13 +402,48 @@
         }, { passive: true });
     }
 
+    /* ------------------------------------------------ Dock 时钟（需求 5） */
+    /*
+     * 实测缺陷：`.md-clock` 是 mobile-ui.js 自己造的徽标，`#md-clock-text` 初值 '--'
+     * **从来没有人更新过** —— 于是 Dock 右上角永远显示一个没意义的「--」，白占 50px 宽度。
+     * 主逻辑真正的读数在 `#time-display`（格式 'YYYY-MM-DD HH:MM'），手机端被 .md-hidden
+     * 藏起来了。这里只读不写地把它镜像成 HH:MM 到徽标里，徽标才有存在意义。
+     */
+    function syncDockClock() {
+        var src = $('time-display');
+        var dst = $('md-clock-text');
+        if (!src || !dst) return;
+        var txt = (src.textContent || '').trim();
+        var m = /(\d{2}:\d{2})/.exec(txt);
+        var val = m ? m[1] : (txt || '--');
+        if (dst.textContent !== val) dst.textContent = val;
+        // 完整日期放进 title，长按/悬停仍可看到
+        var chip = $('md-clock');
+        if (chip) chip.setAttribute('title', txt);
+    }
+
+    function bindDockClock() {
+        var src = $('time-display');
+        if (!src) return;
+        syncDockClock();
+        new MutationObserver(syncDockClock)
+            .observe(src, { childList: true, characterData: true, subtree: true });
+    }
+
     /* -------------------------------------------------------- Dock 高度 */
     var syncing = false;
     function syncDockHeight() {
         var dock = $('mobile-dock');
         if (!dock) return;
+        /*
+         * ⚠ 全屏（洁净模式）下 Dock 被 `display:none`，此时 getBoundingClientRect().height
+         * 是 0 —— 正是我们要的：所有 `bottom: calc(var(--dock-h) + Npx)` 的浮层必须贴底。
+         * 老实现只在 resize 时同步，而「进/出全屏」在手机上不一定派发 resize，
+         * 于是 --dock-h 一直停在 161px：全屏后图例按钮、测距条、关注区小窗全部悬在半空
+         * —— 这就是「全屏后操作有 bug」的主因之一（需求 1）。
+         */
         var h = Math.round(dock.getBoundingClientRect().height);
-        if (h > 0) html.style.setProperty('--dock-h', h + 'px');
+        html.style.setProperty('--dock-h', (h > 0 ? h : 0) + 'px');
         // 关注区小窗 / 迷你地图需要在 Dock 变化后让 Leaflet 重算尺寸。
         // 注意：dispatchEvent 是同步派发 —— 本函数自身就是 resize 监听器，
         // 没有这道重入保护会 sync→dispatch→sync 无限递归爆栈。
@@ -405,6 +451,67 @@
         syncing = true;
         window.dispatchEvent(new Event('resize'));
         syncing = false;
+    }
+
+    /* -------------------------------------------------- 全屏 / 视口变化（需求 1） */
+    /*
+     * 手机上进/出全屏会同时改变三样东西，而它们都不会自动同步：
+     *   1) --dock-h（Dock 被隐藏/恢复）
+     *   2) Leaflet 内部缓存的容器尺寸 → 瓦片只画旧范围、点击/拖拽坐标整体偏移
+     *   3) 风场 canvas（主逻辑按 devicePixelRatio 画的）→ 尺寸不匹配
+     * 这三样的统一解法就是「重算 --dock-h + 派发一次 resize」：主逻辑与 Leaflet
+     * 都监听了 window resize。全屏过渡是异步的，所以补两次延迟重算。
+     */
+    function resyncViewport() {
+        syncDockHeight();
+        setTimeout(syncDockHeight, 120);
+        setTimeout(syncDockHeight, 420);
+    }
+
+    function onFullscreenChange() {
+        // 进全屏后 Sheet 若还开着，会盖住大半个地图（实测就是「全屏后没法操作」的元凶）
+        if (document.body.classList.contains('clean-mode')) closeAll();
+        resyncViewport();
+    }
+
+    function bindViewportSync() {
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+        document.addEventListener('MSFullscreenChange', onFullscreenChange);
+        if (window.visualViewport) {
+            // 真机上「地址栏收起 / 键盘弹出」只改 visualViewport，不一定派发 window resize
+            visualViewport.addEventListener('resize', resyncViewport, { passive: true });
+        }
+        // 主逻辑的 enterCleanMode() 只加 body.clean-mode，我们在这里跟随（不改主模块一行）
+        new MutationObserver(function () {
+            if (document.body.classList.contains('clean-mode')) {
+                closeAll();
+                resyncViewport();
+            } else {
+                resyncViewport();
+            }
+        }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    /* ------------------------------------------------ 快讯条可见性（需求 5） */
+    /*
+     * #news-ticker 与 #gba-label 原来都定位在 top:52px，实测**完全重叠**。
+     * 主逻辑只改 #news-ticker 的 display，我们只读不写，把结果映射成 html 上的
+     * class，由 CSS 决定标签位置 —— 关掉快讯后不留空洞。
+     */
+    function syncTickerState() {
+        var t = $('news-ticker');
+        if (!t) return;
+        var vis = t.style.display !== 'none' && getComputedStyle(t).display !== 'none';
+        html.classList.toggle('md-ticker-off', !vis);
+    }
+
+    function bindTickerState() {
+        var t = $('news-ticker');
+        if (!t) return;
+        syncTickerState();
+        new MutationObserver(syncTickerState)
+            .observe(t, { attributes: true, attributeFilter: ['style', 'class'] });
     }
 
     /* ------------------------------------------------------------ 启动 */
@@ -429,6 +536,9 @@
         isMobile: true,
         closeAll: closeAll,
         syncDockHeight: syncDockHeight,
+        resyncViewport: resyncViewport,
+        syncTickerState: syncTickerState,
+        syncDockClock: syncDockClock,
         build: build
     };
 })();
