@@ -80,6 +80,28 @@
             'html.mobile-ui .md-sheet-body #wind-toggle{min-width:96px;min-height:48px;font-size:0.9rem;}' +
             'html.mobile-ui #mobile-dock #eye-coord{display:none;}' +
             'html.mobile-ui #mobile-dock #playback-controls button{min-width:40px;}' +
+            // 洁净（全屏）模式：Dock 必须让位，否则「全屏」名不副实。
+            // ⚠ #mobile-dock 挂在 <html> 下（是 <body> 的**兄弟节点**，不是子节点），
+            //   所以 `body.clean-mode #mobile-dock`（后代）永远不匹配 —— 实测踩到。
+            //   必须用兄弟组合子 `~`。（`:is(...)` 写法同样不匹配，已实测排除。）
+            'html.mobile-ui body.clean-mode ~ #mobile-dock{display:none !important;}' +
+            /*
+             * Sheet 必须盖住「状态条」类浮层（#compare-legend / #title / #gba-label）。
+             * 实测踩坑：双台风对比开启后 #compare-legend（z-index 1450）正好压住
+             * 设置面板顶部一格，点击「灾害预警/强度演变」时事件被 compare-select 吃掉，
+             * 表现为「点了没反应」。Sheet 是模态（有蒙层 + 关闭按钮），抬高它即可。
+             */
+            'html.mobile-ui .md-sheet.open{z-index:2750;}' +
+            'html.mobile-ui #left-panel.open{z-index:2750;}' +
+            // 多边形绘制的「完成/取消」浮动按钮（仅移动端显示；桌面端靠双击完成）
+            'html.mobile-ui #focus-done-btn{' +
+            'position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top, 0px) + 56px);' +
+            'z-index:2800;display:none;gap:8px;align-items:center;}' +
+            'html.mobile-ui #focus-done-btn button{' +
+            'min-height:44px;padding:0 16px;font-size:0.9rem;border-radius:22px;' +
+            'border:1px solid rgba(21,101,192,0.28);background:rgba(255,255,255,0.97);color:#0d47a1;' +
+            'font-weight:600;box-shadow:0 2px 10px rgba(13,71,161,0.22);}' +
+            'html.mobile-ui #focus-done-btn button[data-act="done"]{background:#1976d2;color:#fff;border-color:#1976d2;}' +
             '}';
         doc.head.appendChild(s);
     }
@@ -208,13 +230,13 @@
         // 「数据」标签复用的原按钮：隐藏它，点击交给代理
         var pt = $('left-panel-toggle');
         if (pt) pt.classList.add('md-hidden');
-        // 桌面悬浮的「退出全屏」在手机上并入设置
-        var ce = $('btn-clean-exit');
-        if (ce) {
-            var group = dock.parentNode.querySelector('#md-sheet-settings .md-grid');
-            if (group) group.appendChild(ce);
-            ce.classList.add('md-wide');
-        }
+        /*
+         * 注意：#btn-clean-exit（退出全屏）**不要**搬进设置 Sheet。
+         * 它是 clean-mode 下唯一的逃生出口，而 clean-mode 会让工具区/面板全部隐藏；
+         * 一旦搬进 Sheet，用户进入全屏后就再也退不出来了（实测踩到）。
+         * mobile.css 已有 `html.mobile-ui body > #btn-clean-exit` 规则把它固定在右上角，
+         * 所以这里保持它是 <body> 直接子节点即可。
+         */
     }
 
     /* -------------------------------------------------- 关注区小窗定位 */

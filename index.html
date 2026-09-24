@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -3347,6 +3347,28 @@
             'html.mobile-ui .md-sheet-body #wind-toggle{min-width:96px;min-height:48px;font-size:0.9rem;}' +
             'html.mobile-ui #mobile-dock #eye-coord{display:none;}' +
             'html.mobile-ui #mobile-dock #playback-controls button{min-width:40px;}' +
+            // 洁净（全屏）模式：Dock 必须让位，否则「全屏」名不副实。
+            // ⚠ #mobile-dock 挂在 <html> 下（是 <body> 的**兄弟节点**，不是子节点），
+            //   所以 `body.clean-mode #mobile-dock`（后代）永远不匹配 —— 实测踩到。
+            //   必须用兄弟组合子 `~`。（`:is(...)` 写法同样不匹配，已实测排除。）
+            'html.mobile-ui body.clean-mode ~ #mobile-dock{display:none !important;}' +
+            /*
+             * Sheet 必须盖住「状态条」类浮层（#compare-legend / #title / #gba-label）。
+             * 实测踩坑：双台风对比开启后 #compare-legend（z-index 1450）正好压住
+             * 设置面板顶部一格，点击「灾害预警/强度演变」时事件被 compare-select 吃掉，
+             * 表现为「点了没反应」。Sheet 是模态（有蒙层 + 关闭按钮），抬高它即可。
+             */
+            'html.mobile-ui .md-sheet.open{z-index:2750;}' +
+            'html.mobile-ui #left-panel.open{z-index:2750;}' +
+            // 多边形绘制的「完成/取消」浮动按钮（仅移动端显示；桌面端靠双击完成）
+            'html.mobile-ui #focus-done-btn{' +
+            'position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top, 0px) + 56px);' +
+            'z-index:2800;display:none;gap:8px;align-items:center;}' +
+            'html.mobile-ui #focus-done-btn button{' +
+            'min-height:44px;padding:0 16px;font-size:0.9rem;border-radius:22px;' +
+            'border:1px solid rgba(21,101,192,0.28);background:rgba(255,255,255,0.97);color:#0d47a1;' +
+            'font-weight:600;box-shadow:0 2px 10px rgba(13,71,161,0.22);}' +
+            'html.mobile-ui #focus-done-btn button[data-act="done"]{background:#1976d2;color:#fff;border-color:#1976d2;}' +
             '}';
         doc.head.appendChild(s);
     }
@@ -3475,13 +3497,13 @@
         // 「数据」标签复用的原按钮：隐藏它，点击交给代理
         var pt = $('left-panel-toggle');
         if (pt) pt.classList.add('md-hidden');
-        // 桌面悬浮的「退出全屏」在手机上并入设置
-        var ce = $('btn-clean-exit');
-        if (ce) {
-            var group = dock.parentNode.querySelector('#md-sheet-settings .md-grid');
-            if (group) group.appendChild(ce);
-            ce.classList.add('md-wide');
-        }
+        /*
+         * 注意：#btn-clean-exit（退出全屏）**不要**搬进设置 Sheet。
+         * 它是 clean-mode 下唯一的逃生出口，而 clean-mode 会让工具区/面板全部隐藏；
+         * 一旦搬进 Sheet，用户进入全屏后就再也退不出来了（实测踩到）。
+         * mobile.css 已有 `html.mobile-ui body > #btn-clean-exit` 规则把它固定在右上角，
+         * 所以这里保持它是 <body> 直接子节点即可。
+         */
     }
 
     /* -------------------------------------------------- 关注区小窗定位 */
@@ -6318,26 +6340,97 @@
             map.getContainer().style.cursor = 'crosshair';
             if (focusShape === 'rect') {
                 map.dragging.disable();
-                map.on('mousedown', onFocusRectStart);
-                map.on('mousemove', onFocusRectMove);
-                map.on('mouseup', onFocusRectEnd);
+                /* 拖拽画矩形必须同时覆盖鼠标与触摸。
+                   ⚠ Leaflet 1.9 的 map 事件层**不转发 pointer\* 事件**：容器上能收到
+                     pointerdown/move/up（已实测），但 Leaflet 内部只订阅
+                     mousedown/mousemove/mouseup 与 touchstart/touchmove/touchend，
+                     所以 `map.on('pointerdown', ...)` 永远不会触发 —— 触摸端表现为
+                     「按住拖拽毫无反应」。这里改为直接在容器上监听原生事件。
+                   触摸端不加 preventDefault：绘制期间 dragging / doubleClickZoom 已禁用，
+                   不存在手势冲突，保留 passive 以避免滚动性能告警。 */
+                bindFocusRectEvents();
                 document.getElementById('btn-focus-rect').classList.add('active');
-                showMeasureTip('矩形模式：按下鼠标拖拽绘制矩形，松开完成');
+                showMeasureTip('矩形模式：按住拖拽绘制矩形，松开完成');
             } else {
                 map.on('click', onFocusDrawClick);
                 map.on('dblclick', onFocusDrawDblClick);
                 document.getElementById('btn-focus-poly').classList.add('active');
                 showMeasureTip('多边形模式：点击添加顶点，双击闭合');
+                /* 触摸端没有 dblclick（双击会被识别为缩放手势，且这里 doubleClickZoom 已禁用），
+                   所以给手机端补一个可点的「完成/取消」浮动按钮，否则多边形永远无法闭合。 */
+                showFocusDoneBtn();
             }
+        }
+
+        var focusRectEventsBound = false;
+        var focusDoneBtn = null;
+
+        /* 手机端专用的「多边形完成/取消」浮动按钮（桌面端由双击完成，按钮仅移动端显示） */
+        function ensureFocusDoneBtn() {
+            if (focusDoneBtn) return focusDoneBtn;
+            var wrap = document.createElement('div');
+            wrap.id = 'focus-done-btn';
+            wrap.innerHTML = '<button type="button" data-act="done">✓ 完成</button>' +
+                             '<button type="button" data-act="cancel">✕ 取消</button>';
+            wrap.addEventListener('click', function (e) {
+                var b = e.target.closest ? e.target.closest('button') : null;
+                if (!b) return;
+                e.stopPropagation();
+                if (b.getAttribute('data-act') === 'done') finishFocusDraw();
+                else cancelFocusDraw();
+            });
+            document.body.appendChild(wrap);
+            focusDoneBtn = wrap;
+            return wrap;
+        }
+
+        function showFocusDoneBtn() { ensureFocusDoneBtn().style.display = 'flex'; }
+        function hideFocusDoneBtn() { if (focusDoneBtn) focusDoneBtn.style.display = 'none'; }
+
+        function bindFocusRectEvents() {
+            if (focusRectEventsBound) return;
+            focusRectEventsBound = true;
+            var c = map.getContainer();
+            if (window.PointerEvent) {
+                c.addEventListener('pointerdown', onFocusRectStart);
+                c.addEventListener('pointermove', onFocusRectMove);
+                c.addEventListener('pointerup', onFocusRectEnd);
+                c.addEventListener('pointercancel', onFocusRectEnd);
+            } else {
+                /* 指针事件不可用的老浏览器：鼠标 + 触摸双通道兜底 */
+                c.addEventListener('mousedown', onFocusRectStart);
+                c.addEventListener('mousemove', onFocusRectMove);
+                c.addEventListener('mouseup', onFocusRectEnd);
+                c.addEventListener('touchstart', onFocusRectStart, { passive: true });
+                c.addEventListener('touchmove', onFocusRectMove, { passive: true });
+                c.addEventListener('touchend', onFocusRectEnd);
+                c.addEventListener('touchcancel', onFocusRectEnd);
+            }
+        }
+
+        function unbindFocusRectEvents() {
+            if (!focusRectEventsBound) return;
+            focusRectEventsBound = false;
+            var c = map.getContainer();
+            c.removeEventListener('pointerdown', onFocusRectStart);
+            c.removeEventListener('pointermove', onFocusRectMove);
+            c.removeEventListener('pointerup', onFocusRectEnd);
+            c.removeEventListener('pointercancel', onFocusRectEnd);
+            c.removeEventListener('mousedown', onFocusRectStart);
+            c.removeEventListener('mousemove', onFocusRectMove);
+            c.removeEventListener('mouseup', onFocusRectEnd);
+            c.removeEventListener('touchstart', onFocusRectStart);
+            c.removeEventListener('touchmove', onFocusRectMove);
+            c.removeEventListener('touchend', onFocusRectEnd);
+            c.removeEventListener('touchcancel', onFocusRectEnd);
         }
 
         function cancelFocusDraw() {
             focusDrawActive = false;
+            hideFocusDoneBtn();
             map.off('click', onFocusDrawClick);
             map.off('dblclick', onFocusDrawDblClick);
-            map.off('mousedown', onFocusRectStart);
-            map.off('mousemove', onFocusRectMove);
-            map.off('mouseup', onFocusRectEnd);
+            unbindFocusRectEvents();
             map.doubleClickZoom.enable();
             map.dragging.enable();
             map.getContainer().style.cursor = '';
@@ -6382,6 +6475,7 @@
 
         function finishFocusDraw() {
             focusDrawActive = false;
+            hideFocusDoneBtn();
             map.off('click', onFocusDrawClick);
             map.off('dblclick', onFocusDrawDblClick);
             map.doubleClickZoom.enable();
@@ -6401,16 +6495,35 @@
         }
 
         // --- Rectangle draw ---
+        /* 从原生 DOM 事件（pointer / touch / mouse）取容器内坐标与经纬度 */
+        function focusRectLatLng(e) {
+            var c = map.getContainer();
+            var rect = c.getBoundingClientRect();
+            var clientX = e.clientX, clientY = e.clientY;
+            if (clientX === undefined && e.touches && e.touches.length) {
+                clientX = e.touches[0].clientX; clientY = e.touches[0].clientY;
+            } else if (clientX === undefined && e.changedTouches && e.changedTouches.length) {
+                clientX = e.changedTouches[0].clientX; clientY = e.changedTouches[0].clientY;
+            }
+            if (clientX === undefined) return null;
+            var point = L.point(clientX - rect.left, clientY - rect.top);
+            return { latlng: map.containerPointToLatLng(point), point: point };
+        }
+
         function onFocusRectStart(e) {
             if (!focusDrawActive) return;
-            focusRectStart = { latlng: e.latlng, point: e.containerPoint };
+            var p = focusRectLatLng(e);
+            if (!p) return;
+            focusRectStart = p;
             focusDrawPoints = [];
             if (focusDrawPreview) { map.removeLayer(focusDrawPreview); focusDrawPreview = null; }
         }
 
         function onFocusRectMove(e) {
             if (!focusDrawActive || !focusRectStart) return;
-            var bounds = L.latLngBounds(focusRectStart.latlng, e.latlng);
+            var p = focusRectLatLng(e);
+            if (!p) return;
+            var bounds = L.latLngBounds(focusRectStart.latlng, p.latlng);
             if (focusDrawPreview) map.removeLayer(focusDrawPreview);
             focusDrawPreview = L.rectangle(bounds, {
                 color: '#1e88e5', weight: 2, dashArray: '5,4',
@@ -6420,7 +6533,9 @@
 
         function onFocusRectEnd(e) {
             if (!focusDrawActive || !focusRectStart) return;
-            var bounds = L.latLngBounds(focusRectStart.latlng, e.latlng);
+            var p = focusRectLatLng(e);
+            if (!p) return;
+            var bounds = L.latLngBounds(focusRectStart.latlng, p.latlng);
             focusRectStart = null;
             if (focusDrawPreview) { map.removeLayer(focusDrawPreview); focusDrawPreview = null; }
             if (!bounds.isValid() || (bounds.getEast() - bounds.getWest()) < 0.0001) return;
@@ -6429,9 +6544,7 @@
 
         function finishFocusRect(bounds) {
             focusDrawActive = false;
-            map.off('mousedown', onFocusRectStart);
-            map.off('mousemove', onFocusRectMove);
-            map.off('mouseup', onFocusRectEnd);
+            unbindFocusRectEvents();
             map.doubleClickZoom.enable();
             map.dragging.enable();
             map.getContainer().style.cursor = '';

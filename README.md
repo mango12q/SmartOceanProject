@@ -52,6 +52,24 @@ node mobile/selftest-css.mjs     # 移动端 CSS 自检
 python mobile/build.py --check   # index.html 是否与 mobile/ 源码一致
 ```
 
+### 触摸/鼠标行为的两处必要修复（已内联进 `index.html` 主逻辑）
+
+这两处不是样式问题，而是**功能在触摸设备上完全不可用**，必须在主逻辑里修：
+
+1. **关注区矩形绘制**：原实现只监听 `map.on('mousedown'/'mousemove'/'mouseup')`。
+   Leaflet 1.9 的 map 事件层**不转发 `pointer*` 事件**（容器上收得到，但内部只订阅
+   `mousedown/mousemove/mouseup` 与 `touchstart/touchmove/touchend`），触摸设备也不会产生
+   `mousedown` —— 结果手机端「按住拖拽画矩形」毫无反应。
+   现改为在容器上直接绑定原生事件：`window.PointerEvent` 可用时走 `pointerdown/move/up/cancel`，
+   否则退化为「鼠标 + 触摸」双通道；坐标由 `focusRectLatLng()` 从原生事件换算。
+2. **关注区多边形绘制**：桌面靠 `dblclick` 闭合，而触摸端双击会被识别为缩放手势
+   （且绘制期间 `doubleClickZoom` 已禁用），永远不会触发 `dblclick` —— 多边形无法闭合。
+   现新增移动端专用浮动按钮 `#focus-done-btn`（「✓ 完成 / ✕ 取消」，触控高 44px），
+   仅在 `html.mobile-ui` 下显示；桌面端仍用双击，行为不变。
+
+回归方式（本地）：`node .dev/touch-test.mjs`（真触摸手势 21 项）与 `node .dev/mouse-test.mjs`
+（桌面鼠标 8 项）——两者都必须全绿。
+
 ## 线上服务（服务器部署说明）
 
 服务器目录 `~/test_web/` 结构：
