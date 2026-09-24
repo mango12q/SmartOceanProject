@@ -22,6 +22,35 @@
 - **测距/关注区**：距离测量与自定义关注区域
 - **多台风切换**：顶部台风名切换，路径/风场/警戒线/峰图联动
 - **瓦片多源**：osm / 高德 / 卫星 / 地形底图切换
+- **手机扫码进入**：桌面端右上角「📱 手机扫码」弹出二维码，自动编码当前访问地址（可手动改址 / 复制链接），手机相机扫码即可打开同一站点（离线可用，二维码为自研内联编码器，无外部依赖）
+- **手机端专用布局**：≤768px 自动切换为底部 Dock（时间轴 + 播放 + 5 个标签）+ 抽屉式面板（图层 / 工具 / 设置 / 数据 / 图例），桌面端布局与交互完全不受影响
+
+## 移动端升级（`mobile/`）
+
+手机端能力以「模块化源码 + 构建内联」的方式维护，避免把 4000+ 行的单文件页面越改越乱：
+
+| 文件 | 作用 |
+|------|------|
+| `mobile/mobile.css` | ≤768px 专用布局（底部 Dock / Sheet / 弹层 / 安全区 / 触控目标） |
+| `mobile/mobile-ui.js` | 手机端交互层（构建 Dock、搬移节点、Sheet 开合、手势让位、Dock 高度同步） |
+| `mobile/qr-encoder.js` | 零依赖二维码编码器（ISO/IEC 18004，byte mode UTF-8，经典脚本，`window.QRCode`） |
+| `mobile/qr-popup.js` | 「手机扫码」弹窗（地址编辑 / 复制链接 / 局域网提示，仅桌面端初始化） |
+| `mobile/build.py` | **把上面四个文件内联进 `index.html`**（幂等，可 `--check` 校验是否同步） |
+| `mobile/mobile-ui.js` 内 `injectMobileOverrides()` | 组合层微调（手机端隐藏扫码入口、播放键宽度等实测补丁） |
+| `mobile/SPEC.md` | 接口契约与验收标准（DOM 契约、断点门控、各产物职责） |
+| `mobile/test-qr.mjs` | 二维码位级自检（860 断言：往返 / 全版本容量 / 8 掩码） |
+| `mobile/selftest-css.mjs` | CSS 自检（20 项：括号配平、无外链、门控、选择器矩阵、Dock 高度预算） |
+
+> **改手机端请改 `mobile/` 下的源码，然后运行 `python mobile/build.py` 重新内联**；
+> 直接改 `index.html` 的内联块会在下次构建时被覆盖。`python mobile/build.py --check` 可检测是否已同步。
+
+验证命令：
+
+```bash
+node mobile/test-qr.mjs          # 二维码编码器自检（ALL GREEN 才可发布）
+node mobile/selftest-css.mjs     # 移动端 CSS 自检
+python mobile/build.py --check   # index.html 是否与 mobile/ 源码一致
+```
 
 ## 线上服务（服务器部署说明）
 

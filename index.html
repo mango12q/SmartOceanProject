@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>桦加沙 - 台风路径可视化</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cdefs%3E%3ClinearGradient%20id='b'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%2342a5f5'/%3E%3Cstop%20offset='1'%20stop-color='%230d47a1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle%20cx='32'%20cy='32'%20r='31'%20fill='url(%23b)'/%3E%3Cg%20fill='none'%20stroke='%23fff'%20stroke-width='4'%20stroke-linecap='round'%3E%3Cpath%20d='M32%2032C38%2027%2046%2031%2045%2039C44%2047%2033%2051%2026%2045C19%2039%2019%2027%2028%2022'/%3E%3Cpath%20d='M32%2032C26%2037%2018%2033%2019%2025C20%2017%2031%2013%2038%2019C45%2025%2045%2037%2036%2042'/%3E%3C/g%3E%3C/svg%3E" />
     <link rel="stylesheet" href="vendor/leaflet.css" />
@@ -132,6 +132,17 @@
         }
         #tool-controls button:hover::after,
         #playback-controls button[data-tip]:hover::after { opacity: 1; }
+        /* 右上角「手机扫码」入口：与 #layer-switcher 按钮同款外观 */
+        .qr-btn {
+            background: rgba(255,255,255,0.94); color: #333;
+            border: 1px solid rgba(21,101,192,0.25);
+            padding: 5px 11px; border-radius: 6px;
+            cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+            box-shadow: 0 2px 10px rgba(21,101,192,0.12);
+            position: relative; white-space: nowrap;
+        }
+        .qr-btn:hover { background: #e3f2fd; border-color: #1976d2; }
+        .qr-btn:active { transform: scale(0.96); }
         #focus-menu-wrap { position: relative; }
         #focus-menu {
             position: absolute; top: 0; left: calc(100% + 4px); right: auto;
@@ -775,6 +786,1333 @@
             border: 1px solid rgba(21,101,192,0.3);
         }
     </style>
+    <!-- === MOBILE:CSS === -->
+    <style>
+/* === MOBILE:CSS:BEGIN === */
+/* mobile.css — inlined into index.html by Lead; do not reference externally */
+/* 台风路径可视化 · 手机端布局样式（SPEC v1 §2.2 的 18 条要求）
+   门控：外层 @media (max-width:768px) + 每条规则 html.mobile-ui 前缀（双保险 → 桌面端零影响）。
+   内联位置：index.html <style> 末尾，靠后生效，可覆盖第 678–702 行既有 768/480 断点。
+   禁止：@import / @font-face / 外部字体 / url(http...)。 */
+
+@media (max-width: 768px) {
+
+  /* ==========================================================================
+     §0 · 变量与基础（§2.2.16 --dock-h fallback；§2.2.18 性能）
+     ========================================================================== */
+  html.mobile-ui {
+    --dock-h: 150px;                              /* fallback；JS 写入真实像素值覆盖 */
+    --md-safe-b: env(safe-area-inset-bottom, 0px);
+    --md-blue: #1565c0;
+    --md-line: rgba(21, 101, 192, 0.18);
+    --md-sheet-bg: rgba(255, 255, 255, 0.98);
+    --md-shadow: 0 -2px 10px rgba(13, 71, 161, 0.18);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  html.mobile-ui body {
+    overscroll-behavior: none;
+    touch-action: manipulation;
+  }
+
+  /* §2.2.15 地图手势优先：Leaflet 需要 none，其它容器不得全屏透明遮挡 */
+  html.mobile-ui #map { touch-action: none; }
+
+  /* ==========================================================================
+     §1 · 底部 Dock（#mobile-dock，JS 创建；§2.2.1）
+     行1 .md-time / 行2 .md-slider / 行3 .md-tabs
+     结构高度预算：44 + (32+12) + 48 + gap 8 + padding 16 = 160px ≤ 168px
+     ========================================================================== */
+  html.mobile-ui #mobile-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    box-sizing: border-box;
+    padding: 6px 8px calc(10px + var(--md-safe-b, env(safe-area-inset-bottom, 0px)));
+    background: rgba(255, 255, 255, 0.98);          /* §2.2.18：不透明纯色，不用 backdrop-filter */
+    border-top: 1px solid var(--md-line);
+    box-shadow: var(--md-shadow);                   /* 模糊 ≤12px */
+    color: #222;
+    font-size: 0.82rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+  }
+
+  /* 行1：时间/坐标 + 播放控制 + 速度 */
+  html.mobile-ui #mobile-dock .md-time {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 6px;
+    width: 100%;
+    min-height: 44px;
+    min-width: 0;
+  }
+
+  /* 行2：时间滑块 + 刻度 */
+  html.mobile-ui #mobile-dock .md-slider {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* 行3：5 个标签（§2.2.1 触控高 ≥48px） */
+  html.mobile-ui #mobile-dock .md-tabs {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 3px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    margin: 0;
+    padding: 2px 1px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #37474f;
+    font-family: inherit;
+    font-size: 0.66rem;                             /* 标签 ≥10px */
+    line-height: 1.1;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab .md-ico,
+  html.mobile-ui #mobile-dock .md-tab .md-icon,
+  html.mobile-ui #mobile-dock .md-tab > :first-child {
+    font-size: 1.15rem;
+    line-height: 1;
+    display: block;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab .md-label,
+  html.mobile-ui #mobile-dock .md-tab > :last-child {
+    font-size: 0.66rem;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab.active,
+  html.mobile-ui #mobile-dock .md-tab[aria-selected="true"] {
+    background: rgba(25, 118, 210, 0.12);
+    border-color: rgba(25, 118, 210, 0.35);
+    color: #0d47a1;
+    font-weight: 700;
+  }
+
+  /* 播放条：6 键 + 速度，必须能缩到 360px 宽仍不横向溢出 */
+  html.mobile-ui #mobile-dock #playback-controls {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  html.mobile-ui #mobile-dock #playback-controls button {
+    flex: 0 1 38px;
+    min-width: 28px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  html.mobile-ui #mobile-dock #speed-select {
+    flex: 0 0 auto;
+    min-height: 44px;
+    max-width: 54px;
+    padding: 0 2px;
+    font-size: 0.72rem;
+  }
+
+  html.mobile-ui #mobile-dock #time-display {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 122px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  /* §2.2.13 Dock 行1 内的风眼坐标（basis 固定 → 让播放条优先生效，不被挤爆） */
+  html.mobile-ui #mobile-dock #eye-coord,
+  html.mobile-ui #mobile-dock #eye-coord.in-scale-row {
+    position: static;
+    flex: 0 1 44px;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    padding: 2px 6px;
+    max-width: 26vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.78rem;                             /* §2.2.13 */
+    border-radius: 8px;
+    background: rgba(21, 101, 192, 0.08);
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9), 0 -1px 2px rgba(255, 255, 255, 0.9),
+                 1px 0 2px rgba(255, 255, 255, 0.9), -1px 0 2px rgba(255, 255, 255, 0.9);
+  }
+
+  /* §2.2.1 时间滑块：触控高 ≥32px、拇指加大 */
+  html.mobile-ui #mobile-dock #time-slider {
+    width: 100%;
+    height: 32px;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: manipulation;
+  }
+
+  html.mobile-ui #mobile-dock #time-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: #cfd8dc;
+  }
+
+  html.mobile-ui #mobile-dock #time-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    margin-top: -10px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #1976d2;
+    box-shadow: 0 1px 4px rgba(13, 71, 161, 0.45);
+  }
+
+  html.mobile-ui #mobile-dock #time-slider::-moz-range-track {
+    height: 6px;
+    border-radius: 3px;
+    background: #cfd8dc;
+  }
+
+  html.mobile-ui #mobile-dock #time-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #1976d2;
+  }
+
+  html.mobile-ui #mobile-dock #time-ticks {
+    position: relative;
+    width: 100%;
+    height: 12px;
+    overflow: hidden;
+  }
+
+  html.mobile-ui #mobile-dock #time-ticks .time-tick {
+    font-size: 0.55rem;
+    line-height: 1;
+    color: #78909c;
+  }
+
+  html.mobile-ui #mobile-dock #time-ticks .time-tick::before {
+    top: -4px;
+    height: 3px;
+  }
+
+  html.mobile-ui #mobile-dock #time-ticks .time-tick.major::before {
+    height: 5px;
+  }
+
+  /* JS：地图触摸时 Dock 下沉半透明（§3.5） */
+  html.mobile-ui.md-interacting #mobile-dock {
+    transform: translateY(12px);
+    opacity: 0.55;
+  }
+
+  /* ==========================================================================
+     §2 · 时间面板去重（§2.2.2）
+     内部 #time-slider/#time-ticks/#playback-row/#time-display 已被 JS 搬进 Dock，
+     残留容器不得占位；#wind-row / #diff-legend 隐藏（改由「设置」Sheet 提供）。
+     ========================================================================== */
+  html.mobile-ui #time-panel {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    top: auto;
+    transform: none;
+    width: 0;
+    height: 0;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    display: block;
+    overflow: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html.mobile-ui #time-panel > #playback-row,
+  html.mobile-ui #time-panel > #wind-row,
+  html.mobile-ui #time-panel > #diff-legend {
+    display: none !important;                       /* JS 会写 inline display:flex */
+  }
+
+  /* ==========================================================================
+     §3 · 面板改为底部 Sheet（§2.2.3）
+     ========================================================================== */
+  html.mobile-ui #left-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: var(--dock-h);
+    width: auto;
+    height: 60vh;
+    max-height: calc(100vh - var(--dock-h));
+    z-index: 1400;
+    border-radius: 14px 14px 0 0;
+    border-top: 1px solid var(--md-line);
+    background: var(--md-sheet-bg);
+    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.18);   /* §2.2.18 模糊 ≤12px */
+    backdrop-filter: none;
+    transform: translateY(105%);
+    transition: transform 0.28s ease;
+    overscroll-behavior: contain;
+  }
+
+  html.mobile-ui #left-panel.open { transform: translateY(0); }
+
+  html.mobile-ui #left-panel-header {
+    padding: 4px 12px;
+    min-height: 48px;
+    border-bottom: 1px solid #eee;
+  }
+
+  html.mobile-ui #left-panel-header h3 { font-size: 0.95rem; }
+
+  html.mobile-ui #left-panel-close {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.5rem;
+    color: #607d8b;
+  }
+
+  html.mobile-ui #time-date-btn { min-height: 44px; font-size: 0.85rem; }
+
+  html.mobile-ui #left-panel-content {
+    flex: 1 1 auto;
+    overflow: auto;                                 /* 表格横向可滚（§2.2.3） */
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 8px;
+  }
+
+  html.mobile-ui #left-panel-content table {
+    width: 100%;
+    min-width: 470px;                               /* 触发横向滚动而非压缩换行 */
+    font-size: 0.78rem;
+  }
+
+  html.mobile-ui #left-panel-content th { padding: 8px 6px; }
+  html.mobile-ui #left-panel-content td { padding: 7px 6px; }
+
+  /* 入口在 Dock 的 data 标签 */
+  html.mobile-ui #left-panel-toggle { display: none !important; }
+
+  /* JS 把 #tool-controls 的按钮搬进 tools Sheet 后，残留容器不该占位；
+     若 JS 是整块搬进 Sheet（内部仍有直接子按钮），本规则不匹配，保持原样。 */
+  html.mobile-ui #tool-controls:not(:has(> button)) {
+    padding: 0;
+    gap: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  html.mobile-ui #tool-controls:not(:has(> button)) .tool-group-label { display: none; }
+
+  /* 通用 Sheet 只做性能兜底（定位显隐见上方 .md-sheet 规则） */
+
+  /* 通用底部 Sheet（Lead 确认：layers / tools / settings 三个由 CSS 定位显隐，
+     JS 只负责加/去 .open；DOM = .md-grabber + .md-sheet-head + .md-sheet-body） */
+  html.mobile-ui .md-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    z-index: 1400;                                  /* < Dock 1500 → Dock 常驻可见可点 */
+    display: flex;
+    flex-direction: column;
+    max-height: min(72vh, 560px);
+    box-sizing: border-box;
+    padding-bottom: calc(var(--dock-h) + env(safe-area-inset-bottom, 0px));
+    background: var(--md-sheet-bg);
+    border-top: 1px solid var(--md-line);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.18);
+    backdrop-filter: none;
+    transform: translateY(105%);
+    visibility: hidden;
+    transition: transform 0.28s ease, visibility 0.28s ease;
+    overscroll-behavior: contain;
+  }
+
+  html.mobile-ui .md-sheet.open {
+    transform: translateY(0);
+    visibility: visible;
+  }
+
+  /* 头部与拖拽条必须保持可命中（下拉关闭手势绑在这里，不要 pointer-events:none） */
+  html.mobile-ui .md-sheet-head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 48px;
+    padding: 2px 6px 2px 14px;
+    border-bottom: 1px solid rgba(21, 101, 192, 0.12);
+    touch-action: none;
+    user-select: none;
+  }
+
+  html.mobile-ui .md-sheet-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0d47a1;
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* JS 注入的图标是 SVG（无 width/height，不约束会撑大头部） */
+  html.mobile-ui .md-sheet-title svg { width: 18px; height: 18px; flex: 0 0 18px; }
+
+  html.mobile-ui .md-close svg { width: 18px; height: 18px; display: block; }
+
+  html.mobile-ui .md-close {
+    flex: 0 0 auto;
+    min-width: 44px;
+    min-height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #607d8b;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  html.mobile-ui .md-close:active { background: #e3f2fd; }
+
+  html.mobile-ui .md-sheet-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 8px 10px;
+  }
+
+  /* Sheet 内直接摆放的动作按钮：整行、易点 */
+  html.mobile-ui .md-sheet-body > button {
+    display: block;
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 0.88rem;
+    border-radius: 10px;
+  }
+
+  /* 搬进 Sheet 的图标按钮只有 emoji 没有文字 → 用 data-tip 补出中文标签
+     （JS 只搬节点、不加文字，因此不会重复）。
+     注意：基类 `#tool-controls button::after` 是「悬停气泡」样式
+     （position:absolute / opacity:0 / 深蓝底），这里必须逐项复位成普通行内标签。 */
+  html.mobile-ui .md-sheet-body .md-grid > button,
+  html.mobile-ui .md-sheet-body #tool-controls > button,
+  html.mobile-ui .md-sheet-body #tool-controls > div > button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    min-height: 48px;
+    padding: 5px 3px;
+    line-height: 1.1;
+    font-size: 1rem;
+  }
+
+  html.mobile-ui .md-sheet-body .md-grid > button[data-tip]::after,
+  html.mobile-ui .md-sheet-body #tool-controls > button[data-tip]::after,
+  html.mobile-ui .md-sheet-body #tool-controls > div > button[data-tip]::after {
+    content: attr(data-tip);
+    position: static;
+    left: auto;
+    top: auto;
+    transform: none;
+    opacity: 1;
+    z-index: auto;
+    transition: none;
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    pointer-events: none;
+    font-size: 0.62rem;
+    line-height: 1.1;
+    font-weight: 400;
+    color: #546e7a;
+    letter-spacing: 0;
+  }
+
+  /* ==========================================================================
+     §3.5 · 与 Lead 的 mobile-ui.js 真实 DOM 对齐（已核对其源码）
+     Dock 首子节点 .md-clock；Sheet 内 .md-grid / #wind-row / #diff-legend；
+     tools Sheet 里是整块 #tool-controls（含 #focus-menu / #vs-menu）
+     ========================================================================== */
+
+  /* Dock 里的时钟徽标：JS 只给了一个 24×24 viewBox 的 SVG（无 width/height，
+     不写 CSS 会撑成 374×374）。这里钉在 Dock 行1 右上角，绝对定位 → 不占 Dock 高度。
+     行1 用 padding-right 让位，保证 161px ≤ 168px 预算不变。 */
+  html.mobile-ui #mobile-dock .md-clock {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    height: 44px;
+    max-width: 66px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 5px;
+    border-radius: 8px;
+    background: rgba(21, 101, 192, 0.08);
+    color: #1565c0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  html.mobile-ui #mobile-dock .md-clock svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    display: block;
+  }
+
+  html.mobile-ui #mobile-dock #md-clock-text {
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html.mobile-ui #mobile-dock .md-time { padding-right: 72px; }
+
+  /* 设置面板：图标按钮 3 列网格，.md-wide（退出全屏）独占整行 */
+  html.mobile-ui .md-sheet-body .md-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  html.mobile-ui .md-sheet-body .md-grid > button {
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    padding: 6px 4px;
+    font-size: 1rem;
+    line-height: 1;
+    border-radius: 10px;
+  }
+
+  html.mobile-ui .md-sheet-body .md-grid > .md-wide {
+    grid-column: 1 / -1;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 0.86rem;
+  }
+
+  /* 设置面板：风场开关 + 透明度一行 */
+  html.mobile-ui .md-sheet-body #wind-row {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 0 0 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(21, 101, 192, 0.12);
+  }
+
+  html.mobile-ui .md-sheet-body #wind-toggle { flex: 0 0 auto; min-height: 44px; }
+
+  html.mobile-ui .md-sheet-body #wind-opacity-control {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  html.mobile-ui .md-sheet-body #wind-opacity { flex: 1 1 auto; max-width: 150px; }
+
+  /* 设置面板：订正场差值图例（主逻辑打开对比时会显示） */
+  html.mobile-ui .md-sheet-body #diff-legend {
+    display: none;
+    align-items: center;
+    width: 100%;
+  }
+
+  html.mobile-ui .md-sheet-body #diff-legend-canvas { max-width: 100%; }
+
+  /* tools Sheet：JS 整块搬来 #tool-controls（原本 position:absolute; bottom:130px，
+     在 Sheet 里会脱离文档流），这里复位为静态 + 两列网格 */
+  html.mobile-ui .md-sheet-body #tool-controls {
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    gap: 6px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html.mobile-ui .md-sheet-body #tool-controls .tool-group-label {
+    flex: 1 1 100%;
+    width: 100%;
+    padding: 4px 0 0;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-align: left;
+    border-top: 1px solid rgba(21, 101, 192, 0.16);
+  }
+
+  html.mobile-ui .md-sheet-body #tool-controls .tool-group-label:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  html.mobile-ui .md-sheet-body #tool-controls > button,
+  html.mobile-ui .md-sheet-body #tool-controls > div:not(.tool-group-label) {
+    flex: 1 1 42%;
+    min-width: 42%;
+    max-width: 50%;
+  }
+
+  html.mobile-ui .md-sheet-body #tool-controls > div > button {
+    width: 100%;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  /* Sheet 是 transform 元素 → 其中的 fixed 弹层以其为包含块；
+     而 Sheet 底边 = 视口底边，所以同一条 bottom 表达式在两种情形下都正确。 */
+  html.mobile-ui .md-sheet #focus-menu,
+  html.mobile-ui .md-sheet #vs-menu {
+    bottom: calc(var(--dock-h) + 8px);
+  }
+
+  /* 顶部居中拖拽条（20px 高，视觉 4px 圆角条） */
+  html.mobile-ui .md-grabber {
+    flex: 0 0 auto;
+    width: 100%;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  html.mobile-ui .md-grabber::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(21, 101, 192, 0.35);
+  }
+
+  /* Sheet 蒙层（JS 创建：#md-scrim，inset:0，点击关闭）。
+     默认不存在，只有 html.md-sheet-open 时才铺满（§2.2.15）；
+     z-index 低于 Dock(1500)，Dock 仍可点 → 直接切标签换 Sheet。 */
+  html.mobile-ui #md-scrim,
+  html.mobile-ui .md-scrim {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1300;
+    display: none;
+    background: rgba(13, 71, 161, 0.22);
+    touch-action: manipulation;
+  }
+
+  html.mobile-ui.md-sheet-open #md-scrim,
+  html.mobile-ui.md-sheet-open .md-scrim { display: block; }
+
+  /* ==========================================================================
+     §4 · 顶部（§2.2.4）
+     #title 去掉 transform：否则会成为 fixed 子元素（#typhoon-menu）的包含块
+     ========================================================================== */
+  html.mobile-ui #title {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    transform: none;
+    margin: 0 auto;
+    width: max-content;
+    max-width: calc(100vw - 96px);
+    padding: 7px 14px;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    border-radius: 16px;
+  }
+
+  html.mobile-ui #title .title-name {
+    display: inline-block;
+    max-width: calc(100vw - 150px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+
+  html.mobile-ui #top-controls {
+    top: 8px;
+    right: 8px;
+    left: auto;
+    bottom: auto;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  html.mobile-ui #top-controls button {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.05rem;
+    padding: 0;
+  }
+
+  /* 仅隐藏仍停留在 #top-controls 里的图层切换器；被 JS 搬进 Sheet 后本规则自然失效 */
+  html.mobile-ui #top-controls > #layer-switcher { display: none; }
+
+  /* 图层 Sheet 内（若 JS 整块搬移）：可换行、按钮加大 */
+  html.mobile-ui #layer-switcher {
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html.mobile-ui #layer-switcher button {
+    flex: 1 1 auto;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 0.88rem;
+  }
+
+  /* ==========================================================================
+     §5 · 弹出菜单全部改为底部弹层（§2.2.5）
+     ========================================================================== */
+  html.mobile-ui #focus-menu,
+  html.mobile-ui #vs-menu,
+  html.mobile-ui #compare-menu,
+  html.mobile-ui #typhoon-menu,
+  html.mobile-ui #compare-legend {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--dock-h) + 8px);
+    transform: none;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    max-height: calc(100vh - var(--dock-h) - 24px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    box-shadow: 0 -2px 12px rgba(13, 71, 161, 0.22);
+    backdrop-filter: none;
+    z-index: 1450;
+  }
+
+  html.mobile-ui #typhoon-menu { padding: 8px 10px; }
+
+  /* #compare-menu 是 #compare-legend 的子节点，抬高一层避免与其重叠 */
+  html.mobile-ui #compare-menu { bottom: calc(var(--dock-h) + 58px); }
+
+  html.mobile-ui #compare-legend {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 8px;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    white-space: normal;
+    border-radius: 12px;
+  }
+
+  html.mobile-ui #compare-legend.show { display: flex; }
+
+  html.mobile-ui #compare-select {
+    min-height: 44px;
+    min-width: 96px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  /* 菜单条目触控高 ≥44px、字体 ≥0.85rem（§2.2.5） */
+  html.mobile-ui #focus-menu button,
+  html.mobile-ui .vs-item,
+  html.mobile-ui .compare-item,
+  html.mobile-ui .history-item {
+    min-height: 44px;
+    font-size: 0.88rem;
+  }
+
+  html.mobile-ui #focus-menu button {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+  }
+
+  html.mobile-ui .vs-item,
+  html.mobile-ui .compare-item,
+  html.mobile-ui .history-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+  }
+
+  html.mobile-ui .history-name { font-size: 0.9rem; }
+  html.mobile-ui .history-period,
+  html.mobile-ui .history-note { font-size: 0.75rem; }
+  html.mobile-ui .history-ico { flex: 0 0 34px; height: 34px; }
+
+  /* ==========================================================================
+     §6 · 灾害雷达（§2.2.6）：全宽底部 Sheet + 纵向自适应
+     ========================================================================== */
+  html.mobile-ui #hazard-radar {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--dock-h) + 8px);
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - var(--dock-h) - 70px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    box-shadow: 0 -2px 10px rgba(13, 71, 161, 0.2);
+    backdrop-filter: none;
+  }
+
+  html.mobile-ui #hazard-radar-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 4px 6px 4px 12px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  html.mobile-ui #hazard-radar-close {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  html.mobile-ui #hazard-radar-body {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 10px 0;
+  }
+
+  /* canvas 有 width/height 属性且 JS 写 inline style，必须允许 CSS 缩放 */
+  html.mobile-ui #hazard-radar-canvas {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: 340px !important;
+    height: auto !important;
+    margin: 0 auto;
+  }
+
+  html.mobile-ui #hazard-radar-values { width: 100%; padding: 0; gap: 2px; }
+
+  html.mobile-ui .hr-row { font-size: 0.72rem; }
+  html.mobile-ui .hr-dim { flex: 0 0 52px; }
+  html.mobile-ui .hr-val { flex: 0 0 56px; }
+  html.mobile-ui .hr-delta { flex: 0 0 40px; }
+
+  html.mobile-ui #hazard-radar-compare-row {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 16px;
+    padding: 4px 10px 0;
+  }
+
+  html.mobile-ui .hr-switch,
+  html.mobile-ui .hr-amp { min-height: 44px; font-size: 0.76rem; }
+
+  html.mobile-ui #hazard-radar-legend { padding: 3px 10px 6px; }
+
+  html.mobile-ui #hazard-radar-note {
+    padding: 0 10px 10px;
+    font-size: 0.66rem;
+    line-height: 1.5;
+  }
+
+  /* ==========================================================================
+     §7 · 强度演变图（§2.2.7）
+     ========================================================================== */
+  html.mobile-ui #history-chart {
+    left: 8px;
+    right: 8px;
+    top: 64px;
+    width: auto;
+    max-width: none;
+    padding: 6px 10px 6px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(13, 71, 161, 0.18);
+    backdrop-filter: none;
+    z-index: 1250;
+  }
+
+  html.mobile-ui #history-chart-title {
+    min-height: 44px;
+    padding-right: 46px;
+    margin-bottom: 0;
+  }
+
+  html.mobile-ui #history-chart-toggle {
+    right: 0;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    font-size: 1.1rem;
+  }
+
+  html.mobile-ui #history-chart-legend {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    font-size: 0.72rem;
+  }
+
+  html.mobile-ui #history-chart-canvas {
+    width: 100%;
+    height: 88px;                                   /* §2.2.7 自适应宽 */
+    max-width: 100%;
+  }
+
+  html.mobile-ui #history-chart-current { font-size: 0.74rem; white-space: normal; }
+
+  /* ==========================================================================
+     §8 · 图例（§2.2.8）：圆形缩略按钮 + modal
+     ========================================================================== */
+  html.mobile-ui #legend {
+    right: 8px;
+    bottom: calc(var(--dock-h) + 8px);
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    max-height: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 0;
+    line-height: 1;
+    z-index: 1380;
+    touch-action: manipulation;
+  }
+
+  html.mobile-ui #legend > div { display: none; }
+
+  html.mobile-ui #legend::before {
+    content: '图例';
+    color: #222;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  html.mobile-ui #legend-modal {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    z-index: 1600;
+  }
+
+  html.mobile-ui #legend-modal-content {
+    max-height: 72vh;
+    width: 94%;
+    padding: 18px 16px;
+    border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
+  }
+
+  html.mobile-ui #legend-modal-content h3 { font-size: 1.05rem; margin-bottom: 10px; }
+
+  html.mobile-ui .legend-section h4 { font-size: 0.85rem; }
+
+  html.mobile-ui .legend-item { font-size: 0.9rem; line-height: 1.45; }
+
+  html.mobile-ui #legend-close {
+    top: 6px;
+    right: 6px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    font-size: 1.2rem;
+  }
+
+  /* ==========================================================================
+     §9 · 快讯条（§2.2.9）：位于 #title 下方
+     ========================================================================== */
+  html.mobile-ui #news-ticker {
+    left: 8px;
+    right: 8px;
+    top: 52px;
+    transform: none;
+    max-width: none;
+    min-width: 0;
+    width: auto;
+    box-sizing: border-box;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    padding: 4px 50px 4px 10px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    z-index: 1230;
+  }
+
+  html.mobile-ui #news-ticker .ticker-content { font-size: 0.72rem; }
+
+  html.mobile-ui #news-ticker-close {
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  /* ==========================================================================
+     §10 · 大湾区标签（§2.2.10）：不与 #title 重叠
+     ========================================================================== */
+  html.mobile-ui #gba-label {
+    top: 52px;
+    left: 8px;
+    right: auto;
+    font-size: 0.72rem;
+    padding: 5px 10px;
+    border-radius: 12px;
+    max-width: calc(100vw - 16px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 1220;
+  }
+
+  /* ==========================================================================
+     §11 · 测距信息条（§2.2.11）
+     ========================================================================== */
+  html.mobile-ui #measure-info {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--dock-h) + 8px);
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    z-index: 1420;
+  }
+
+  html.mobile-ui #measure-info #measure-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html.mobile-ui #measure-info button {
+    flex: 0 0 auto;
+    min-width: 56px;
+    min-height: 40px;
+    font-size: 0.8rem;
+  }
+
+  /* ==========================================================================
+     §12 · 关注区小窗（§2.2.12）
+     §1 禁止改其拖拽 JS；用户拖拽/缩放写 inline left/top/width/height，
+     因此这里**一律不用 !important**：mobile-ui.js 的 hookFocusWindow() 会在
+     「用户尚未手动拖过」时清掉 inline 定位，让它落到下面这些值上；
+     用户一旦拖过就永久交给 inline（桌面同款交互不被破坏）。
+     ========================================================================== */
+  html.mobile-ui #focus-window {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--dock-h) + 8px);
+    width: auto;
+    min-width: 0;
+    max-width: calc(100vw - 16px);
+    height: 36vh;
+    min-height: 0;
+    max-height: calc(100vh - var(--dock-h) - 16px);
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1350;
+  }
+
+  html.mobile-ui #focus-window-header {
+    padding: 4px 8px 4px 12px;
+    min-height: 44px;
+    font-size: 0.82rem;
+  }
+
+  html.mobile-ui #focus-window-close {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.2rem;
+  }
+
+  html.mobile-ui #focus-window-resize { width: 24px; height: 24px; }   /* §2.2.12 把手 ≥20px */
+
+  /* ==========================================================================
+     §13 · 已完成于 Dock 行1（#eye-coord，见上）
+     兜底：若 JS 未搬移，仍保证字号与可读性
+     ========================================================================== */
+  html.mobile-ui #eye-coord { font-size: 0.78rem; }
+
+  /* ==========================================================================
+     §14 · 触控目标（§2.2.14）
+     ========================================================================== */
+  html.mobile-ui button,
+  html.mobile-ui .md-tab,
+  html.mobile-ui .vs-item,
+  html.mobile-ui .compare-item,
+  html.mobile-ui .history-item,
+  html.mobile-ui .cal-cell {
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab { min-height: 48px; }   /* Dock 标签 ≥48px */
+
+  html.mobile-ui #playback-controls button:active { transform: none; }
+
+  /* 触屏没有 hover：去掉悬停才出现的提示气泡（会溢出屏幕且会残留） */
+  html.mobile-ui #tool-controls button::after,
+  html.mobile-ui #playback-controls button[data-tip]::after {
+    content: none;
+    display: none;
+  }
+
+  html.mobile-ui #left-panel-content tr:hover { background: transparent; }
+  html.mobile-ui .history-item:hover { background: transparent; transform: none; }
+  html.mobile-ui #legend:hover { background: rgba(255, 255, 255, 0.92); }
+  html.mobile-ui #wind-toggle:hover,
+  html.mobile-ui #measure-info button:hover { background: #f0f0f0; }
+  html.mobile-ui #focus-menu button:hover { background: transparent; }
+
+  /* 触屏用 .active 表达选中态（§2.2.14） */
+  html.mobile-ui #focus-menu button.active,
+  html.mobile-ui #measure-info button:active { background: #e3f2fd; border-color: #1976d2; }
+
+  /* ==========================================================================
+     §15 · 层级与手势（§2.2.15）：不出现在全屏透明容器
+     JS 会写 .md-hidden（#time-display、#left-panel-toggle 等）与 .md-wide
+     ========================================================================== */
+  html.mobile-ui .md-hidden { display: none !important; }
+  html.mobile-ui .md-wide { width: 100%; box-sizing: border-box; }
+
+  /* #btn-clean-exit 会被 JS 搬进「设置」Sheet 并加 .md-wide：
+     未搬移时（仍是 body 直接子节点）留在右上角；搬进 Sheet 后回归普通按钮。 */
+  html.mobile-ui body > #btn-clean-exit {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    min-height: 44px;
+    padding: 8px 14px;
+    z-index: 1700;
+  }
+
+  html.mobile-ui #left-panel #btn-clean-exit,
+  html.mobile-ui .md-sheet #btn-clean-exit,
+  html.mobile-ui #mobile-dock #btn-clean-exit {
+    position: static;
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 0.86rem;
+  }
+
+  html.mobile-ui #news-ticker .ticker-content { pointer-events: none; }
+
+  /* ==========================================================================
+     §18 · 性能（§2.2.18）：大面积元素去 backdrop-filter、收小阴影
+     ========================================================================== */
+  html.mobile-ui #mobile-dock,
+  html.mobile-ui #left-panel,
+  html.mobile-ui #hazard-radar,
+  html.mobile-ui #history-chart,
+  html.mobile-ui #legend-modal-content,
+  html.mobile-ui #layer-switcher,
+  html.mobile-ui #tool-controls {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* ==========================================================================
+     §16 · 窄屏（≤374px）：省略风眼坐标，保证行1（含时钟位）不横向溢出
+     §2.2.1 允许「窄屏省略 #eye-coord」
+     ========================================================================== */
+  @media (max-width: 374px) {
+    html.mobile-ui #mobile-dock #eye-coord { display: none; }
+    html.mobile-ui #mobile-dock #speed-select { max-width: 50px; font-size: 0.68rem; }
+    html.mobile-ui #mobile-dock #time-display { max-width: 92px; font-size: 0.72rem; }
+  }
+
+  /* ==========================================================================
+     §17 · 横屏/矮屏（§2.2.17）：Dock 压缩为单行标签栏，地图可用高度 ≥55vh
+     #time-slider 与播放控制并排成一行（行1），#time-ticks 隐藏，
+     #playback-controls 收紧到 32px。
+     ========================================================================== */
+  @media (max-height: 480px) {
+    html.mobile-ui #mobile-dock {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 3px 6px;
+      padding: 4px 8px calc(4px + var(--md-safe-b, env(safe-area-inset-bottom, 0px)));
+    }
+
+    html.mobile-ui #mobile-dock .md-time {
+      flex: 0 1 auto;
+      width: auto;
+      min-height: 32px;
+      justify-content: flex-start;
+    }
+
+    html.mobile-ui #mobile-dock .md-slider {
+      flex: 1 1 120px;
+      width: auto;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    html.mobile-ui #mobile-dock .md-slider #time-ticks { display: none; }
+
+    html.mobile-ui #mobile-dock #time-slider { height: 32px; }
+
+    html.mobile-ui #mobile-dock #playback-controls { flex: 0 1 auto; }
+
+    html.mobile-ui #mobile-dock #playback-controls button {
+      flex: 0 1 32px;
+      min-width: 28px;
+      min-height: 32px;
+      font-size: 0.9rem;
+    }
+
+    html.mobile-ui #mobile-dock #speed-select { min-height: 32px; }
+    html.mobile-ui #mobile-dock #time-display { max-width: 108px; font-size: 0.72rem; }
+
+    html.mobile-ui #mobile-dock .md-tabs { flex: 1 1 100%; }
+
+    html.mobile-ui #mobile-dock .md-tab {
+      min-height: 44px;
+      flex-direction: row;
+      gap: 5px;
+    }
+
+    html.mobile-ui #mobile-dock .md-tab .md-ico,
+    html.mobile-ui #mobile-dock .md-tab .md-icon,
+    html.mobile-ui #mobile-dock .md-tab > :first-child { font-size: 1rem; }
+
+    html.mobile-ui #mobile-dock .md-tab svg { width: 18px; height: 18px; }
+
+    html.mobile-ui #left-panel { height: 72vh; }
+
+    html.mobile-ui #history-chart { top: 56px; }
+
+    html.mobile-ui #news-ticker { top: 48px; min-height: 40px; }
+
+    html.mobile-ui #gba-label { top: 50px; }
+  }
+}
+/* === MOBILE:CSS:END === */
+    </style>
 </head>
 <body>
     <div id="map"></div>
@@ -834,6 +2172,7 @@
             <button data-layer="satellite">卫星地图</button>
             <button data-layer="terrain">地形图</button>
         </div>
+        <button id="btn-qr" class="qr-btn" type="button" title="手机扫码进入离线网站">📱 手机扫码</button>
     </div>
 
         <div id="tool-controls">
@@ -1013,6 +2352,1333 @@
         <script src="vendor/leaflet.js"></script>
         <script src="vendor/topojson-client.min.js"></script>
         <script src="vendor/html2canvas.min.js"></script>
+        <script>
+        /* === QR:JS:BEGIN === */
+/*!
+ * mobile/qr-encoder.js
+ * ---------------------------------------------------------------------------
+ * 零依赖 QR Code 编码器（byte mode / UTF-8），面向离线单文件站点。
+ *
+ * 算法来源与许可
+ *   - 实现依据：ISO/IEC 18004:2015《Information technology — Automatic
+ *     identification and data capture techniques — QR Code bar code
+ *     symbology specification》。第 7 章（符号结构）、第 8 章（数据编码、
+ *     纠错、掩码、格式/版本信息）、Annex E（校正图形坐标）、Table 9（纠错分块）。
+ *   - Reed–Solomon：GF(2^8)，本原多项式 0x11D，生成元 α = 2（§8.5）。
+ *   - 格式信息：BCH(15,5)，生成多项式 0x537，固定掩码 0x5412（§8.9）。
+ *   - 版本信息（version ≥ 7）：BCH(18,6)，生成多项式 0x1F25（§8.10）。
+ *   - 掩码与罚分：8 种掩码公式 + N1=3 / N2=3 / N3=40 / N4=10 四条罚分规则（§8.8）。
+ *   - 本文件为自研实现（MIT 许可），未复制任何第三方库代码。
+ *
+ * 形态
+ *   - 经典脚本（非 ES module），可 <script src> 直插，也可整段内联进 index.html。
+ *   - Node / CommonJS 下设置 module.exports；浏览器下只挂唯一全局 window.QRCode。
+ *   - ES5 语法（var / function），不依赖构建工具与 polyfill。
+ *
+ * 冻结接口
+ *   QRCode.encode(text, opts) -> { size, modules: Uint8Array, version, ecLevel, mask }
+ *     opts: { ecLevel: 'L'|'M'|'Q'|'H' = 'M', minVersion: 1, maxVersion: 40 }
+ *   QRCode.render(canvasOrCtx, text, opts) -> 同 encode 的返回值 + { canvas, scale, margin, px }
+ *     opts 额外: { margin: 4, dark: '#000', light: '#fff', scale: 'auto', size: <目标像素宽> }
+ *
+ * 说明（行为约定）
+ *   - 仅支持 byte mode（UTF-8），覆盖 URL / 中文路径。
+ *   - 自动选最小可容纳版本；超出容量 throw new Error('QR: data too long')。
+ *   - 空串会被正常编码（mode + 计数 0 + 终止符 + 补位），不抛错。
+ *   - 孤立代理项（lone surrogate）按 WTF-8 三字节形式编码；正常 URL/文本不受影响。
+ * ---------------------------------------------------------------------------
+ */
+;(function (global, factory) {
+  'use strict';
+  var api = factory();
+  if (typeof module === 'object' && module !== null && module.exports) {
+    module.exports = api;            /* Node / CommonJS */
+  } else {
+    global.QRCode = api;             /* 浏览器：唯一全局名 */
+  }
+})(typeof globalThis !== 'undefined' ? globalThis
+  : typeof window !== 'undefined' ? window
+  : typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  /* =======================================================================
+   * 1. ISO/IEC 18004 常量表
+   * ===================================================================== */
+
+  /* 纠错等级：表索引顺序 [L, M, Q, H]；格式信息里的 2 bit 指示符 L=01 M=00 Q=11 H=10 */
+  var EC_INDEX = { L: 0, M: 1, Q: 2, H: 3 };
+  var EC_NAMES = ['L', 'M', 'Q', 'H'];
+  var EC_FORMAT_BITS = [1, 0, 3, 2];
+
+  /* Table 9：每块纠错码字数 ECC_CODEWORDS_PER_BLOCK[ecIndex][version]（下标 0 占位） */
+  var ECC_PER_BLOCK = [
+    [-1, 7, 10, 15, 20, 26, 18, 20, 24, 30, 18, 20, 24, 26, 30, 22, 24, 28, 30, 28, 28,
+      28, 28, 30, 30, 26, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+    [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26,
+      26, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28],
+    [-1, 13, 22, 18, 26, 18, 24, 18, 22, 20, 24, 28, 26, 24, 20, 30, 24, 28, 28, 26, 30,
+      28, 30, 30, 30, 30, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+    [-1, 17, 28, 22, 16, 22, 28, 26, 26, 24, 28, 24, 28, 22, 24, 24, 30, 28, 28, 26, 28,
+      30, 24, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]
+  ];
+
+  /* Table 9：纠错块数量 NUM_BLOCKS[ecIndex][version]（下标 0 占位） */
+  var NUM_BLOCKS = [
+    [-1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 4, 6, 6, 6, 6, 7, 8,
+      8, 9, 9, 10, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 19, 20, 21, 22, 24, 25],
+    [-1, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5, 8, 9, 9, 10, 10, 11, 13, 14, 16,
+      17, 17, 18, 20, 21, 23, 25, 26, 28, 29, 31, 33, 35, 37, 38, 40, 43, 45, 47, 49],
+    [-1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 8, 10, 12, 16, 12, 17, 16, 18, 21, 20,
+      23, 23, 25, 27, 29, 34, 34, 35, 38, 40, 43, 45, 48, 51, 53, 56, 59, 62, 65, 68],
+    [-1, 1, 1, 2, 4, 4, 4, 5, 6, 8, 8, 11, 11, 16, 16, 18, 16, 19, 21, 25, 25,
+      25, 34, 30, 32, 35, 37, 40, 42, 45, 48, 51, 54, 57, 60, 63, 66, 70, 74, 77, 81]
+  ];
+
+  /* 罚分权重（§8.8.2 Table 11） */
+  var PENALTY_N1 = 3;
+  var PENALTY_N2 = 3;
+  var PENALTY_N3 = 40;
+  var PENALTY_N4 = 10;
+
+  var MIN_VERSION = 1;
+  var MAX_VERSION = 40;
+
+  /* =======================================================================
+   * 2. 版本容量计算
+   * ===================================================================== */
+
+  /* 该版本除功能图形外可用于数据的模块数（含 0–7 个剩余位） */
+  function numRawDataModules(version) {
+    var result = (16 * version + 128) * version + 64;
+    if (version >= 2) {
+      var numAlign = Math.floor(version / 7) + 2;
+      result -= (25 * numAlign - 10) * numAlign - 55;
+      if (version >= 7) result -= 36;   /* 两块版本信息 6x3 */
+    }
+    return result;
+  }
+
+  /* 符号总码字数 */
+  function numRawCodewords(version) {
+    return Math.floor(numRawDataModules(version) / 8);
+  }
+
+  /* 数据码字数 */
+  function numDataCodewords(version, ecIndex) {
+    return numRawCodewords(version) -
+      ECC_PER_BLOCK[ecIndex][version] * NUM_BLOCKS[ecIndex][version];
+  }
+
+  /* byte mode 字符计数指示符位宽：版本 1–9 → 8 位；10–26 → 16 位；27–40 → 16 位 */
+  function charCountBits(version) {
+    return version <= 9 ? 8 : 16;
+  }
+
+  /* 校正图形中心坐标（ISO/IEC 18004 Annex E；version 1 无校正图形） */
+  function alignmentPatternPositions(version) {
+    if (version === 1) return [];
+    var size = version * 4 + 17;
+    var numAlign = Math.floor(version / 7) + 2;
+    /* version 32 的步长是规范中的特例（表值 6,34,60,86,112,138，步长 26） */
+    var step = (version === 32) ? 26 :
+      Math.ceil((version * 4 + 4) / (numAlign * 2 - 2)) * 2;
+    var result = [6];
+    for (var pos = size - 7; result.length < numAlign; pos -= step) {
+      result.splice(1, 0, pos);
+    }
+    return result;
+  }
+
+  /* =======================================================================
+   * 3. GF(2^8) 与 Reed–Solomon
+   * ===================================================================== */
+
+  var GF_EXP = new Uint8Array(512);
+  var GF_LOG = new Uint8Array(256);
+  (function () {
+    var x = 1;
+    for (var i = 0; i < 255; i++) {
+      GF_EXP[i] = x;
+      GF_LOG[x] = i;
+      x <<= 1;
+      if (x & 0x100) x ^= 0x11D;      /* 本原多项式 x^8+x^4+x^3+x^2+1 */
+    }
+    for (var j = 255; j < 512; j++) GF_EXP[j] = GF_EXP[j - 255];
+  })();
+
+  function gfMul(a, b) {
+    if (a === 0 || b === 0) return 0;
+    return GF_EXP[GF_LOG[a] + GF_LOG[b]];
+  }
+
+  /* RS 生成多项式 g(x) = Π (x - α^i), i = 0..degree-1；系数从最高次到最低次 */
+  function rsGeneratorPoly(degree) {
+    var poly = [1];
+    for (var i = 0; i < degree; i++) {
+      var next = new Array(poly.length + 1);
+      for (var k = 0; k < next.length; k++) next[k] = 0;
+      for (var j = 0; j < poly.length; j++) {
+        next[j] ^= poly[j];                       /* × x */
+        next[j + 1] ^= gfMul(poly[j], GF_EXP[i]); /* × α^i */
+      }
+      poly = next;
+    }
+    return poly;
+  }
+
+  /* 系统码 RS 余式（即纠错码字）：返回长度 degree 的 Uint8Array */
+  function rsRemainder(data, degree) {
+    var gen = rsGeneratorPoly(degree);
+    var rem = new Uint8Array(degree);
+    for (var i = 0; i < data.length; i++) {
+      var factor = data[i] ^ rem[0];
+      for (var j = 0; j < degree - 1; j++) rem[j] = rem[j + 1];
+      rem[degree - 1] = 0;
+      if (factor !== 0) {
+        for (var k = 0; k < degree; k++) rem[k] ^= gfMul(gen[k + 1], factor);
+      }
+    }
+    return rem;
+  }
+
+  /* =======================================================================
+   * 4. 数据编码（byte mode / UTF-8）
+   * ===================================================================== */
+
+  /* 手写 UTF-8 编码，行为在 Node 与浏览器完全一致（不依赖 TextEncoder） */
+  function toUtf8Bytes(str) {
+    var out = [];
+    for (var i = 0; i < str.length; i++) {
+      var c = str.charCodeAt(i);
+      if (c < 0x80) {
+        out.push(c);
+      } else if (c < 0x800) {
+        out.push(0xC0 | (c >> 6), 0x80 | (c & 0x3F));
+      } else if (c >= 0xD800 && c <= 0xDBFF && i + 1 < str.length) {
+        var lo = str.charCodeAt(i + 1);
+        if (lo >= 0xDC00 && lo <= 0xDFFF) {
+          var cp = 0x10000 + ((c - 0xD800) << 10) + (lo - 0xDC00);
+          out.push(0xF0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3F),
+                   0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F));
+          i++;
+        } else {
+          /* 孤立高位代理项：按 WTF-8 三字节形式输出，保证可逆 */
+          out.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F));
+        }
+      } else {
+        out.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F));
+      }
+    }
+    return new Uint8Array(out);
+  }
+
+  /* 位缓冲：MSB first */
+  function BitBuffer() {
+    this.bytes = [];
+    this.length = 0;
+  }
+  BitBuffer.prototype.pushBit = function (bit) {
+    var idx = this.length >>> 3;
+    if (idx === this.bytes.length) this.bytes.push(0);
+    if (bit) this.bytes[idx] |= 0x80 >>> (this.length & 7);
+    this.length++;
+  };
+  BitBuffer.prototype.push = function (value, bits) {
+    for (var i = bits - 1; i >= 0; i--) this.pushBit((value >>> i) & 1);
+  };
+
+  /* 构造数据码字序列：模式指示符 + 计数 + 数据 + 终止符 + 字节对齐 + 0xEC/0x11 补位 */
+  function buildDataCodewords(bytes, version, ecIndex) {
+    var capacity = numDataCodewords(version, ecIndex) * 8;
+    var bb = new BitBuffer();
+    bb.push(0x4, 4);                                  /* byte mode = 0100 */
+    bb.push(bytes.length, charCountBits(version));
+    for (var i = 0; i < bytes.length; i++) bb.push(bytes[i], 8);
+
+    /* 终止符：最多 4 个 0，容量不足时取剩余位数 */
+    var term = Math.min(4, capacity - bb.length);
+    if (term > 0) bb.push(0, term);
+    /* 补齐到字节边界 */
+    while (bb.length % 8 !== 0) bb.pushBit(0);
+    /* 交替补位码字 0xEC / 0x11 */
+    for (var p = 0; bb.length < capacity; p++) bb.push(p % 2 === 0 ? 0xEC : 0x11, 8);
+
+    var out = new Uint8Array(bb.bytes.length);
+    for (var k = 0; k < bb.bytes.length; k++) out[k] = bb.bytes[k];
+    return out;
+  }
+
+  /* 分块 + RS 纠错 + 交织，返回长度 = 符号总码字数的序列 */
+  function addEccAndInterleave(data, version, ecIndex) {
+    var numBlocks = NUM_BLOCKS[ecIndex][version];
+    var blockEccLen = ECC_PER_BLOCK[ecIndex][version];
+    var rawCodewords = numRawCodewords(version);
+    var numShortBlocks = numBlocks - rawCodewords % numBlocks;
+    var shortBlockLen = Math.floor(rawCodewords / numBlocks);
+    var firstEccIdx = shortBlockLen - blockEccLen;
+
+    var blocks = [];
+    var k = 0;
+    for (var i = 0; i < numBlocks; i++) {
+      var datLen = firstEccIdx + (i < numShortBlocks ? 0 : 1);
+      var dat = new Uint8Array(datLen);
+      for (var t = 0; t < datLen; t++) dat[t] = data[k++];
+      var ecc = rsRemainder(dat, blockEccLen);
+      /* 统一长度 shortBlockLen+1：短块在 firstEccIdx 处留一个占位字节，
+         因此长块的纠错码字起始偏移 = datLen，短块 = datLen + 1 */
+      var blk = new Uint8Array(shortBlockLen + 1);
+      for (var a = 0; a < datLen; a++) blk[a] = dat[a];
+      var eccOff = datLen + (i < numShortBlocks ? 1 : 0);
+      for (var b = 0; b < blockEccLen; b++) blk[eccOff + b] = ecc[b];
+      blocks.push(blk);
+    }
+
+    var result = new Uint8Array(rawCodewords);
+    var pos = 0;
+    for (var idx = 0; idx < shortBlockLen + 1; idx++) {
+      for (var j = 0; j < numBlocks; j++) {
+        if (idx !== firstEccIdx || j >= numShortBlocks) result[pos++] = blocks[j][idx];
+      }
+    }
+    return result;
+  }
+
+  /* =======================================================================
+   * 5. 矩阵构造
+   * ===================================================================== */
+
+  function Matrix(version) {
+    this.version = version;
+    this.size = version * 4 + 17;
+    var n = this.size * this.size;
+    this.modules = new Uint8Array(n);
+    this.isFunction = new Uint8Array(n);
+  }
+  Matrix.prototype.setFunction = function (x, y, dark) {
+    var i = y * this.size + x;
+    this.modules[i] = dark ? 1 : 0;
+    this.isFunction[i] = 1;
+  };
+
+  /* 定位图形（含 1 模块宽分隔符，dist==4 即为分隔符） */
+  Matrix.prototype.drawFinder = function (cx, cy) {
+    for (var dy = -4; dy <= 4; dy++) {
+      for (var dx = -4; dx <= 4; dx++) {
+        var dist = Math.max(Math.abs(dx), Math.abs(dy));
+        var x = cx + dx, y = cy + dy;
+        if (x >= 0 && x < this.size && y >= 0 && y < this.size) {
+          this.setFunction(x, y, dist !== 2 && dist !== 4);
+        }
+      }
+    }
+  };
+
+  /* 校正图形 5x5：中心 + 外环为黑 */
+  Matrix.prototype.drawAlignment = function (cx, cy) {
+    for (var dy = -2; dy <= 2; dy++) {
+      for (var dx = -2; dx <= 2; dx++) {
+        this.setFunction(cx + dx, cy + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+      }
+    }
+  };
+
+  /* 格式信息 BCH(15,5) + 固定掩码 0x5412，写入两个副本；同时写暗模块 */
+  Matrix.prototype.drawFormatBits = function (ecIndex, mask) {
+    var data = (EC_FORMAT_BITS[ecIndex] << 3) | mask;   /* 5 bit */
+    var rem = data;
+    for (var i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+    var bits = ((data << 10) | (rem & 0x3FF)) ^ 0x5412; /* 15 bit */
+    var size = this.size;
+
+    /* 副本 1：左上行/列（bit0 = LSB） */
+    for (i = 0; i <= 5; i++) this.setFunction(8, i, getBit(bits, i));
+    this.setFunction(8, 7, getBit(bits, 6));
+    this.setFunction(8, 8, getBit(bits, 7));
+    this.setFunction(7, 8, getBit(bits, 8));
+    for (i = 9; i < 15; i++) this.setFunction(14 - i, 8, getBit(bits, i));
+
+    /* 副本 2：右上横排 + 左下竖排 */
+    for (i = 0; i < 8; i++) this.setFunction(size - 1 - i, 8, getBit(bits, i));
+    for (i = 8; i < 15; i++) this.setFunction(8, size - 15 + i, getBit(bits, i));
+
+    /* 固定暗模块 */
+    this.setFunction(8, size - 8, true);
+  };
+
+  /* 版本信息 BCH(18,6)，仅 version ≥ 7 */
+  Matrix.prototype.drawVersionBits = function () {
+    if (this.version < 7) return;
+    var rem = this.version;
+    for (var i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+    var bits = (this.version << 12) | (rem & 0xFFF);    /* 18 bit */
+    for (i = 0; i < 18; i++) {
+      var color = getBit(bits, i) ? 1 : 0;
+      var a = this.size - 11 + (i % 3);
+      var b = Math.floor(i / 3);
+      this.setFunction(a, b, color);   /* 右上 3x6 */
+      this.setFunction(b, a, color);   /* 左下 6x3 */
+    }
+  };
+
+  /* 全部功能图形 + 预留格式/版本信息区 */
+  Matrix.prototype.drawFunctionPatterns = function (ecIndex) {
+    var size = this.size, i;
+
+    /* 时序图形 */
+    for (i = 0; i < size; i++) {
+      this.setFunction(6, i, i % 2 === 0);
+      this.setFunction(i, 6, i % 2 === 0);
+    }
+    /* 三个定位图形（含分隔符） */
+    this.drawFinder(3, 3);
+    this.drawFinder(size - 4, 3);
+    this.drawFinder(3, size - 4);
+
+    /* 校正图形：跳过与三个定位图形重叠的位置 */
+    var pos = alignmentPatternPositions(this.version);
+    var n = pos.length;
+    for (i = 0; i < n; i++) {
+      for (var j = 0; j < n; j++) {
+        if ((i === 0 && j === 0) || (i === 0 && j === n - 1) || (i === n - 1 && j === 0)) continue;
+        this.drawAlignment(pos[i], pos[j]);
+      }
+    }
+
+    /* 先用 mask=0 占位，保证数据放置阶段这些位置被标记为功能模块 */
+    this.drawFormatBits(ecIndex, 0);
+    this.drawVersionBits();
+  };
+
+  /* 按标准顺序放置数据位：列对自右向左，跳过第 6 列，上下蛇形 */
+  Matrix.prototype.drawCodewords = function (codewords) {
+    var size = this.size;
+    var totalBits = codewords.length * 8;
+    var i = 0;
+    for (var right = size - 1; right >= 1; right -= 2) {
+      /* 注意：必须就地改写循环变量，否则会漏掉第 0 列并重复第 4 列 */
+      if (right === 6) right = 5;
+      for (var vert = 0; vert < size; vert++) {
+        for (var j = 0; j < 2; j++) {
+          var x = right - j;
+          var upward = ((right + 1) & 2) === 0;
+          var y = upward ? size - 1 - vert : vert;
+          var idx = y * size + x;
+          if (!this.isFunction[idx] && i < totalBits) {
+            this.modules[idx] = getBit(codewords[i >>> 3], 7 - (i & 7));
+            i++;
+          }
+          /* 剩余位（0–7 个）保持为 0，随后与数据位一同参与掩码 */
+        }
+      }
+    }
+  };
+
+  Matrix.prototype.clone = function () {
+    var m = Object.create(Matrix.prototype);
+    m.version = this.version;
+    m.size = this.size;
+    m.modules = new Uint8Array(this.modules);
+    m.isFunction = new Uint8Array(this.isFunction);
+    return m;
+  };
+
+  /* 应用（或撤销，XOR 自逆）掩码，只作用于非功能模块
+   * 公式依 ISO/IEC 18004:2015 Table 10（i = 行 y，j = 列 x）。
+   * 注意：掩码 5/6/7 的判据是「(…)%2 + (…)%3 == 0」——加法不是乘法。
+   * JS 优先级：% > + > ===，故 `a % 2 + b % 3 === 0` 等价于 `((a%2) + (b%3)) === 0`；
+   * 这里显式加括号只为消除歧义，语义与不写括号完全相同。 */
+  Matrix.prototype.applyMask = function (mask) {
+    var size = this.size;
+    for (var y = 0; y < size; y++) {
+      for (var x = 0; x < size; x++) {
+        var idx = y * size + x;
+        if (this.isFunction[idx]) continue;
+        var invert;
+        switch (mask) {
+          case 0: invert = (x + y) % 2 === 0; break;
+          case 1: invert = y % 2 === 0; break;
+          case 2: invert = x % 3 === 0; break;
+          case 3: invert = (x + y) % 3 === 0; break;
+          case 4: invert = (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0; break;
+          case 5: invert = ((x * y) % 2) + ((x * y) % 3) === 0; break;
+          case 6: invert = (((x * y) % 2) + ((x * y) % 3)) % 2 === 0; break;
+          default: invert = (((x + y) % 2) + ((x * y) % 3)) % 2 === 0; break;
+        }
+        if (invert) this.modules[idx] ^= 1;
+      }
+    }
+  };
+
+  /* ---- 罚分（§8.8.2 Table 11） ---- */
+
+  /* [from, to) 全为浅色则返回 true；越界部分视为浅色（静区） */
+  function isWhiteRun(get, from, to) {
+    for (var i = from; i < to; i++) {
+      if (i < 0) continue;
+      if (get(i)) return false;
+    }
+    return true;
+  }
+
+  Matrix.prototype.penaltyScore = function () {
+    var size = this.size;
+    var mods = this.modules;
+    var result = 0;
+    var x, y, runLen, prev, color;
+
+    /* N1：行/列中同色连续模块 ≥5 */
+    for (y = 0; y < size; y++) {
+      runLen = 0; prev = -1;
+      for (x = 0; x < size; x++) {
+        color = mods[y * size + x];
+        if (color === prev) {
+          runLen++;
+        } else {
+          if (runLen >= 5) result += PENALTY_N1 + (runLen - 5);
+          runLen = 1; prev = color;
+        }
+      }
+      if (runLen >= 5) result += PENALTY_N1 + (runLen - 5);
+    }
+    for (x = 0; x < size; x++) {
+      runLen = 0; prev = -1;
+      for (y = 0; y < size; y++) {
+        color = mods[y * size + x];
+        if (color === prev) {
+          runLen++;
+        } else {
+          if (runLen >= 5) result += PENALTY_N1 + (runLen - 5);
+          runLen = 1; prev = color;
+        }
+      }
+      if (runLen >= 5) result += PENALTY_N1 + (runLen - 5);
+    }
+
+    /* N2：2x2 同色块 */
+    for (y = 0; y < size - 1; y++) {
+      for (x = 0; x < size - 1; x++) {
+        color = mods[y * size + x];
+        if (color === mods[y * size + x + 1] &&
+            color === mods[(y + 1) * size + x] &&
+            color === mods[(y + 1) * size + x + 1]) {
+          result += PENALTY_N2;
+        }
+      }
+    }
+
+    /* N3：类定位图形 1:1:3:1:1（两侧需有 ≥4 个浅色模块，越界视为浅色） */
+    var rowGet = function (yy) { return function (i) { return mods[yy * size + i] === 1; }; };
+    var colGet = function (xx) { return function (i) { return mods[i * size + xx] === 1; }; };
+    function matchesFinder(get, p) {
+      return get(p) && !get(p + 1) && get(p + 2) && get(p + 3) &&
+             get(p + 4) && !get(p + 5) && get(p + 6);
+    }
+    for (y = 0; y < size; y++) {
+      var gr = rowGet(y);
+      for (x = 0; x + 6 < size; x++) {
+        if (matchesFinder(gr, x) &&
+            (isWhiteRun(gr, x - 4, x) || isWhiteRun(gr, x + 7, x + 11))) {
+          result += PENALTY_N3;
+        }
+      }
+    }
+    for (x = 0; x < size; x++) {
+      var gc = colGet(x);
+      for (y = 0; y + 6 < size; y++) {
+        if (matchesFinder(gc, y) &&
+            (isWhiteRun(gc, y - 4, y) || isWhiteRun(gc, y + 7, y + 11))) {
+          result += PENALTY_N3;
+        }
+      }
+    }
+
+    /* N4：黑白比例偏离 50% 的 5% 档数 */
+    var dark = 0;
+    for (var i = 0; i < mods.length; i++) dark += mods[i];
+    var total = size * size;
+    result += Math.floor(Math.abs(dark * 2 - total) * 10 / total) * PENALTY_N4;
+
+    return result;
+  };
+
+  function getBit(value, i) {
+    return ((value >>> i) & 1) !== 0;
+  }
+
+  /* =======================================================================
+   * 6. 对外接口
+   * ===================================================================== */
+
+  function encode(text, opts) {
+    opts = opts || {};
+    var ecName = opts.ecLevel === undefined || opts.ecLevel === null
+      ? 'M' : String(opts.ecLevel).toUpperCase();
+    if (!Object.prototype.hasOwnProperty.call(EC_INDEX, ecName)) {
+      throw new Error('QR: invalid ecLevel: ' + opts.ecLevel);
+    }
+    var ecIndex = EC_INDEX[ecName];
+
+    var minVersion = opts.minVersion === undefined || opts.minVersion === null
+      ? MIN_VERSION : opts.minVersion | 0;
+    var maxVersion = opts.maxVersion === undefined || opts.maxVersion === null
+      ? MAX_VERSION : opts.maxVersion | 0;
+    if (minVersion < MIN_VERSION || maxVersion > MAX_VERSION || minVersion > maxVersion) {
+      throw new Error('QR: invalid version range ' + minVersion + '..' + maxVersion);
+    }
+
+    var bytes = toUtf8Bytes(text === undefined || text === null ? '' : String(text));
+
+    /* 自动选最小可容纳版本 */
+    var version = -1;
+    for (var v = minVersion; v <= maxVersion; v++) {
+      var need = 4 + charCountBits(v) + bytes.length * 8;
+      if (need <= numDataCodewords(v, ecIndex) * 8) { version = v; break; }
+    }
+    if (version < 0) throw new Error('QR: data too long');
+
+    var data = buildDataCodewords(bytes, version, ecIndex);
+    var codewords = addEccAndInterleave(data, version, ecIndex);
+
+    var matrix = new Matrix(version);
+    matrix.drawFunctionPatterns(ecIndex);
+    matrix.drawCodewords(codewords);
+
+    /* 掩码选择：默认 8 种掩码逐一评估罚分取最小（同分取较小掩码号）；
+       opts.forceMask（0–7，测试专用）指定时完全跳过罚分选优，直接用该掩码，
+       返回的 mask 字段即实际使用的掩码。两条路径互不影响：不传 forceMask 时
+       执行的就是原来的选优循环，行为与字节级完全一致。 */
+    var mask;
+    var forced = opts.forceMask;
+    if (forced !== undefined && forced !== null) {
+      if (typeof forced !== 'number' || forced % 1 !== 0 || forced < 0 || forced > 7) {
+        throw new Error('QR: invalid forceMask (expected 0-7): ' + forced);
+      }
+      mask = forced;
+    } else {
+      mask = 0;
+      var bestPenalty = Infinity;
+      for (var m = 0; m < 8; m++) {
+        var probe = matrix.clone();
+        probe.applyMask(m);
+        probe.drawFormatBits(ecIndex, m);
+        var penalty = probe.penaltyScore();
+        if (penalty < bestPenalty) { bestPenalty = penalty; mask = m; }
+      }
+    }
+    matrix.applyMask(mask);
+    matrix.drawFormatBits(ecIndex, mask);
+
+    return {
+      size: matrix.size,
+      modules: matrix.modules,
+      version: version,
+      ecLevel: EC_NAMES[ecIndex],
+      mask: mask
+    };
+  }
+
+  function render(canvasOrCtx, text, opts) {
+    opts = opts || {};
+    var qr = encode(text, opts);
+
+    var margin = opts.margin === undefined || opts.margin === null ? 4 : opts.margin | 0;
+    if (margin < 0) throw new Error('QR: invalid margin');
+    var dark = opts.dark || '#000';
+    var light = opts.light || '#fff';
+
+    var canvas = null, ctx = null;
+    if (canvasOrCtx && typeof canvasOrCtx.getContext === 'function') {
+      canvas = canvasOrCtx;
+      ctx = canvas.getContext('2d');
+    } else if (canvasOrCtx && typeof canvasOrCtx.fillRect === 'function') {
+      ctx = canvasOrCtx;
+      canvas = ctx.canvas || null;
+    } else {
+      throw new Error('QR: render target must be a canvas or a 2D context');
+    }
+    if (!ctx) throw new Error('QR: 2D context unavailable');
+
+    var count = qr.size + margin * 2;
+
+    /* 整数缩放：scale = max(2, floor(targetSize / count)) */
+    var scale = opts.scale;
+    if (scale === undefined || scale === null || scale === 'auto') {
+      var targetSize = opts.size;
+      if (!targetSize && canvas) targetSize = canvas.width || canvas.clientWidth || 0;
+      if (!targetSize) targetSize = 300;
+      scale = Math.max(2, Math.floor(targetSize / count));
+    } else {
+      scale = Math.max(1, Math.floor(scale));
+    }
+
+    var px = count * scale;
+    if (canvas) {
+      canvas.width = px;              /* 赋值会重置 2D 上下文状态 */
+      canvas.height = px;
+      if (canvas.style) {
+        canvas.style.width = px + 'px';   /* CSS 尺寸决定 HiDPI 下的显示大小 */
+        canvas.style.height = px + 'px';
+      }
+    }
+    ctx.imageSmoothingEnabled = false;
+
+    ctx.fillStyle = light;
+    ctx.fillRect(0, 0, px, px);
+
+    ctx.fillStyle = dark;
+    var size = qr.size, mods = qr.modules;
+    for (var y = 0; y < size; y++) {
+      for (var x = 0; x < size; x++) {
+        if (mods[y * size + x]) {
+          ctx.fillRect((x + margin) * scale, (y + margin) * scale, scale, scale);
+        }
+      }
+    }
+
+    return {
+      size: size,
+      modules: mods,
+      version: qr.version,
+      ecLevel: qr.ecLevel,
+      mask: qr.mask,
+      canvas: canvas,
+      scale: scale,
+      margin: margin,
+      px: px
+    };
+  }
+
+  return { encode: encode, render: render };
+});
+
+/* ============================================================================
+ * qr-popup.js — 「手机扫码进入」入口（经典脚本，唯一全局 window.MobileUI.QR）
+ * ----------------------------------------------------------------------------
+ * 依赖：qr-encoder.js（window.QRCode）。本文件先内联，随后由它引用。
+ * 设计：模态框 DOM 与样式全部由本脚本注入 —— index.html 里只留一个按钮锚点，
+ *       便于后续维护（改样式/文案不用翻 4000 行的主文件），也避免污染桌面布局。
+ * ==========================================================================*/
+(function () {
+    'use strict';
+    if (window.__qrPopupReady) return;
+    window.__qrPopupReady = true;
+
+    var doc = document;
+    var $ = function (id) { return doc.getElementById(id); };
+    var btn = $('btn-qr');
+    if (!btn) return;                       // 没有入口（例如手机端被隐藏）就不装任何东西
+    // 手机端：扫码是「电脑→手机」的入口，手机自己不需要；直接不初始化，省掉一次 DOM/画布开销
+    if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) return;
+
+    var DEFAULT_HINT = '手机与电脑需在同一网络（局域网 IP），或使用公网地址。';
+    var state = { url: '', ready: false, modal: null };
+
+    /* ------------------------------------------------------------ 样式 */
+    var CSS =
+        '#qr-modal{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;' +
+        'background:rgba(8,20,35,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}' +
+        '#qr-modal.open{display:flex;}' +
+        '#qr-modal .qr-box{width:352px;max-width:94vw;max-height:92vh;overflow-y:auto;background:#fff;border-radius:16px;' +
+        'box-shadow:0 18px 48px rgba(0,0,0,.35);padding:16px 18px 18px;color:#1a2b3c;}' +
+        '#qr-modal .qr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}' +
+        '#qr-modal .qr-head h3{font-size:1rem;font-weight:700;color:#0d47a1;letter-spacing:.04em;}' +
+        '#qr-modal .qr-close{border:none;background:#f1f5f9;color:#546e7a;width:28px;height:28px;border-radius:50%;' +
+        'font-size:1rem;line-height:1;cursor:pointer;}' +
+        '#qr-modal .qr-close:hover{background:#e2e8f0;}' +
+        '#qr-modal .qr-sub{font-size:.72rem;color:#78909c;margin-bottom:10px;}' +
+        '#qr-modal .qr-canvas-wrap{display:flex;align-items:center;justify-content:center;padding:8px;' +
+        'background:#f8fafc;border:1px solid #e3eaf2;border-radius:12px;min-height:236px;}' +
+        '#qr-modal canvas{display:block;border-radius:4px;}' +
+        '#qr-modal .qr-url-row{display:flex;gap:6px;margin-top:10px;}' +
+        '#qr-modal .qr-url-row input{flex:1 1 auto;min-width:0;padding:8px 10px;border:1px solid #cfd8e3;' +
+        'border-radius:8px;font-size:.8rem;font-family:Consolas,Menlo,monospace;color:#1a2b3c;}' +
+        '#qr-modal .qr-url-row input:focus{outline:none;border-color:#1976d2;box-shadow:0 0 0 2px rgba(25,118,210,.15);}' +
+        '#qr-modal .qr-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}' +
+        '#qr-modal button.qr-act{border:1px solid #cfd8e3;background:#f8fafc;color:#37474f;border-radius:8px;' +
+        'padding:6px 11px;font-size:.76rem;cursor:pointer;transition:all .15s;}' +
+        '#qr-modal button.qr-act:hover{background:#e3f2fd;border-color:#1976d2;color:#0d47a1;}' +
+        '#qr-modal button.qr-act.primary{background:#1976d2;border-color:#1976d2;color:#fff;}' +
+        '#qr-modal button.qr-act.primary:hover{background:#1565c0;}' +
+        '#qr-modal .qr-hint{margin-top:10px;font-size:.7rem;line-height:1.6;color:#607d8b;' +
+        'background:#f1f8ff;border-left:3px solid #1976d2;border-radius:0 6px 6px 0;padding:7px 9px;}' +
+        '#qr-modal .qr-hint.warn{background:#fff5f5;border-left-color:#e53935;color:#b71c1c;}' +
+        '#qr-modal .qr-meta{margin-top:8px;font-size:.68rem;color:#90a4ae;text-align:center;}';
+
+    function injectStyle() {
+        var s = doc.createElement('style');
+        s.id = 'qr-popup-style';
+        s.textContent = CSS;
+        doc.head.appendChild(s);
+    }
+
+    /* -------------------------------------------------------------- DOM */
+    function buildModal() {
+        var m = doc.createElement('div');
+        m.id = 'qr-modal';
+        m.innerHTML =
+            '<div class="qr-box" role="dialog" aria-modal="true" aria-label="手机扫码进入">' +
+                '<div class="qr-head"><h3>📱 手机扫码进入</h3>' +
+                '<button type="button" class="qr-close" aria-label="关闭">✕</button></div>' +
+                '<div class="qr-sub">用手机相机 / 微信扫一扫，直接打开下面这个地址（无需联网外网）。</div>' +
+                '<div class="qr-canvas-wrap"><canvas id="qr-canvas" width="228" height="228"></canvas></div>' +
+                '<div class="qr-url-row"><input id="qr-url-input" type="text" spellcheck="false" ' +
+                'placeholder="http://192.168.x.x:8899/"></div>' +
+                '<div class="qr-btns">' +
+                    '<button type="button" class="qr-act primary" data-act="copy">复制链接</button>' +
+                    '<button type="button" class="qr-act" data-act="cur">用当前地址</button>' +
+                    '<button type="button" class="qr-act" data-act="lan">换成局域网 IP</button>' +
+                    '<button type="button" class="qr-act" data-act="open">在新标签打开</button>' +
+                '</div>' +
+                '<div class="qr-hint" id="qr-hint"></div>' +
+                '<div class="qr-meta" id="qr-meta"></div>' +
+            '</div>';
+        doc.body.appendChild(m);
+        state.modal = m;
+
+        m.querySelector('.qr-close').addEventListener('click', close);
+        m.addEventListener('click', function (e) { if (e.target === m) close(); });
+        m.querySelector('.qr-btns').addEventListener('click', function (e) {
+            var b = e.target.closest ? e.target.closest('.qr-act') : null;
+            if (!b) return;
+            var act = b.getAttribute('data-act');
+            if (act === 'copy') copyUrl(b);
+            else if (act === 'cur') setUrl(currentUrl());
+            else if (act === 'lan') setUrl(lanCandidate());
+            else if (act === 'open') window.open($('qr-url-input').value, '_blank', 'noopener');
+        });
+        $('qr-url-input').addEventListener('input', function () { setUrl(this.value.trim(), true); });
+    }
+
+    /* ---------------------------------------------------------- 地址处理 */
+    function currentUrl() {
+        return location.origin + location.pathname + location.search;
+    }
+
+    // 把 localhost / 127.0.0.1 换成「可能可用的局域网 IP」占位：浏览器拿不到真实网卡 IP，
+    // 所以给出当前主机名的替换建议，用户改成自己电脑的 192.168.x.x 即可。
+    function lanCandidate() {
+        var origin = location.origin;
+        var host = location.hostname;
+        var port = location.port ? ':' + location.port : '';
+        if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
+            return 'http://192.168.1.100' + port + location.pathname;
+        }
+        return origin + location.pathname;
+    }
+
+    function validate(u) {
+        if (!u) return { level: 'warn', msg: '请输入要编码的地址。' };
+        if (/^file:/i.test(u)) {
+            return { level: 'warn', msg: '这是本地文件路径（file://），手机无法访问。请改用电脑的局域网 IP 或公网地址。' };
+        }
+        var m = /^(https?):\/\/([^\/\s:]+)(:\d+)?(\/[^\s]*)?$/i.exec(u);
+        if (!m) {
+            return { level: 'warn', msg: '地址格式无法识别，建议以 http:// 或 https:// 开头，例如 http://192.168.1.20:8899/' };
+        }
+        var host = m[2];
+        var base = DEFAULT_HINT;
+        if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '0.0.0.0') {
+            return { level: 'warn', msg: 'localhost / 127.0.0.1 只在本机有效，手机扫码打不开。请点「换成局域网 IP」并把 IP 改成你电脑的地址。' };
+        }
+        if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)) {
+            return { level: 'ok', msg: '局域网地址：手机需连同一个 Wi-Fi / 同一网段。' + base };
+        }
+        return { level: 'ok', msg: base };
+    }
+
+    /* ------------------------------------------------------------ 渲染 */
+    function setUrl(u, fromInput) {
+        var input = $('qr-url-input');
+        if (!fromInput) input.value = u;
+        state.url = u;
+        var hint = $('qr-hint');
+        var meta = $('qr-meta');
+        var v = validate(u);
+        hint.className = 'qr-hint' + (v.level === 'warn' ? ' warn' : '');
+        hint.textContent = v.msg;
+
+        var canvas = $('qr-canvas');
+        if (!window.QRCode) {
+            meta.textContent = '二维码组件未加载';
+            return;
+        }
+        try {
+            var r = window.QRCode.render(canvas, u, { ecLevel: 'M', margin: 4, scale: 'auto' });
+            var shown = u.length > 68 ? u.slice(0, 34) + ' … ' + u.slice(-30) : u;
+            meta.textContent = '共 ' + u.length + ' 字符 · 版本 ' + r.version + ' · 纠错 ' + r.ecLevel +
+                ' · 模块 ' + r.size + '×' + r.size + '\n' + shown;
+            state.ready = true;
+        } catch (err) {
+            meta.textContent = '地址过长，无法生成二维码（' + (err && err.message) + '）';
+            state.ready = false;
+        }
+    }
+
+    function copyUrl(b) {
+        var u = $('qr-url-input').value;
+        var done = function () {
+            var old = b.textContent;
+            b.textContent = '✓ 已复制';
+            setTimeout(function () { b.textContent = old; }, 1400);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(u).then(done, function () { fallbackCopy(u, done); });
+        } else {
+            fallbackCopy(u, done);
+        }
+    }
+
+    function fallbackCopy(text, done) {
+        var ta = doc.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        doc.body.appendChild(ta);
+        ta.select();
+        try { doc.execCommand('copy'); done(); } catch (e) { /* 忽略 */ }
+        doc.body.removeChild(ta);
+    }
+
+    /* -------------------------------------------------------- 打开/关闭 */
+    function open() {
+        if (!state.modal) buildModal();
+        var m = state.modal;
+        m.classList.add('open');
+        setUrl(currentUrl());
+        doc.addEventListener('keydown', onKey);
+    }
+    function close() {
+        if (state.modal) state.modal.classList.remove('open');
+        doc.removeEventListener('keydown', onKey);
+    }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+
+    /* ------------------------------------------------------------ 启动 */
+    injectStyle();
+    buildModal();
+    btn.addEventListener('click', open);
+
+    window.MobileUI = window.MobileUI || {};
+    window.MobileUI.QR = { open: open, close: close, isReady: function () { return state.ready; } };
+})();
+/* === QR:JS:END === */
+        </script>
+        <script>
+        /* === MOBILE:JS:BEGIN === */
+/* ============================================================================
+ * mobile-ui.js — 手机端交互层（经典脚本，唯一全局 window.MobileUI）
+ * ----------------------------------------------------------------------------
+ * 设计要点（与 mobile/SPEC.md §3 一致）：
+ *  1) 只在「页面加载时」判定一次移动端（matchMedia ≤768px）。桌面端完全不动 DOM，
+ *     连 #mobile-dock 都不创建 —— 这样桌面端 100% 零回归；旋转/改窗口不切换布局，
+ *     避免把主逻辑已经绑定的节点搬来搬去造成状态错乱。
+ *  2) 本脚本在主 module 之前加载，但等 window.__mainReady（主逻辑 init 完成）之后
+ *     才执行「搬节点」操作，保证主逻辑初始化时看到的是原始 DOM。
+ *  3) 搬移节点用 appendChild 原节点而非克隆：DOM 移动不会丢失事件监听，
+ *     且主逻辑里 `document.getElementById('btn-lock')` 仍然取得到同一个节点。
+ *  4) 不读写主逻辑闭包变量；需要触发功能时直接调用原节点的 .click()。
+ *  5) 幂等：window.__mobileUiReady 守卫，重复执行直接返回。
+ * ==========================================================================*/
+(function () {
+    'use strict';
+    if (window.__mobileUiReady) return;
+    window.__mobileUiReady = true;
+
+    var MQ = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+    var IS_MOBILE = !!(MQ && MQ.matches);
+    if (!IS_MOBILE) return;                       // 桌面端：什么都不做
+
+    var doc = document;
+    var html = doc.documentElement;
+    var $ = function (id) { return doc.getElementById(id); };
+
+    /* ---------------------------------------------------------------- 图标 */
+    function svg(paths, extra) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+            'stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" ' +
+            'aria-hidden="true"' + (extra || '') + '>' + paths + '</svg>';
+    }
+    var ICONS = {
+        layers: svg('<path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="m3 12.5 9 4.5 9-4.5"/><path d="m3 17 9 4.5 9-4.5"/>'),
+        tools: svg('<path d="M14.5 5.5a4 4 0 0 0 5 5L21 9l-1.5-1.5L21 6l-3-3-1.5 1.5L15 3l-1.5 1.5a4 4 0 0 0 1 1Z"/><path d="m13 8-8.5 8.5a2.1 2.1 0 0 0 3 3L16 11"/>'),
+        settings: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.5-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.5l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4Z"/>'),
+        data: svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>'),
+        legend: svg('<path d="M4 6h10M4 12h7M4 18h5"/><path d="M17 5.5 19 4l2 3.5-2 3-2-3Z"/><circle cx="18" cy="17" r="3"/>'),
+        close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
+    };
+    var TABS = [
+        { id: 'layers',   label: '图层' },
+        { id: 'tools',    label: '工具' },
+        { id: 'settings', label: '设置' },
+        { id: 'data',     label: '数据' },
+        { id: 'legend',   label: '图例' }
+    ];
+
+    var ready = false;
+
+    /* ------------------------------------------------------------ 样式 */
+    /*
+     * 组合层（在所有样式表之后的最后一层微调）。以下两条都是「用真实浏览器量出来」的缺口：
+     *
+     * 1) #btn-qr / #qr-modal：手机端不需要「扫码进入」（本机就是手机）。
+     *    这条属于「行为开关」而非布局，放在 JS 层可避免与样式表修订互相踩踏；
+     *    qr-popup.js 在 ≤768px 也直接不初始化。
+     *
+     * 2) #wind-toggle：设置面板里没有任何规则给它 min-width，实测仅 50×44（按钮被压窄、
+     *    文案换行）。补成与其它 Sheet 按钮一致的触控规格。
+     *
+     * 3) Dock 行1 排版：实测 6 个播放键被挤到 30.5×44（宽度低于 44 的触控建议值）。
+     *    根因是 #eye-coord（台风眼经纬度）在手机窄屏只能显示成 "17…" 这种截断文本，
+     *    却占了约 60px。该数值在快讯条与「数据」面板里都有，这里直接隐藏，
+     *    把宽度还给播放键（40×44）与速度选择。
+     *
+     * ⚠ 不要在这里覆盖 #tool-controls 的 display：mobile.css §3.5 是按 **flex**
+     *   布局写的（标签 flex:1 1 100%、按钮与包装 div flex:1 1 42%/max-width:50%）。
+     *   改成 grid 会让这些 flex 声明失效，按钮被 min/max-width 夹到 ~91px 且分组错位
+     *   —— 这是实测踩过的坑，勿重蹈。
+     */
+    function injectMobileOverrides() {
+        var s = doc.createElement('style');
+        s.id = 'mobile-ui-overrides';
+        s.textContent =
+            '@media (max-width: 768px){' +
+            'html.mobile-ui #btn-qr{display:none !important;}' +
+            'html.mobile-ui #qr-modal{display:none !important;}' +
+            'html.mobile-ui .md-sheet-body #wind-toggle{min-width:96px;min-height:48px;font-size:0.9rem;}' +
+            'html.mobile-ui #mobile-dock #eye-coord{display:none;}' +
+            'html.mobile-ui #mobile-dock #playback-controls button{min-width:40px;}' +
+            '}';
+        doc.head.appendChild(s);
+    }
+
+    /* -------------------------------------------------------- 一次性构建 */
+    function build() {
+        if (ready) return;
+        ready = true;
+        html.classList.add('mobile-ui');
+        html.style.setProperty('--dock-h', '150px');   // 首帧兜底，随后由 syncDockHeight 写入真实值
+
+        injectMobileOverrides();
+        buildDock();
+        buildScrim();
+        buildSheets();
+        moveNodes();
+        hookFocusWindow();
+        bindTabs();
+        bindMapInteracting();
+        syncDockHeight();
+
+        window.addEventListener('resize', syncDockHeight, { passive: true });
+        window.addEventListener('orientationchange', function () { setTimeout(syncDockHeight, 260); });
+        doc.addEventListener('keydown', onKeydown);
+    }
+
+    /* ------------------------------------------------------------- Dock */
+    function buildDock() {
+        var dock = doc.createElement('div');
+        dock.id = 'mobile-dock';
+        dock.innerHTML =
+            '<div class="md-clock" id="md-clock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+                'stroke-width="2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+                '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>' +
+                '<span id="md-clock-text">--</span></div>' +
+            '<div class="md-time"></div>' +
+            '<div class="md-slider"></div>' +
+            '<div class="md-tabs"></div>';
+        html.appendChild(dock);          // 挂在 <html> 下，避免任何祖先 overflow 裁剪
+
+        var tabs = dock.querySelector('.md-tabs');
+        TABS.forEach(function (t) {
+            var b = doc.createElement('button');
+            b.type = 'button';
+            b.className = 'md-tab';
+            b.setAttribute('data-tab', t.id);
+            b.innerHTML = ICONS[t.id] + '<span>' + t.label + '</span>';
+            tabs.appendChild(b);
+        });
+    }
+
+    function buildScrim() {
+        var s = doc.createElement('div');
+        s.id = 'md-scrim';
+        s.addEventListener('click', function () { closeAll(); });
+        html.appendChild(s);
+    }
+
+    /* ----------------------------------------------------------- Sheets */
+    function sheet(id, title, icon) {
+        var sec = doc.createElement('section');
+        sec.className = 'md-sheet';
+        sec.id = 'md-sheet-' + id;
+        sec.setAttribute('aria-label', title);
+        sec.innerHTML =
+            '<div class="md-grabber" aria-hidden="true"></div>' +
+            '<div class="md-sheet-head"><span class="md-sheet-title">' + icon + title + '</span>' +
+            '<button type="button" class="md-close" aria-label="关闭">' + ICONS.close + '</button></div>' +
+            '<div class="md-sheet-body"></div>';
+        sec.querySelector('.md-close').addEventListener('click', function () { closeAll(); });
+        html.appendChild(sec);
+        bindDragClose(sec);
+        return sec;
+    }
+
+    function buildSheets() {
+        var layers = sheet('layers', '图层', ICONS.layers);
+        var tools = sheet('tools', '工具', ICONS.tools);
+        var settings = sheet('settings', '设置', ICONS.settings);
+        var data = sheet('data', '路径数据', ICONS.data);
+        sheet('legend', '图例', ICONS.legend);
+
+        // #layer-switcher 的点击是父级委托，必须整块搬（搬原节点，监听随之保留）
+        var ls = $('layer-switcher');
+        if (ls) layers.querySelector('.md-sheet-body').appendChild(ls);
+
+        // #tool-controls 内含绘图测量/视图/对比导出/缩放全部分组
+        var tc = $('tool-controls');
+        if (tc) tools.querySelector('.md-sheet-body').appendChild(tc);
+
+        // 设置面板：风场开关 + 透明度 + 截图 + 洁净模式 + 锁定/复位 + 图表 + 雷达
+        var body = settings.querySelector('.md-sheet-body');
+        var windRow = $('wind-row');
+        if (windRow) body.appendChild(windRow);
+        var group = doc.createElement('div');
+        group.className = 'md-grid';
+        body.appendChild(group);
+        ['btn-shot', 'btn-clean', 'btn-lock', 'btn-fit', 'btn-chart', 'btn-hazard'].forEach(function (id) {
+            var el = $(id);
+            if (el) group.appendChild(el);
+        });
+        var diff = $('diff-legend');
+        if (diff) body.appendChild(diff);
+    }
+
+    function moveNodes() {
+        var dock = $('mobile-dock');
+        var time = dock.querySelector('.md-time');
+        var slider = dock.querySelector('.md-slider');
+
+        var pb = $('playback-controls');
+        if (pb) time.appendChild(pb);
+        var sp = $('speed-select');
+        if (sp) time.appendChild(sp);
+        var eye = $('eye-coord');
+        if (eye) time.appendChild(eye);
+        var sl = $('time-slider');
+        if (sl) slider.appendChild(sl);
+        var tk = $('time-ticks');
+        if (tk) slider.appendChild(tk);
+
+        // 时间读数：Dock 自带时钟显示，隐藏被搬空的 #time-display（主逻辑仍会更新它）
+        var td = $('time-display');
+        if (td) td.classList.add('md-hidden');
+
+        // 「数据」标签复用的原按钮：隐藏它，点击交给代理
+        var pt = $('left-panel-toggle');
+        if (pt) pt.classList.add('md-hidden');
+        // 桌面悬浮的「退出全屏」在手机上并入设置
+        var ce = $('btn-clean-exit');
+        if (ce) {
+            var group = dock.parentNode.querySelector('#md-sheet-settings .md-grid');
+            if (group) group.appendChild(ce);
+            ce.classList.add('md-wide');
+        }
+    }
+
+    /* -------------------------------------------------- 关注区小窗定位 */
+    /*
+     * 主逻辑 createFocusWindow() 每次打开都会写死 inline：
+     *     left:65px; top:auto; right:auto; bottom:90px;  （宽度 320px 来自 CSS）
+     * 手机屏上这会让小窗跑到旧位置、且与 Dock 打架。这里做「首次定位」接管：
+     *   - 只在用户还没自己拖过（!__mdUserMoved）时清掉 inline 定位，交给 CSS 贴 Dock 上方；
+     *   - 一旦用户拖过/缩放器用过，就让 inline 值完全生效（拖拽逻辑本来就是写 inline）；
+     *   - 同时把用户拖拽/缩放标记写回节点，避免「打开→拖→关闭→再打开」被重置。
+     * 全部用已有监听追加，不改主模块一行代码。
+     */
+    function hookFocusWindow() {
+        var fw = $('focus-window');
+        if (!fw) return;
+        var header = $('focus-window-header');
+        var grip = $('focus-window-resize');
+        var mark = function () { fw.__mdUserMoved = true; };
+        if (header) header.addEventListener('pointerdown', mark);
+        if (grip) grip.addEventListener('pointerdown', mark);
+        if (fw.__mdHooked) return;
+        fw.__mdHooked = true;
+        new MutationObserver(function () {
+            if (fw.style.display === 'flex' && !fw.__mdUserMoved) {
+                fw.style.left = '';
+                fw.style.top = '';
+                fw.style.right = '';
+                fw.style.bottom = '';
+            }
+        }).observe(fw, { attributes: true, attributeFilter: ['style'] });
+    }
+
+    /* ------------------------------------------------------- 标签与开合 */
+    function bindTabs() {
+        var dock = $('mobile-dock');
+        dock.addEventListener('click', function (e) {
+            var tab = e.target.closest ? e.target.closest('.md-tab') : null;
+            if (!tab) return;
+            var id = tab.getAttribute('data-tab');
+            if (id === 'data') { toggleDataDrawer(tab); return; }
+            var sec = $('md-sheet-' + id);
+            if (!sec) return;
+            var isOpen = sec.classList.contains('open');
+            closeAll();
+            if (!isOpen) openSheet(id, tab);
+        });
+    }
+
+    function openSheet(id, tab) {
+        var sec = $('md-sheet-' + id);
+        if (!sec) return;
+        // 「图例」标签：直接复用既有图例弹窗（内含完整分类/路径/符号说明）
+        if (id === 'legend') {
+            var lm = $('legend-modal');
+            if (lm) {
+                lm.classList.add('open');
+                bindLegendModalClose();
+            }
+            setActiveTab(tab);
+            return;
+        }
+        sec.classList.add('open');
+        html.classList.add('md-sheet-open');
+        setActiveTab(tab);
+    }
+
+    function toggleDataDrawer(tab) {
+        var lp = $('left-panel');
+        var wasOpen = lp && lp.classList.contains('open');
+        closeAll();
+        if (lp && !wasOpen) {
+            lp.classList.add('open');
+            html.classList.add('md-sheet-open');
+            setActiveTab(tab);
+        }
+    }
+
+    function bindLegendModalClose() {
+        var lm = $('legend-modal');
+        if (!lm || lm.__mdBound) return;
+        lm.__mdBound = true;
+        lm.addEventListener('click', function (e) {
+            if (e.target === lm || (e.target.closest && e.target.closest('#legend-close'))) closeAll();
+        });
+    }
+
+    function setActiveTab(tab) {
+        var all = doc.querySelectorAll('#mobile-dock .md-tab');
+        for (var i = 0; i < all.length; i++) all[i].classList.toggle('active', all[i] === tab);
+    }
+
+    function closeAll() {
+        var open = doc.querySelectorAll('.md-sheet.open');
+        for (var i = 0; i < open.length; i++) open[i].classList.remove('open');
+        var lp = $('left-panel');
+        if (lp) lp.classList.remove('open');
+        var lm = $('legend-modal');
+        if (lm) lm.classList.remove('open');
+        html.classList.remove('md-sheet-open');
+        setActiveTab(null);
+    }
+
+    function onKeydown(e) {
+        if (e.key === 'Escape') closeAll();
+    }
+
+    /* --------------------------------------------- 下拉手势关闭 Sheet */
+    function bindDragClose(sec) {
+        var startY = null, dy = 0;
+        sec.addEventListener('pointerdown', function (e) {
+            var grabber = e.target.closest && e.target.closest('.md-grabber');
+            var head = e.target.closest && e.target.closest('.md-sheet-head');
+            if (!grabber && !head) return;
+            startY = e.clientY;
+            dy = 0;
+            sec.classList.add('md-dragging');
+            sec.setPointerCapture(e.pointerId);
+        });
+        sec.addEventListener('pointermove', function (e) {
+            if (startY === null) return;
+            dy = Math.max(0, e.clientY - startY);
+            sec.style.transform = 'translateY(' + dy + 'px)';
+        });
+        function end() {
+            if (startY === null) return;
+            sec.classList.remove('md-dragging');
+            sec.style.transform = '';
+            if (dy > 72) closeAll();
+            startY = null; dy = 0;
+        }
+        sec.addEventListener('pointerup', end);
+        sec.addEventListener('pointercancel', end);
+    }
+
+    /* -------------------------------------------- 地图手势时让位给地图 */
+    function bindMapInteracting() {
+        var mapEl = $('map');
+        if (!mapEl) return;
+        var t = null;
+        var wake = function () {
+            html.classList.remove('md-interacting');
+            if (t) { clearTimeout(t); t = null; }
+        };
+        mapEl.addEventListener('touchstart', function () {
+            html.classList.add('md-interacting');
+            if (t) clearTimeout(t);
+            t = setTimeout(wake, 2200);
+        }, { passive: true });
+        mapEl.addEventListener('touchend', function () {
+            if (t) clearTimeout(t);
+            t = setTimeout(wake, 1400);
+        }, { passive: true });
+    }
+
+    /* -------------------------------------------------------- Dock 高度 */
+    var syncing = false;
+    function syncDockHeight() {
+        var dock = $('mobile-dock');
+        if (!dock) return;
+        var h = Math.round(dock.getBoundingClientRect().height);
+        if (h > 0) html.style.setProperty('--dock-h', h + 'px');
+        // 关注区小窗 / 迷你地图需要在 Dock 变化后让 Leaflet 重算尺寸。
+        // 注意：dispatchEvent 是同步派发 —— 本函数自身就是 resize 监听器，
+        // 没有这道重入保护会 sync→dispatch→sync 无限递归爆栈。
+        if (syncing) return;
+        syncing = true;
+        window.dispatchEvent(new Event('resize'));
+        syncing = false;
+    }
+
+    /* ------------------------------------------------------------ 启动 */
+    function start() {
+        if (window.__mainReady) { build(); return; }
+        // 主逻辑 init 结束后会把 __mainReady 置 true；这里非阻塞地等一小段
+        var tries = 0;
+        var timer = setInterval(function () {
+            tries++;
+            if (window.__mainReady) { clearInterval(timer); build(); }
+            else if (tries > 100) { clearInterval(timer); build(); }   // 3s 兜底：主逻辑挂了也要能用
+        }, 30);
+    }
+
+    if (doc.readyState === 'loading') {
+        doc.addEventListener('DOMContentLoaded', function () { setTimeout(start, 0); });
+    } else {
+        setTimeout(start, 0);
+    }
+
+    window.MobileUI = {
+        isMobile: true,
+        closeAll: closeAll,
+        syncDockHeight: syncDockHeight,
+        build: build
+    };
+})();
+/* === MOBILE:JS:END === */
+        </script>
         <script type="importmap">
         {
             "imports": {
@@ -4453,6 +7119,8 @@
             // Initial render
             document.getElementById('wind-toggle').classList.add('active');
             updateTimeDisplay();
+            // 通知 mobile-ui.js：主逻辑初始化完成，可以安全搬运节点了
+            window.__mainReady = true;
         }
 
         document.addEventListener('DOMContentLoaded', init);

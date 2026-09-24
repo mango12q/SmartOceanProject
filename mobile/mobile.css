@@ -1,0 +1,1322 @@
+/* mobile.css — inlined into index.html by Lead; do not reference externally */
+/* 台风路径可视化 · 手机端布局样式（SPEC v1 §2.2 的 18 条要求）
+   门控：外层 @media (max-width:768px) + 每条规则 html.mobile-ui 前缀（双保险 → 桌面端零影响）。
+   内联位置：index.html <style> 末尾，靠后生效，可覆盖第 678–702 行既有 768/480 断点。
+   禁止：@import / @font-face / 外部字体 / url(http...)。 */
+
+@media (max-width: 768px) {
+
+  /* ==========================================================================
+     §0 · 变量与基础（§2.2.16 --dock-h fallback；§2.2.18 性能）
+     ========================================================================== */
+  html.mobile-ui {
+    --dock-h: 150px;                              /* fallback；JS 写入真实像素值覆盖 */
+    --md-safe-b: env(safe-area-inset-bottom, 0px);
+    --md-blue: #1565c0;
+    --md-line: rgba(21, 101, 192, 0.18);
+    --md-sheet-bg: rgba(255, 255, 255, 0.98);
+    --md-shadow: 0 -2px 10px rgba(13, 71, 161, 0.18);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  html.mobile-ui body {
+    overscroll-behavior: none;
+    touch-action: manipulation;
+  }
+
+  /* §2.2.15 地图手势优先：Leaflet 需要 none，其它容器不得全屏透明遮挡 */
+  html.mobile-ui #map { touch-action: none; }
+
+  /* ==========================================================================
+     §1 · 底部 Dock（#mobile-dock，JS 创建；§2.2.1）
+     行1 .md-time / 行2 .md-slider / 行3 .md-tabs
+     结构高度预算：44 + (32+12) + 48 + gap 8 + padding 16 = 160px ≤ 168px
+     ========================================================================== */
+  html.mobile-ui #mobile-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    box-sizing: border-box;
+    padding: 6px 8px calc(10px + var(--md-safe-b, env(safe-area-inset-bottom, 0px)));
+    background: rgba(255, 255, 255, 0.98);          /* §2.2.18：不透明纯色，不用 backdrop-filter */
+    border-top: 1px solid var(--md-line);
+    box-shadow: var(--md-shadow);                   /* 模糊 ≤12px */
+    color: #222;
+    font-size: 0.82rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+  }
+
+  /* 行1：时间/坐标 + 播放控制 + 速度 */
+  html.mobile-ui #mobile-dock .md-time {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 6px;
+    width: 100%;
+    min-height: 44px;
+    min-width: 0;
+  }
+
+  /* 行2：时间滑块 + 刻度 */
+  html.mobile-ui #mobile-dock .md-slider {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* 行3：5 个标签（§2.2.1 触控高 ≥48px） */
+  html.mobile-ui #mobile-dock .md-tabs {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 3px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    margin: 0;
+    padding: 2px 1px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #37474f;
+    font-family: inherit;
+    font-size: 0.66rem;                             /* 标签 ≥10px */
+    line-height: 1.1;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab .md-ico,
+  html.mobile-ui #mobile-dock .md-tab .md-icon,
+  html.mobile-ui #mobile-dock .md-tab > :first-child {
+    font-size: 1.15rem;
+    line-height: 1;
+    display: block;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab .md-label,
+  html.mobile-ui #mobile-dock .md-tab > :last-child {
+    font-size: 0.66rem;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab.active,
+  html.mobile-ui #mobile-dock .md-tab[aria-selected="true"] {
+    background: rgba(25, 118, 210, 0.12);
+    border-color: rgba(25, 118, 210, 0.35);
+    color: #0d47a1;
+    font-weight: 700;
+  }
+
+  /* 播放条：6 键 + 速度，必须能缩到 360px 宽仍不横向溢出 */
+  html.mobile-ui #mobile-dock #playback-controls {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  html.mobile-ui #mobile-dock #playback-controls button {
+    flex: 0 1 38px;
+    min-width: 28px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  html.mobile-ui #mobile-dock #speed-select {
+    flex: 0 0 auto;
+    min-height: 44px;
+    max-width: 54px;
+    padding: 0 2px;
+    font-size: 0.72rem;
+  }
+
+  html.mobile-ui #mobile-dock #time-display {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 122px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  /* §2.2.13 Dock 行1 内的风眼坐标（basis 固定 → 让播放条优先生效，不被挤爆） */
+  html.mobile-ui #mobile-dock #eye-coord,
+  html.mobile-ui #mobile-dock #eye-coord.in-scale-row {
+    position: static;
+    flex: 0 1 44px;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    padding: 2px 6px;
+    max-width: 26vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.78rem;                             /* §2.2.13 */
+    border-radius: 8px;
+    background: rgba(21, 101, 192, 0.08);
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9), 0 -1px 2px rgba(255, 255, 255, 0.9),
+                 1px 0 2px rgba(255, 255, 255, 0.9), -1px 0 2px rgba(255, 255, 255, 0.9);
+  }
+
+  /* §2.2.1 时间滑块：触控高 ≥32px、拇指加大 */
+  html.mobile-ui #mobile-dock #time-slider {
+    width: 100%;
+    height: 32px;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: manipulation;
+  }
+
+  html.mobile-ui #mobile-dock #time-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: #cfd8dc;
+  }
+
+  html.mobile-ui #mobile-dock #time-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    margin-top: -10px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #1976d2;
+    box-shadow: 0 1px 4px rgba(13, 71, 161, 0.45);
+  }
+
+  html.mobile-ui #mobile-dock #time-slider::-moz-range-track {
+    height: 6px;
+    border-radius: 3px;
+    background: #cfd8dc;
+  }
+
+  html.mobile-ui #mobile-dock #time-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #1976d2;
+  }
+
+  html.mobile-ui #mobile-dock #time-ticks {
+    position: relative;
+    width: 100%;
+    height: 12px;
+    overflow: hidden;
+  }
+
+  html.mobile-ui #mobile-dock #time-ticks .time-tick {
+    font-size: 0.55rem;
+    line-height: 1;
+    color: #78909c;
+  }
+
+  html.mobile-ui #mobile-dock #time-ticks .time-tick::before {
+    top: -4px;
+    height: 3px;
+  }
+
+  html.mobile-ui #mobile-dock #time-ticks .time-tick.major::before {
+    height: 5px;
+  }
+
+  /* JS：地图触摸时 Dock 下沉半透明（§3.5） */
+  html.mobile-ui.md-interacting #mobile-dock {
+    transform: translateY(12px);
+    opacity: 0.55;
+  }
+
+  /* ==========================================================================
+     §2 · 时间面板去重（§2.2.2）
+     内部 #time-slider/#time-ticks/#playback-row/#time-display 已被 JS 搬进 Dock，
+     残留容器不得占位；#wind-row / #diff-legend 隐藏（改由「设置」Sheet 提供）。
+     ========================================================================== */
+  html.mobile-ui #time-panel {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    top: auto;
+    transform: none;
+    width: 0;
+    height: 0;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    display: block;
+    overflow: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html.mobile-ui #time-panel > #playback-row,
+  html.mobile-ui #time-panel > #wind-row,
+  html.mobile-ui #time-panel > #diff-legend {
+    display: none !important;                       /* JS 会写 inline display:flex */
+  }
+
+  /* ==========================================================================
+     §3 · 面板改为底部 Sheet（§2.2.3）
+     ========================================================================== */
+  html.mobile-ui #left-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: var(--dock-h);
+    width: auto;
+    height: 60vh;
+    max-height: calc(100vh - var(--dock-h));
+    z-index: 1400;
+    border-radius: 14px 14px 0 0;
+    border-top: 1px solid var(--md-line);
+    background: var(--md-sheet-bg);
+    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.18);   /* §2.2.18 模糊 ≤12px */
+    backdrop-filter: none;
+    transform: translateY(105%);
+    transition: transform 0.28s ease;
+    overscroll-behavior: contain;
+  }
+
+  html.mobile-ui #left-panel.open { transform: translateY(0); }
+
+  html.mobile-ui #left-panel-header {
+    padding: 4px 12px;
+    min-height: 48px;
+    border-bottom: 1px solid #eee;
+  }
+
+  html.mobile-ui #left-panel-header h3 { font-size: 0.95rem; }
+
+  html.mobile-ui #left-panel-close {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.5rem;
+    color: #607d8b;
+  }
+
+  html.mobile-ui #time-date-btn { min-height: 44px; font-size: 0.85rem; }
+
+  html.mobile-ui #left-panel-content {
+    flex: 1 1 auto;
+    overflow: auto;                                 /* 表格横向可滚（§2.2.3） */
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 8px;
+  }
+
+  html.mobile-ui #left-panel-content table {
+    width: 100%;
+    min-width: 470px;                               /* 触发横向滚动而非压缩换行 */
+    font-size: 0.78rem;
+  }
+
+  html.mobile-ui #left-panel-content th { padding: 8px 6px; }
+  html.mobile-ui #left-panel-content td { padding: 7px 6px; }
+
+  /* 入口在 Dock 的 data 标签 */
+  html.mobile-ui #left-panel-toggle { display: none !important; }
+
+  /* JS 把 #tool-controls 的按钮搬进 tools Sheet 后，残留容器不该占位；
+     若 JS 是整块搬进 Sheet（内部仍有直接子按钮），本规则不匹配，保持原样。 */
+  html.mobile-ui #tool-controls:not(:has(> button)) {
+    padding: 0;
+    gap: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  html.mobile-ui #tool-controls:not(:has(> button)) .tool-group-label { display: none; }
+
+  /* 通用 Sheet 只做性能兜底（定位显隐见上方 .md-sheet 规则） */
+
+  /* 通用底部 Sheet（Lead 确认：layers / tools / settings 三个由 CSS 定位显隐，
+     JS 只负责加/去 .open；DOM = .md-grabber + .md-sheet-head + .md-sheet-body） */
+  html.mobile-ui .md-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    z-index: 1400;                                  /* < Dock 1500 → Dock 常驻可见可点 */
+    display: flex;
+    flex-direction: column;
+    max-height: min(72vh, 560px);
+    box-sizing: border-box;
+    padding-bottom: calc(var(--dock-h) + env(safe-area-inset-bottom, 0px));
+    background: var(--md-sheet-bg);
+    border-top: 1px solid var(--md-line);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.18);
+    backdrop-filter: none;
+    transform: translateY(105%);
+    visibility: hidden;
+    transition: transform 0.28s ease, visibility 0.28s ease;
+    overscroll-behavior: contain;
+  }
+
+  html.mobile-ui .md-sheet.open {
+    transform: translateY(0);
+    visibility: visible;
+  }
+
+  /* 头部与拖拽条必须保持可命中（下拉关闭手势绑在这里，不要 pointer-events:none） */
+  html.mobile-ui .md-sheet-head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 48px;
+    padding: 2px 6px 2px 14px;
+    border-bottom: 1px solid rgba(21, 101, 192, 0.12);
+    touch-action: none;
+    user-select: none;
+  }
+
+  html.mobile-ui .md-sheet-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0d47a1;
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* JS 注入的图标是 SVG（无 width/height，不约束会撑大头部） */
+  html.mobile-ui .md-sheet-title svg { width: 18px; height: 18px; flex: 0 0 18px; }
+
+  html.mobile-ui .md-close svg { width: 18px; height: 18px; display: block; }
+
+  html.mobile-ui .md-close {
+    flex: 0 0 auto;
+    min-width: 44px;
+    min-height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #607d8b;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  html.mobile-ui .md-close:active { background: #e3f2fd; }
+
+  html.mobile-ui .md-sheet-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 8px 10px;
+  }
+
+  /* Sheet 内直接摆放的动作按钮：整行、易点 */
+  html.mobile-ui .md-sheet-body > button {
+    display: block;
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 0.88rem;
+    border-radius: 10px;
+  }
+
+  /* 搬进 Sheet 的图标按钮只有 emoji 没有文字 → 用 data-tip 补出中文标签
+     （JS 只搬节点、不加文字，因此不会重复）。
+     注意：基类 `#tool-controls button::after` 是「悬停气泡」样式
+     （position:absolute / opacity:0 / 深蓝底），这里必须逐项复位成普通行内标签。 */
+  html.mobile-ui .md-sheet-body .md-grid > button,
+  html.mobile-ui .md-sheet-body #tool-controls > button,
+  html.mobile-ui .md-sheet-body #tool-controls > div > button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    min-height: 48px;
+    padding: 5px 3px;
+    line-height: 1.1;
+    font-size: 1rem;
+  }
+
+  html.mobile-ui .md-sheet-body .md-grid > button[data-tip]::after,
+  html.mobile-ui .md-sheet-body #tool-controls > button[data-tip]::after,
+  html.mobile-ui .md-sheet-body #tool-controls > div > button[data-tip]::after {
+    content: attr(data-tip);
+    position: static;
+    left: auto;
+    top: auto;
+    transform: none;
+    opacity: 1;
+    z-index: auto;
+    transition: none;
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    pointer-events: none;
+    font-size: 0.62rem;
+    line-height: 1.1;
+    font-weight: 400;
+    color: #546e7a;
+    letter-spacing: 0;
+  }
+
+  /* ==========================================================================
+     §3.5 · 与 Lead 的 mobile-ui.js 真实 DOM 对齐（已核对其源码）
+     Dock 首子节点 .md-clock；Sheet 内 .md-grid / #wind-row / #diff-legend；
+     tools Sheet 里是整块 #tool-controls（含 #focus-menu / #vs-menu）
+     ========================================================================== */
+
+  /* Dock 里的时钟徽标：JS 只给了一个 24×24 viewBox 的 SVG（无 width/height，
+     不写 CSS 会撑成 374×374）。这里钉在 Dock 行1 右上角，绝对定位 → 不占 Dock 高度。
+     行1 用 padding-right 让位，保证 161px ≤ 168px 预算不变。 */
+  html.mobile-ui #mobile-dock .md-clock {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    height: 44px;
+    max-width: 66px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 5px;
+    border-radius: 8px;
+    background: rgba(21, 101, 192, 0.08);
+    color: #1565c0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  html.mobile-ui #mobile-dock .md-clock svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    display: block;
+  }
+
+  html.mobile-ui #mobile-dock #md-clock-text {
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html.mobile-ui #mobile-dock .md-time { padding-right: 72px; }
+
+  /* 设置面板：图标按钮 3 列网格，.md-wide（退出全屏）独占整行 */
+  html.mobile-ui .md-sheet-body .md-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  html.mobile-ui .md-sheet-body .md-grid > button {
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    padding: 6px 4px;
+    font-size: 1rem;
+    line-height: 1;
+    border-radius: 10px;
+  }
+
+  html.mobile-ui .md-sheet-body .md-grid > .md-wide {
+    grid-column: 1 / -1;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 0.86rem;
+  }
+
+  /* 设置面板：风场开关 + 透明度一行 */
+  html.mobile-ui .md-sheet-body #wind-row {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 0 0 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(21, 101, 192, 0.12);
+  }
+
+  html.mobile-ui .md-sheet-body #wind-toggle { flex: 0 0 auto; min-height: 44px; }
+
+  html.mobile-ui .md-sheet-body #wind-opacity-control {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  html.mobile-ui .md-sheet-body #wind-opacity { flex: 1 1 auto; max-width: 150px; }
+
+  /* 设置面板：订正场差值图例（主逻辑打开对比时会显示） */
+  html.mobile-ui .md-sheet-body #diff-legend {
+    display: none;
+    align-items: center;
+    width: 100%;
+  }
+
+  html.mobile-ui .md-sheet-body #diff-legend-canvas { max-width: 100%; }
+
+  /* tools Sheet：JS 整块搬来 #tool-controls（原本 position:absolute; bottom:130px，
+     在 Sheet 里会脱离文档流），这里复位为静态 + 两列网格 */
+  html.mobile-ui .md-sheet-body #tool-controls {
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    gap: 6px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html.mobile-ui .md-sheet-body #tool-controls .tool-group-label {
+    flex: 1 1 100%;
+    width: 100%;
+    padding: 4px 0 0;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-align: left;
+    border-top: 1px solid rgba(21, 101, 192, 0.16);
+  }
+
+  html.mobile-ui .md-sheet-body #tool-controls .tool-group-label:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  html.mobile-ui .md-sheet-body #tool-controls > button,
+  html.mobile-ui .md-sheet-body #tool-controls > div:not(.tool-group-label) {
+    flex: 1 1 42%;
+    min-width: 42%;
+    max-width: 50%;
+  }
+
+  html.mobile-ui .md-sheet-body #tool-controls > div > button {
+    width: 100%;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  /* Sheet 是 transform 元素 → 其中的 fixed 弹层以其为包含块；
+     而 Sheet 底边 = 视口底边，所以同一条 bottom 表达式在两种情形下都正确。 */
+  html.mobile-ui .md-sheet #focus-menu,
+  html.mobile-ui .md-sheet #vs-menu {
+    bottom: calc(var(--dock-h) + 8px);
+  }
+
+  /* 顶部居中拖拽条（20px 高，视觉 4px 圆角条） */
+  html.mobile-ui .md-grabber {
+    flex: 0 0 auto;
+    width: 100%;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  html.mobile-ui .md-grabber::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(21, 101, 192, 0.35);
+  }
+
+  /* Sheet 蒙层（JS 创建：#md-scrim，inset:0，点击关闭）。
+     默认不存在，只有 html.md-sheet-open 时才铺满（§2.2.15）；
+     z-index 低于 Dock(1500)，Dock 仍可点 → 直接切标签换 Sheet。 */
+  html.mobile-ui #md-scrim,
+  html.mobile-ui .md-scrim {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1300;
+    display: none;
+    background: rgba(13, 71, 161, 0.22);
+    touch-action: manipulation;
+  }
+
+  html.mobile-ui.md-sheet-open #md-scrim,
+  html.mobile-ui.md-sheet-open .md-scrim { display: block; }
+
+  /* ==========================================================================
+     §4 · 顶部（§2.2.4）
+     #title 去掉 transform：否则会成为 fixed 子元素（#typhoon-menu）的包含块
+     ========================================================================== */
+  html.mobile-ui #title {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    transform: none;
+    margin: 0 auto;
+    width: max-content;
+    max-width: calc(100vw - 96px);
+    padding: 7px 14px;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    border-radius: 16px;
+  }
+
+  html.mobile-ui #title .title-name {
+    display: inline-block;
+    max-width: calc(100vw - 150px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+
+  html.mobile-ui #top-controls {
+    top: 8px;
+    right: 8px;
+    left: auto;
+    bottom: auto;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  html.mobile-ui #top-controls button {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.05rem;
+    padding: 0;
+  }
+
+  /* 仅隐藏仍停留在 #top-controls 里的图层切换器；被 JS 搬进 Sheet 后本规则自然失效 */
+  html.mobile-ui #top-controls > #layer-switcher { display: none; }
+
+  /* 图层 Sheet 内（若 JS 整块搬移）：可换行、按钮加大 */
+  html.mobile-ui #layer-switcher {
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html.mobile-ui #layer-switcher button {
+    flex: 1 1 auto;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 0.88rem;
+  }
+
+  /* ==========================================================================
+     §5 · 弹出菜单全部改为底部弹层（§2.2.5）
+     ========================================================================== */
+  html.mobile-ui #focus-menu,
+  html.mobile-ui #vs-menu,
+  html.mobile-ui #compare-menu,
+  html.mobile-ui #typhoon-menu,
+  html.mobile-ui #compare-legend {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--dock-h) + 8px);
+    transform: none;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    max-height: calc(100vh - var(--dock-h) - 24px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    box-shadow: 0 -2px 12px rgba(13, 71, 161, 0.22);
+    backdrop-filter: none;
+    z-index: 1450;
+  }
+
+  html.mobile-ui #typhoon-menu { padding: 8px 10px; }
+
+  /* #compare-menu 是 #compare-legend 的子节点，抬高一层避免与其重叠 */
+  html.mobile-ui #compare-menu { bottom: calc(var(--dock-h) + 58px); }
+
+  html.mobile-ui #compare-legend {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 8px;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    white-space: normal;
+    border-radius: 12px;
+  }
+
+  html.mobile-ui #compare-legend.show { display: flex; }
+
+  html.mobile-ui #compare-select {
+    min-height: 44px;
+    min-width: 96px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  /* 菜单条目触控高 ≥44px、字体 ≥0.85rem（§2.2.5） */
+  html.mobile-ui #focus-menu button,
+  html.mobile-ui .vs-item,
+  html.mobile-ui .compare-item,
+  html.mobile-ui .history-item {
+    min-height: 44px;
+    font-size: 0.88rem;
+  }
+
+  html.mobile-ui #focus-menu button {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+  }
+
+  html.mobile-ui .vs-item,
+  html.mobile-ui .compare-item,
+  html.mobile-ui .history-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+  }
+
+  html.mobile-ui .history-name { font-size: 0.9rem; }
+  html.mobile-ui .history-period,
+  html.mobile-ui .history-note { font-size: 0.75rem; }
+  html.mobile-ui .history-ico { flex: 0 0 34px; height: 34px; }
+
+  /* ==========================================================================
+     §6 · 灾害雷达（§2.2.6）：全宽底部 Sheet + 纵向自适应
+     ========================================================================== */
+  html.mobile-ui #hazard-radar {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--dock-h) + 8px);
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - var(--dock-h) - 70px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    box-shadow: 0 -2px 10px rgba(13, 71, 161, 0.2);
+    backdrop-filter: none;
+  }
+
+  html.mobile-ui #hazard-radar-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 4px 6px 4px 12px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  html.mobile-ui #hazard-radar-close {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  html.mobile-ui #hazard-radar-body {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 10px 0;
+  }
+
+  /* canvas 有 width/height 属性且 JS 写 inline style，必须允许 CSS 缩放 */
+  html.mobile-ui #hazard-radar-canvas {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: 340px !important;
+    height: auto !important;
+    margin: 0 auto;
+  }
+
+  html.mobile-ui #hazard-radar-values { width: 100%; padding: 0; gap: 2px; }
+
+  html.mobile-ui .hr-row { font-size: 0.72rem; }
+  html.mobile-ui .hr-dim { flex: 0 0 52px; }
+  html.mobile-ui .hr-val { flex: 0 0 56px; }
+  html.mobile-ui .hr-delta { flex: 0 0 40px; }
+
+  html.mobile-ui #hazard-radar-compare-row {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 16px;
+    padding: 4px 10px 0;
+  }
+
+  html.mobile-ui .hr-switch,
+  html.mobile-ui .hr-amp { min-height: 44px; font-size: 0.76rem; }
+
+  html.mobile-ui #hazard-radar-legend { padding: 3px 10px 6px; }
+
+  html.mobile-ui #hazard-radar-note {
+    padding: 0 10px 10px;
+    font-size: 0.66rem;
+    line-height: 1.5;
+  }
+
+  /* ==========================================================================
+     §7 · 强度演变图（§2.2.7）
+     ========================================================================== */
+  html.mobile-ui #history-chart {
+    left: 8px;
+    right: 8px;
+    top: 64px;
+    width: auto;
+    max-width: none;
+    padding: 6px 10px 6px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(13, 71, 161, 0.18);
+    backdrop-filter: none;
+    z-index: 1250;
+  }
+
+  html.mobile-ui #history-chart-title {
+    min-height: 44px;
+    padding-right: 46px;
+    margin-bottom: 0;
+  }
+
+  html.mobile-ui #history-chart-toggle {
+    right: 0;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    font-size: 1.1rem;
+  }
+
+  html.mobile-ui #history-chart-legend {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    font-size: 0.72rem;
+  }
+
+  html.mobile-ui #history-chart-canvas {
+    width: 100%;
+    height: 88px;                                   /* §2.2.7 自适应宽 */
+    max-width: 100%;
+  }
+
+  html.mobile-ui #history-chart-current { font-size: 0.74rem; white-space: normal; }
+
+  /* ==========================================================================
+     §8 · 图例（§2.2.8）：圆形缩略按钮 + modal
+     ========================================================================== */
+  html.mobile-ui #legend {
+    right: 8px;
+    bottom: calc(var(--dock-h) + 8px);
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    max-height: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 0;
+    line-height: 1;
+    z-index: 1380;
+    touch-action: manipulation;
+  }
+
+  html.mobile-ui #legend > div { display: none; }
+
+  html.mobile-ui #legend::before {
+    content: '图例';
+    color: #222;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  html.mobile-ui #legend-modal {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    z-index: 1600;
+  }
+
+  html.mobile-ui #legend-modal-content {
+    max-height: 72vh;
+    width: 94%;
+    padding: 18px 16px;
+    border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
+  }
+
+  html.mobile-ui #legend-modal-content h3 { font-size: 1.05rem; margin-bottom: 10px; }
+
+  html.mobile-ui .legend-section h4 { font-size: 0.85rem; }
+
+  html.mobile-ui .legend-item { font-size: 0.9rem; line-height: 1.45; }
+
+  html.mobile-ui #legend-close {
+    top: 6px;
+    right: 6px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    font-size: 1.2rem;
+  }
+
+  /* ==========================================================================
+     §9 · 快讯条（§2.2.9）：位于 #title 下方
+     ========================================================================== */
+  html.mobile-ui #news-ticker {
+    left: 8px;
+    right: 8px;
+    top: 52px;
+    transform: none;
+    max-width: none;
+    min-width: 0;
+    width: auto;
+    box-sizing: border-box;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    padding: 4px 50px 4px 10px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    z-index: 1230;
+  }
+
+  html.mobile-ui #news-ticker .ticker-content { font-size: 0.72rem; }
+
+  html.mobile-ui #news-ticker-close {
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  /* ==========================================================================
+     §10 · 大湾区标签（§2.2.10）：不与 #title 重叠
+     ========================================================================== */
+  html.mobile-ui #gba-label {
+    top: 52px;
+    left: 8px;
+    right: auto;
+    font-size: 0.72rem;
+    padding: 5px 10px;
+    border-radius: 12px;
+    max-width: calc(100vw - 16px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 1220;
+  }
+
+  /* ==========================================================================
+     §11 · 测距信息条（§2.2.11）
+     ========================================================================== */
+  html.mobile-ui #measure-info {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--dock-h) + 8px);
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    z-index: 1420;
+  }
+
+  html.mobile-ui #measure-info #measure-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html.mobile-ui #measure-info button {
+    flex: 0 0 auto;
+    min-width: 56px;
+    min-height: 40px;
+    font-size: 0.8rem;
+  }
+
+  /* ==========================================================================
+     §12 · 关注区小窗（§2.2.12）
+     §1 禁止改其拖拽 JS；用户拖拽/缩放写 inline left/top/width/height，
+     因此这里**一律不用 !important**：mobile-ui.js 的 hookFocusWindow() 会在
+     「用户尚未手动拖过」时清掉 inline 定位，让它落到下面这些值上；
+     用户一旦拖过就永久交给 inline（桌面同款交互不被破坏）。
+     ========================================================================== */
+  html.mobile-ui #focus-window {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(var(--dock-h) + 8px);
+    width: auto;
+    min-width: 0;
+    max-width: calc(100vw - 16px);
+    height: 36vh;
+    min-height: 0;
+    max-height: calc(100vh - var(--dock-h) - 16px);
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1350;
+  }
+
+  html.mobile-ui #focus-window-header {
+    padding: 4px 8px 4px 12px;
+    min-height: 44px;
+    font-size: 0.82rem;
+  }
+
+  html.mobile-ui #focus-window-close {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.2rem;
+  }
+
+  html.mobile-ui #focus-window-resize { width: 24px; height: 24px; }   /* §2.2.12 把手 ≥20px */
+
+  /* ==========================================================================
+     §13 · 已完成于 Dock 行1（#eye-coord，见上）
+     兜底：若 JS 未搬移，仍保证字号与可读性
+     ========================================================================== */
+  html.mobile-ui #eye-coord { font-size: 0.78rem; }
+
+  /* ==========================================================================
+     §14 · 触控目标（§2.2.14）
+     ========================================================================== */
+  html.mobile-ui button,
+  html.mobile-ui .md-tab,
+  html.mobile-ui .vs-item,
+  html.mobile-ui .compare-item,
+  html.mobile-ui .history-item,
+  html.mobile-ui .cal-cell {
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html.mobile-ui #mobile-dock .md-tab { min-height: 48px; }   /* Dock 标签 ≥48px */
+
+  html.mobile-ui #playback-controls button:active { transform: none; }
+
+  /* 触屏没有 hover：去掉悬停才出现的提示气泡（会溢出屏幕且会残留） */
+  html.mobile-ui #tool-controls button::after,
+  html.mobile-ui #playback-controls button[data-tip]::after {
+    content: none;
+    display: none;
+  }
+
+  html.mobile-ui #left-panel-content tr:hover { background: transparent; }
+  html.mobile-ui .history-item:hover { background: transparent; transform: none; }
+  html.mobile-ui #legend:hover { background: rgba(255, 255, 255, 0.92); }
+  html.mobile-ui #wind-toggle:hover,
+  html.mobile-ui #measure-info button:hover { background: #f0f0f0; }
+  html.mobile-ui #focus-menu button:hover { background: transparent; }
+
+  /* 触屏用 .active 表达选中态（§2.2.14） */
+  html.mobile-ui #focus-menu button.active,
+  html.mobile-ui #measure-info button:active { background: #e3f2fd; border-color: #1976d2; }
+
+  /* ==========================================================================
+     §15 · 层级与手势（§2.2.15）：不出现在全屏透明容器
+     JS 会写 .md-hidden（#time-display、#left-panel-toggle 等）与 .md-wide
+     ========================================================================== */
+  html.mobile-ui .md-hidden { display: none !important; }
+  html.mobile-ui .md-wide { width: 100%; box-sizing: border-box; }
+
+  /* #btn-clean-exit 会被 JS 搬进「设置」Sheet 并加 .md-wide：
+     未搬移时（仍是 body 直接子节点）留在右上角；搬进 Sheet 后回归普通按钮。 */
+  html.mobile-ui body > #btn-clean-exit {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    min-height: 44px;
+    padding: 8px 14px;
+    z-index: 1700;
+  }
+
+  html.mobile-ui #left-panel #btn-clean-exit,
+  html.mobile-ui .md-sheet #btn-clean-exit,
+  html.mobile-ui #mobile-dock #btn-clean-exit {
+    position: static;
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 0.86rem;
+  }
+
+  html.mobile-ui #news-ticker .ticker-content { pointer-events: none; }
+
+  /* ==========================================================================
+     §18 · 性能（§2.2.18）：大面积元素去 backdrop-filter、收小阴影
+     ========================================================================== */
+  html.mobile-ui #mobile-dock,
+  html.mobile-ui #left-panel,
+  html.mobile-ui #hazard-radar,
+  html.mobile-ui #history-chart,
+  html.mobile-ui #legend-modal-content,
+  html.mobile-ui #layer-switcher,
+  html.mobile-ui #tool-controls {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* ==========================================================================
+     §16 · 窄屏（≤374px）：省略风眼坐标，保证行1（含时钟位）不横向溢出
+     §2.2.1 允许「窄屏省略 #eye-coord」
+     ========================================================================== */
+  @media (max-width: 374px) {
+    html.mobile-ui #mobile-dock #eye-coord { display: none; }
+    html.mobile-ui #mobile-dock #speed-select { max-width: 50px; font-size: 0.68rem; }
+    html.mobile-ui #mobile-dock #time-display { max-width: 92px; font-size: 0.72rem; }
+  }
+
+  /* ==========================================================================
+     §17 · 横屏/矮屏（§2.2.17）：Dock 压缩为单行标签栏，地图可用高度 ≥55vh
+     #time-slider 与播放控制并排成一行（行1），#time-ticks 隐藏，
+     #playback-controls 收紧到 32px。
+     ========================================================================== */
+  @media (max-height: 480px) {
+    html.mobile-ui #mobile-dock {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 3px 6px;
+      padding: 4px 8px calc(4px + var(--md-safe-b, env(safe-area-inset-bottom, 0px)));
+    }
+
+    html.mobile-ui #mobile-dock .md-time {
+      flex: 0 1 auto;
+      width: auto;
+      min-height: 32px;
+      justify-content: flex-start;
+    }
+
+    html.mobile-ui #mobile-dock .md-slider {
+      flex: 1 1 120px;
+      width: auto;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    html.mobile-ui #mobile-dock .md-slider #time-ticks { display: none; }
+
+    html.mobile-ui #mobile-dock #time-slider { height: 32px; }
+
+    html.mobile-ui #mobile-dock #playback-controls { flex: 0 1 auto; }
+
+    html.mobile-ui #mobile-dock #playback-controls button {
+      flex: 0 1 32px;
+      min-width: 28px;
+      min-height: 32px;
+      font-size: 0.9rem;
+    }
+
+    html.mobile-ui #mobile-dock #speed-select { min-height: 32px; }
+    html.mobile-ui #mobile-dock #time-display { max-width: 108px; font-size: 0.72rem; }
+
+    html.mobile-ui #mobile-dock .md-tabs { flex: 1 1 100%; }
+
+    html.mobile-ui #mobile-dock .md-tab {
+      min-height: 44px;
+      flex-direction: row;
+      gap: 5px;
+    }
+
+    html.mobile-ui #mobile-dock .md-tab .md-ico,
+    html.mobile-ui #mobile-dock .md-tab .md-icon,
+    html.mobile-ui #mobile-dock .md-tab > :first-child { font-size: 1rem; }
+
+    html.mobile-ui #mobile-dock .md-tab svg { width: 18px; height: 18px; }
+
+    html.mobile-ui #left-panel { height: 72vh; }
+
+    html.mobile-ui #history-chart { top: 56px; }
+
+    html.mobile-ui #news-ticker { top: 48px; min-height: 40px; }
+
+    html.mobile-ui #gba-label { top: 50px; }
+  }
+}
