@@ -2,12 +2,12 @@
  * ---------------------------------------------------------------------------
  * 由 .dev/gen-i18n-dict.mjs 生成，请勿手改：
  *   基础词表 .dev/i18n-en.json（263 条，覆盖 HTML 文本节点 + JS 字符串字面量）
- *   + 属性值补充 37 条（title / data-tip / aria-label… 的**值**）
+ *   + 属性值补充 63 条（title / data-tip / aria-label… 的**值**）
  *   + 扫描器拆分修复 1 条
  *   + 台风首字徽标 3 条
  *   + 从 HTML 片段派生的纯文本词条 54 条（运行时拿到的是文本节点，不是片段）
  *   + 实体别名 6 条（源码 &lt; ↔ 运行时 <）
- * 共 364 条。
+ * 共 383 条。
  * 重新生成：node .dev/gen-i18n-dict.mjs
  */
 window.__I18N_DICT = {
@@ -66,7 +66,6 @@ window.__I18N_DICT = {
   "<div>附近风速：暂无数据</div>": "<div>Nearby wind speed: no data</div>",
   "<div>预警级别：<span class=\"port-risk-level\" style=\"color:": "<div>Warning level: <span class=\"port-risk-level\" style=\"color:",
   "<div>风向：": "<div>Wind direction: ",
-  "<span class=\"dashed-sample\"></span>省界": "<span class=\"dashed-sample\"></span>Provincial boundary",
   "<span class=\"history-now\">当前</span>": "<span class=\"history-now\">Current</span>",
   "<span class=\"hr-dim\">维度</span><span class=\"hr-val orig\">原场</span>": "<span class=\"hr-dim\">Dimension</span><span class=\"hr-val orig\">Original</span>",
   "<span class=\"hr-val corr\">订正</span><span class=\"hr-delta\">Δ</span></div>": "<span class=\"hr-val corr\">Corrected</span><span class=\"hr-delta\">Δ</span></div>",
@@ -76,7 +75,6 @@ window.__I18N_DICT = {
   "<span class=\"legend-wind-item\"><i style=\"background:#f44336\"></i>台风（24.5-32.6）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#f44336\"></i>Typhoon (24.5-32.6)</span>",
   "<span class=\"legend-wind-item\"><i style=\"background:#ff9800\"></i>强热带风暴（17.2-24.4）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#ff9800\"></i>Severe Tropical Storm (17.2-24.4)</span>",
   "<span class=\"legend-wind-item\"><i style=\"background:#ffca28\"></i>热带风暴（10.9-17.1）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#ffca28\"></i>Tropical Storm (10.9-17.1)</span>",
-  "<span class=\"line-sample\" style=\"background:#555;\"></span>国界/海岸线": "<span class=\"line-sample\" style=\"background:#555;\"></span>National border / coastline",
   "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#2e7d32\"></i>I 低</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#2e7d32\"></i>I Low</span>",
   "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#7b1fa2\"></i>V 极高</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#7b1fa2\"></i>V Very high</span>",
   "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#d32f2f\"></i>IV 高</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#d32f2f\"></i>IV High</span>",
@@ -96,8 +94,6 @@ window.__I18N_DICT = {
   "localhost / 127.0.0.1 只在本机有效，手机扫码打不开。请点「换成局域网 IP」并把 IP 改成你电脑的地址。": "localhost / 127.0.0.1 only works on this machine, so the QR code will not open on a phone. Click \"Switch to LAN IP\" and change the IP to your computer's address.",
   "✓ 已复制": "✓ Copied",
   "　总计：<b>": "　Total: <b>",
-  "【台风快讯】加载中...": "[Typhoon Bulletin] Loading...",
-  "【台风快讯】台风\"": "[Typhoon Bulletin] Typhoon \"",
   "一": "Mon",
   "一般": "Moderate",
   "三": "Wed",
@@ -129,13 +125,11 @@ window.__I18N_DICT = {
   "台风强度等级（根据最大风速）": "Typhoon intensity category (based on maximum wind speed)",
   "台风路径数据": "Typhoon track data",
   "四": "Thu",
-  "国界/海岸线": "National border / coastline",
   "图例": "Legend",
   "图例说明": "Legend",
   "图层": "Layers",
   "地址格式无法识别，建议以 http:// 或 https:// 开头，例如 http://192.168.1.20:8899/": "Unrecognised address format. Use an address starting with http:// or https://, for example http://192.168.1.20:8899/",
   "地址过长，无法生成二维码（": "Address too long to generate a QR code (",
-  "地形图": "Terrain map",
   "多边形": "Polygon",
   "多边形模式：点击添加顶点，双击闭合": "Polygon mode: click to add vertices, double-click to close",
   "大亚湾核电基地": "Daya Bay Nuclear Power Base",
@@ -152,8 +146,6 @@ window.__I18N_DICT = {
   "山竹/": "山竹/",
   "山竹_corr/": "山竹_corr/",
   "峰值 ": "Peak ",
-  "手机扫码进入": "Scan the QR code to open on your phone",
-  "点击查看详情": "Click for details",
   "巅峰": "Peak",
   "巅峰1": "Peak 1",
   "巅峰2": "Peak 2",
@@ -218,7 +210,6 @@ window.__I18N_DICT = {
   "生成": "Formation",
   "登陆": "Landfall",
   "盐田港": "Yantian Port",
-  "省界": "Provincial boundary",
   "矩形": "Rectangle",
   "矩形模式：按住拖拽绘制矩形，松开完成": "Rectangle mode: press and drag to draw a rectangle, release to finish",
   "福田站": "Futian Station",
@@ -241,13 +232,6 @@ window.__I18N_DICT = {
   "蛇口港": "Shekou Port",
   "行政地图": "Administrative map",
   "视图": "View",
-  "分析图表": "Charts",
-  "收起": "Hide",
-  /* ⑩ 修：按钮的 title / aria-label 是整串「收起全部浮层」，而词表只有「收起」，
-     t() 落到短语替换只命中前半截 → 英文下露出 "Hide全部浮层"（可见文本恰好是
-     「收起」走 exact 命中，所以只有 tooltip/无障碍标签露馅）。补整串精确条目，
-     exact 表优先命中，不再进短语替换。 */
-  "收起全部浮层": "Hide all overlays",
   "订正后风速变化 (m/s)": "Wind speed change after correction (m/s)",
   "订正场": "Corrected",
   "设施暴露": "Facility exposure",
@@ -320,6 +304,32 @@ window.__I18N_DICT = {
   "选择要对比的台风": "Select a typhoon to compare",
   "锁定台风风眼，视图跟随台风": "Lock the typhoon eye and follow it",
   "风场透明度": "Wind field opacity",
+  "收起全部浮层": "Hide all overlays",
+  "分析图表": "Charts",
+  "收起": "Hide",
+  "【历史个例回放】加载中...": "[Historical replay] Loading...",
+  "【历史个例回放】台风\"": "[Historical replay] Typhoon \"",
+  "【历史回放 · 非实时预报】台风\"": "[Historical replay · not a live forecast] Typhoon \"",
+  "台山核电科普基地（对外开放）": "Taishan Nuclear Power Science Education Base (open to the public)",
+  "大亚湾核电科普基地（对外开放）": "Daya Bay Nuclear Power Science Education Base (open to the public)",
+  "大鹏LNG能源科普参观基地（对外开放）": "Dapeng LNG Energy Science Education & Visitor Base (open to the public)",
+  "数据来源": "Data sources",
+  "开源许可": "Open-source licences",
+  "行政底图：国家地理信息公共服务平台「天地图」，审图号 GS（2026）4921号（甲测资字 11110974）。": "Administrative basemap: Tianditu, the National Platform for Common Geospatial Information Services. Map approval number GS(2026)4921 (surveying and mapping qualification no. 11110974).",
+  "卫星影像：Esri World Imagery（Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community）。": "Satellite imagery: Esri World Imagery (Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community).",
+  "陆地掩膜：Natural Earth 1:50m（公有领域）。风场与台风数据：WRF 模式输出，经本项目自研订正算法处理。": "Land mask: Natural Earth 1:50m (public domain). Wind field and typhoon data: WRF model output, processed by this project's own correction algorithm.",
+  "本页不自行绘制国界、省界等政治边界，边界表示以底图服务商经审核批准的内容为准。": "This page does not draw national or provincial boundaries itself; boundary representation follows the reviewed and approved content of the basemap service provider.",
+  "Leaflet 1.9.4 — BSD-2-Clause，(c) 2010-2023 Vladimir Agafonkin，(c) 2010-2011 CloudMade": "Leaflet 1.9.4 — BSD-2-Clause, (c) 2010-2023 Vladimir Agafonkin, (c) 2010-2011 CloudMade",
+  "topojson-client — ISC License，(c) 2012-2016 Mike Bostock": "topojson-client — ISC License, (c) 2012-2016 Mike Bostock",
+  "html2canvas — MIT License，(c) 2012 Niklas von Hertzen": "html2canvas — MIT License, (c) 2012 Niklas von Hertzen",
+  "@msgpack/msgpack — ISC License，(c) 2016 Yusuke Kawasaki": "@msgpack/msgpack — ISC License, (c) 2016 Yusuke Kawasaki",
+  "QR 编码器为本项目自研实现（MIT 许可，依据 ISO/IEC 18004）。": "The QR encoder is this project's own implementation (MIT licence, based on ISO/IEC 18004).",
+  "审图号 GS（2026）4921号（甲测资字 11110974）": "Map approval no. GS(2026)4921",
+  "未配置天地图 Key": "Tianditu key not configured",
+  "⚠ 行政底图未配置": "⚠ Administrative basemap not configured",
+  "需先在 index.html 的 TDT_KEY 处填入天地图 Key": "Fill in the Tianditu key at TDT_KEY in index.html first",
+  "手机扫码进入": "Scan the QR code to open on your phone",
+  "点击查看详情": "Click for details",
   "台风路径（按强度分段着色，两点间距>3°断开）": "Typhoon track (coloured by intensity; broken where points are more than 3° apart)",
   "桦": "R",
   "山": "M",
