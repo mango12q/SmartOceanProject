@@ -7,6 +7,7 @@
  *   2. 括号配平：{} / () / []
  *   3. 无外链：@import / http(s) / url(...) / @font-face / src:
  *   4. 门控：顶层只允许 @media (max-width:768px)；所有规则以 html.mobile-ui 前缀
+ *      —— 带【已登记的例外白名单】，理由见本文件 §2.1 段注释与 SPEC.md §2.1
  *   5. --dock-h fallback、env(safe-area-inset-bottom)、.md-scrim 默认不可见
  *   6. SPEC §2.2 十八条的必需选择器覆盖
  *   7. Dock 高度预算 ≤168px（按文件中的数值静态估算）
@@ -212,37 +213,111 @@ check('§2.3.2 url() 仅允许 data:', () => {
 });
 
 /* 4. 门控 ---------------------------------------------------------------- */
-check('§2.1 顶层只有 @media (max-width:768px)', () => {
-  const bad = topLevel.filter(
-    (n) => n.kind !== 'at-rule' || !/^@media\s*\(\s*max-width\s*:\s*768px\s*\)$/i.test(n.prelude.replace(/\s+/g, ' '))
-  );
+/*
+ * §2.1 例外白名单（2026-09-30 记录；SPEC.md §2.1 已同步此约定）
+ *
+ * SPEC §2.1 原文要求「所有规则包在 @media (max-width:768px) { html.mobile-ui {…} }」。
+ * mobile.css 末尾的 §0 / §0.5 / §0.5b / §0.6（首屏兜底 + Dock 行1/行2 分区）物理上位于
+ * 顶层断点【之外】，其中还含一条 PC 侧规则。两类例外各有硬理由，是设计而非疏漏：
+ *
+ * E1 · PC 侧默认规则 —— `#btn-loop .loop-svg { display: none; }`
+ *      #btn-loop 内同时放了 🔁 emoji（.loop-emoji）与 <svg class="loop-svg">，靠这条
+ *      规则在【桌面端】藏掉 SVG。若把它包进 max-width:768px，桌面端 emoji 与 SVG 会
+ *      同时显示（两个图标叠加）—— 真实视觉回归，故必须留在顶层、且不带前缀。
+ *
+ * E2 · 顶层「首屏兜底 + Dock 分区」规则块 —— 其余 11 条 rule + 1 个 at-rule
+ *      全部带 html.mobile-ui 前缀。该前缀与 768px 断点是【同一个判定条件】：
+ *      index.html 在 <head> 首屏脚本里同步执行
+ *        matchMedia('(max-width:768px)').matches → html.classList.add('mobile-ui')
+ *      （该脚本注释明言「判定条件与 mobile-ui.js 保持一致」），且执行在 <style> 之前。
+ *      因此对这些规则而言外层断点是【逻辑冗余】—— 包与不包行为完全一致，而
+ *      「桌面端零影响」这一安全属性已由前缀本身保证。§0 还需依赖
+ *      `html.mobile-ui:not(.mobile-ready)` 这个「类已加、build() 未完成」的中间态，
+ *      保持顶层更易读，故不搬进断点。
+ *
+ * 白名单按【精确选择器 / at-rule 前奏】匹配（空白归一后），未列出的新顶层规则一律挡下。
+ */
+const normPrelude = (s) => s.replace(/\s+/g, ' ').trim();
+const isGatePrelude = (s) => /^@media\s*\(\s*max-width\s*:\s*768px\s*\)$/i.test(normPrelude(s));
+
+// E2：顶层规则（全部带 html.mobile-ui 前缀，与 768px 断点等价）
+const GATE_RULE_EXCEPTIONS = new Set([
+  'html.mobile-ui:not(.mobile-ready) body > *:not(#map):not(#title):not(#news-ticker)',
+  'html.mobile-ui #mobile-dock .md-time',
+  'html.mobile-ui #mobile-dock #playback-controls',
+  'html.mobile-ui #mobile-dock #playback-controls button',
+  'html.mobile-ui #mobile-dock #time-display',
+  'html.mobile-ui #mobile-dock #btn-loop',
+  'html.mobile-ui #mobile-dock #btn-loop:active',
+  'html.mobile-ui #mobile-dock .md-clock',
+  'html.mobile-ui #mobile-dock #btn-loop .loop-emoji',
+  'html.mobile-ui #mobile-dock #btn-loop .loop-svg',
+  'html.mobile-ui #mobile-dock #speed-select',
+  // E1：PC 侧默认规则（无前缀，必须作用于桌面端）
+  '#btn-loop .loop-svg',
+]);
+
+// E2：顶层 at-rule（§0.5b 矮屏/横屏让位）；其内层规则同样在 E2 范围内
+const GATE_AT_EXCEPTIONS = new Set([
+  '@media (max-height: 480px)',
+]);
+
+// E1：允许不带 html.mobile-ui 前缀的选择器
+const PREFIX_EXCEPTIONS = new Set([
+  '#btn-loop .loop-svg',
+]);
+
+check('§2.1 顶层仅 768px 断点（含已登记例外）', () => {
+  const bad = [];
+  let exempt = 0;
+  for (const n of topLevel) {
+    const p = normPrelude(n.prelude);
+    if (isGatePrelude(p)) continue;
+    if (n.kind === 'at-rule' ? GATE_AT_EXCEPTIONS.has(p) : GATE_RULE_EXCEPTIONS.has(p)) exempt++;
+    else bad.push(n.kind + ' ' + p.slice(0, 40));
+  }
   return {
     ok: topLevel.length > 0 && bad.length === 0,
-    detail: '顶层块 ' + topLevel.length + ' 个，违规: ' + bad.map((n) => n.prelude.slice(0, 30)).join(' | '),
+    detail: '顶层 ' + topLevel.length + ' 块（断点 1 + 白名单例外 ' + exempt + '），违规: ' + (bad.join(' | ') || '无'),
   };
 });
 
-check('§2.1 每条规则以 html.mobile-ui 前缀', () => {
+check('§2.1 每条规则以 html.mobile-ui 前缀（E1 除外）', () => {
   const bad = [];
   for (const { node, chain } of rules) {
     if (chain.some((p) => /^@keyframes/i.test(p))) continue; // 关键帧内部选择器豁免
     const sels = splitSelectors(node.prelude);
     if (!sels.length) bad.push('(空选择器)');
     for (const s of sels) {
+      if (PREFIX_EXCEPTIONS.has(s)) continue;
       if (!/^html\.mobile-ui(\b|[.:#\s>+~\[])/.test(s) && s !== 'html.mobile-ui') bad.push(s);
     }
   }
-  return { ok: bad.length === 0, detail: bad.slice(0, 6).join(' | ') };
+  return { ok: bad.length === 0, detail: bad.slice(0, 6).join(' | ') || '无' };
 });
 
-check('§2.1 所有规则都嵌在 768px 断点内', () => {
-  // 顶层块已由上一项校验；这里要求每条样式规则、每个嵌套断点的祖先链里都有 768px 媒体查询
-  const inGate = (chain) =>
-    chain.some((p) => /^@media\s*\(\s*max-width\s*:\s*768px\s*\)$/i.test(p.replace(/\s+/g, ' ')));
-  const bad = all
-    .filter((x) => (x.node.kind === 'rule' || x.chain.length > 0) && !inGate(x.chain))
-    .map((x) => x.node.prelude.slice(0, 40));
-  return { ok: bad.length === 0, detail: bad.slice(0, 4).join(' | ') };
+check('§2.1 所有规则都嵌在 768px 断点内（含已登记例外）', () => {
+  // 顶层块已由本段第一项校验；这里要求每条样式规则、每个嵌套断点的祖先链里都有 768px 媒体查询
+  const bad = [];
+  for (const x of all) {
+    if (x.node.kind !== 'rule' && x.chain.length === 0) continue;
+    const chain = x.chain.map(normPrelude);
+    if (chain.some(isGatePrelude)) continue; // 正常：在断点内
+    if (chain.length === 0 && GATE_RULE_EXCEPTIONS.has(normPrelude(x.node.prelude))) continue; // E1/E2 顶层规则
+    if (chain.length > 0 && chain.every((p) => GATE_AT_EXCEPTIONS.has(p))) continue; // E2 白名单断点内层
+    bad.push(normPrelude(x.node.prelude).slice(0, 40));
+  }
+  return { ok: bad.length === 0, detail: bad.slice(0, 4).join(' | ') || '无' };
+});
+
+check('§2.1 例外白名单无失效条目', () => {
+  const seenRules = new Set(all.filter((x) => x.node.kind === 'rule').map((x) => normPrelude(x.node.prelude)));
+  const seenAt = new Set(topLevel.filter((n) => n.kind === 'at-rule').map((n) => normPrelude(n.prelude)));
+  const stale = [];
+  for (const s of GATE_RULE_EXCEPTIONS) if (!seenRules.has(s)) stale.push('顶层规则: ' + s);
+  for (const s of GATE_AT_EXCEPTIONS) if (!seenAt.has(s)) stale.push('顶层断点: ' + s);
+  for (const s of PREFIX_EXCEPTIONS) if (!seenRules.has(s)) stale.push('无前缀规则: ' + s);
+  return { ok: stale.length === 0, detail: stale.length ? '失效: ' + stale.join(' | ') : '全部命中' };
 });
 
 /* 5. 变量 / 安全区 / 蒙层 ------------------------------------------------- */

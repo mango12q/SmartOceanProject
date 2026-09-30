@@ -51,13 +51,24 @@
 
 ### 2.1 形态与门控
 
-- 纯 CSS 文件，**所有规则**必须包在：
+- 纯 CSS 文件，**移动端规则**必须包在：
   ```css
   @media (max-width: 768px) {
     html.mobile-ui { ... }
   }
   ```
   外层断点保证桌面端零影响；`html.mobile-ui` 由 JS 加上（双保险，也用于真机/模拟器一致）。
+- **例外（2026-09-30 补记：实现先行，规范追认）** —— 以下两类规则在物理上不满足上述包裹，
+  各有硬理由，**逐条登记**在 `mobile/selftest-css.mjs` 的白名单里：
+
+  | # | 例外 | 位置 | 为什么不能进断点 |
+  |---|---|---|---|
+  | **E1** | `#btn-loop .loop-svg { display: none; }` | `mobile.css` 顶层，且**无** `html.mobile-ui` 前缀 | 这是 **PC 侧默认规则**：`#btn-loop` 内同时放了 🔁 emoji（`.loop-emoji`）与 `<svg class="loop-svg">`，靠它在**桌面端**藏掉 SVG。进断点会导致桌面端两个图标叠加显示 |
+  | **E2** | §0 / §0.5 / §0.5b / §0.6，共 11 条规则 + 1 个 `@media (max-height: 480px)` | `mobile.css` 末尾（768px 断点块**之外**的顶层） | 全部带 `html.mobile-ui` 前缀，而该前缀与 768px 断点是**同一个判定条件**：`index.html` 的 `<head>` 首屏脚本按 `matchMedia('(max-width:768px)')` 同步加类，且执行在 `<style>` 之前（脚本注释明言「判定条件与 mobile-ui.js 保持一致」）。故外层断点对这些规则是**逻辑冗余**，包与不包行为完全一致 |
+
+- **安全属性由 `html.mobile-ui` 前缀本身保证**（桌面端零影响），外层断点是冗余的双保险。
+- 白名单按**精确选择器**匹配，未登记的新顶层规则一律被测试挡下；测试另有
+  `§2.1 例外白名单无失效条目` 一项，规则删除后必须同步删除白名单条目。
 - 文件首行注释 `/* mobile.css — inlined into index.html by Lead; do not reference externally */`。
 - **禁止** `@import`、外部字体、`url(http...)`。
 - 允许覆盖既有 768/480 规则（本文件在 `<style>` 末尾内联，靠后即生效）。
