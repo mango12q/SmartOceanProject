@@ -23,9 +23,10 @@
     /* ------------------------------------------------------------ 样式 */
     var CSS =
         '#qr-modal{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;' +
+        'padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);' +
         'background:rgba(8,20,35,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}' +
         '#qr-modal.open{display:flex;}' +
-        '#qr-modal .qr-box{width:352px;max-width:94vw;max-height:92vh;overflow-y:auto;background:#fff;border-radius:16px;' +
+        '#qr-modal .qr-box{width:352px;max-width:94vw;max-height:92vh;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px);overflow-y:auto;background:#fff;border-radius:16px;' +
         'box-shadow:0 18px 48px rgba(0,0,0,.35);padding:16px 18px 18px;color:#1a2b3c;}' +
         '#qr-modal .qr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}' +
         '#qr-modal .qr-head h3{font-size:1rem;font-weight:700;color:#0d47a1;letter-spacing:.04em;}' +

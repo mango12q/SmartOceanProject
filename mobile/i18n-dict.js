@@ -152,6 +152,8 @@ window.__I18N_DICT = {
   "山竹/": "山竹/",
   "山竹_corr/": "山竹_corr/",
   "峰值 ": "Peak ",
+  "手机扫码进入": "Scan the QR code to open on your phone",
+  "点击查看详情": "Click for details",
   "巅峰": "Peak",
   "巅峰1": "Peak 1",
   "巅峰2": "Peak 2",
@@ -239,6 +241,13 @@ window.__I18N_DICT = {
   "蛇口港": "Shekou Port",
   "行政地图": "Administrative map",
   "视图": "View",
+  "分析图表": "Charts",
+  "收起": "Hide",
+  /* ⑩ 修：按钮的 title / aria-label 是整串「收起全部浮层」，而词表只有「收起」，
+     t() 落到短语替换只命中前半截 → 英文下露出 "Hide全部浮层"（可见文本恰好是
+     「收起」走 exact 命中，所以只有 tooltip/无障碍标签露馅）。补整串精确条目，
+     exact 表优先命中，不再进短语替换。 */
+  "收起全部浮层": "Hide all overlays",
   "订正后风速变化 (m/s)": "Wind speed change after correction (m/s)",
   "订正场": "Corrected",
   "设施暴露": "Facility exposure",

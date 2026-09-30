@@ -176,6 +176,7 @@
 
         // 动态内容：主逻辑插入的表格行/弹窗/图例/快讯文本，以及 mobile-ui.js 建的 Dock/Sheet
         var scheduled = false;
+        var pendingText = [];   // ⑰：待翻译的 characterData 目标（去重）
         new MutationObserver(function (recs) {
             if (lang !== EN) return;
             for (var i = 0; i < recs.length; i++) {
@@ -185,13 +186,24 @@
                         var an = r.addedNodes[j];
                         if (an.nodeType === 3 || an.nodeType === 1) walk(an, EN);
                     }
+                } else if (r.type === 'characterData') {
+                    /* ⑰ 修：只记下真正变了的文本节点，别再整篇重扫。
+                       原来无论什么变动都 walk(el = document.documentElement)，于是英文模式下
+                       播放时每 tick 重建 marker/表格/快讯的 DOM 都会触发一次全文档 TreeWalker。
+                       MutationRecord 本身已经指明了变更目标，定向处理即等价。 */
+                    if (pendingText.indexOf(r.target) < 0) pendingText.push(r.target);
                 }
             }
             // characterData（textContent 被整体替换的句子）合并到下一帧统一处理，
             // 避免逐字抖动、也避免观察器回调里再触发回调造成风暴。
             if (!scheduled) {
                 scheduled = true;
-                requestAnimationFrame(function () { scheduled = false; walk(el, lang); });
+                requestAnimationFrame(function () {
+                    scheduled = false;
+                    var batch = pendingText;
+                    pendingText = [];
+                    for (var k = 0; k < batch.length; k++) walk(batch[k], lang);
+                });
             }
         }).observe(el, { childList: true, subtree: true, characterData: true });
 

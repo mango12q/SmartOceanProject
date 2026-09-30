@@ -16,8 +16,17 @@
     --md-line: rgba(21, 101, 192, 0.18);
     --md-sheet-bg: #ffffff;
     --md-shadow: 0 -2px 10px rgba(13, 71, 161, 0.18);
-    /* 关键色：Dock 必须完全不透明 —— 半透明时拖动地图会透出底图，形成「白框」观感 */
-    --md-dock-bg: #ffffff;
+    /* Dock 背景半透明（2026-09-26 用户要求「透明度调低一点」）——只让背景透，
+       文字与图标保持不透明。旧注释曾记「必须完全不透明：半透明时拖动地图会透出
+       底图，形成白框观感」，那是更早一版的设计取舍；若观感回退，把下面的 rgba
+       改回 #ffffff 即可。 */
+    /* ③ 2026-09-27 用户要「更透 + 科技感」：0.86 → 0.58，并从纯白改成冷调（淡蓝白）。
+       --md-dock-bg 是中段色，仍是唯一的主调节点；上下两段只负责做出玻璃的明暗层次。
+       ⚠ 刻意仍不开 backdrop-filter：§2.2.18 起移动端整体关模糊省性能，Dock 又常驻底部、
+       地图平移/缩放时每帧都要重绘它。若要磨砂效果需单独评估。 */
+    --md-dock-bg: rgba(246, 251, 255, 0.58);
+    --md-dock-bg-hi: rgba(255, 255, 255, 0.80);
+    --md-dock-bg-lo: rgba(222, 238, 255, 0.64);
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
 
@@ -61,9 +70,12 @@
     gap: 3px;
     box-sizing: border-box;
     padding: 4px 8px calc(5px + var(--md-safe-b, env(safe-area-inset-bottom, 0px)));
-    background: var(--md-dock-bg);                  /* §2.2.18：完全不透明纯色，不用 backdrop-filter */
-    border-top: 1px solid var(--md-line);
-    box-shadow: var(--md-shadow);                   /* 模糊 ≤12px */
+    /* ③ 玻璃感三件套：竖向渐变（上亮下冷的层次）＋ 冷色描边线 ＋ 外发光与顶部内高光。
+       子元素（播放键 / 标签 / 时间读数）本来就是透明底，所以只改这一处即可。 */
+    background: linear-gradient(180deg, var(--md-dock-bg-hi) 0%, var(--md-dock-bg) 45%, var(--md-dock-bg-lo) 100%);
+    border-top: 1px solid rgba(21, 101, 192, 0.38);
+    box-shadow: 0 -8px 28px rgba(13, 71, 161, 0.16),
+                0 -1px 0 rgba(255, 255, 255, 0.55) inset;
     color: #222;
     font-size: 0.82rem;
     touch-action: manipulation;
@@ -322,6 +334,7 @@
     border: none;
     border-radius: 0;
     box-shadow: none;
+    -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 
@@ -343,11 +356,13 @@
     width: auto;
     height: 60vh;
     max-height: calc(100vh - var(--dock-h));
+    max-height: calc(100dvh - var(--dock-h));
     z-index: 1400;
     border-radius: 14px 14px 0 0;
     border-top: 1px solid var(--md-line);
     background: var(--md-sheet-bg);
     box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.18);   /* §2.2.18 模糊 ≤12px */
+    -webkit-backdrop-filter: none;
     backdrop-filter: none;
     transform: translateY(105%);
     /* ⚠ 收起时必须 visibility:hidden。仅仅 translateY(105%) 不够：面板高 60vh、
@@ -384,19 +399,23 @@
 
   html.mobile-ui #left-panel-content {
     flex: 1 1 auto;
-    overflow: auto;                                 /* 表格横向可滚（§2.2.3） */
+    overflow-y: auto;                               /* 2026-09-25：不再横向滚，见下方 table */
     -webkit-overflow-scrolling: touch;
     padding: 6px 8px;
   }
 
+  /* 2026-09-25 修：这里原是「横向滚动」版（min-width:470px + 0.78rem + 8px/7px 内边距）。
+     它带 html.mobile-ui 前缀、特异性高于 PC 段的 #left-panel-content，所以 PC 段那套
+     「缩小字体 + 按列分百分比」在手机上被整段盖死 —— 用户反馈的「时间列留白大、强度折行」
+     在手机上一直没变。现对齐 PC 段：去掉 min-width，字号 0.72rem，内边距收紧。 */
   html.mobile-ui #left-panel-content table {
     width: 100%;
-    min-width: 470px;                               /* 触发横向滚动而非压缩换行 */
-    font-size: 0.78rem;
+    min-width: 0;                                   /* 关键：去掉 470px 才不再横向滚 */
+    font-size: 0.72rem;
   }
 
-  html.mobile-ui #left-panel-content th { padding: 8px 6px; }
-  html.mobile-ui #left-panel-content td { padding: 7px 6px; }
+  html.mobile-ui #left-panel-content th { padding: 5px 2px; }
+  html.mobile-ui #left-panel-content td { padding: 4px 2px; }
 
   /* 入口在 Dock 的 data 标签 */
   html.mobile-ui #left-panel-toggle { display: none !important; }
@@ -433,11 +452,20 @@
     border-top: 1px solid var(--md-line);
     border-radius: 14px 14px 0 0;
     box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.18);
+    -webkit-backdrop-filter: none;
     backdrop-filter: none;
     transform: translateY(105%);
     visibility: hidden;
     transition: transform 0.28s ease, visibility 0.28s ease;
     overscroll-behavior: contain;
+  }
+
+  /* ⑬a 修：下拉关闭拖动期间禁用过渡。JS 在 pointerdown 加 .md-dragging、
+     pointerup 去掉，但此前全文件没有一条 .md-dragging 规则 —— 这个类加了等于没加，
+     每帧写的内联 transform 仍被上面那条 0.28s transition 拖着走，手势明显滞后。
+     特异性 (0,3,1) 高于 .md-sheet 的 (0,2,1)，且 .md-sheet.open 未再声明 transition。 */
+  html.mobile-ui .md-sheet.md-dragging {
+    transition: none;
   }
 
   html.mobile-ui .md-sheet.open {
@@ -456,7 +484,7 @@
     padding: 2px 6px 2px 14px;
     border-bottom: 1px solid rgba(21, 101, 192, 0.12);
     touch-action: none;
-    user-select: none;
+    -webkit-user-select: none; user-select: none;
   }
 
   html.mobile-ui .md-sheet-title {
@@ -672,6 +700,7 @@
     background: transparent;
     border: none;
     box-shadow: none;
+    -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 
@@ -805,6 +834,7 @@
     background: transparent;
     border: none;
     box-shadow: none;
+    -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 
@@ -833,10 +863,12 @@
     min-width: 0;
     max-width: none;
     max-height: calc(100vh - var(--dock-h) - 24px);
+    max-height: calc(100dvh - var(--dock-h) - 24px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 12px;
     box-shadow: 0 -2px 12px rgba(13, 71, 161, 0.22);
+    -webkit-backdrop-filter: none;
     backdrop-filter: none;
     z-index: 1450;
   }
@@ -906,10 +938,12 @@
     width: auto;
     max-width: none;
     max-height: calc(100vh - var(--dock-h) - 70px);
+    max-height: calc(100dvh - var(--dock-h) - 70px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 12px;
     box-shadow: 0 -2px 10px rgba(13, 71, 161, 0.2);
+    -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 
@@ -982,6 +1016,7 @@
     padding: 6px 10px 6px;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(13, 71, 161, 0.18);
+    -webkit-backdrop-filter: none;
     backdrop-filter: none;
     z-index: 1250;
   }
@@ -1056,10 +1091,14 @@
     left: 0;
     right: 0;
     top: 0;
-    bottom: 0;
+    /* ⑪ 修：原来 bottom:0 + z-index:1600 把 Dock(1500) 整个盖住，
+       图例开着时点 Dock 标签，第一下被蒙层吃掉，要点两次。
+       z-index 1600 → 1495：低于 Dock(1500) 让 Dock 常驻可点，高于 .md-sheet.open(1490)。
+       bottom 同时收到 Dock 上沿 —— 否则内容（72vh 居中）下缘仍会落进 Dock 区域被遮。 */
+    bottom: calc(var(--dock-h, 150px));
     width: auto;
     height: auto;
-    z-index: 1600;
+    z-index: 1495;
   }
 
   html.mobile-ui #legend-modal-content {
@@ -1203,6 +1242,7 @@
     height: 36vh;
     min-height: 0;
     max-height: calc(100vh - var(--dock-h) - 16px);
+    max-height: calc(100dvh - var(--dock-h) - 16px);
     border-radius: 12px;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
     z-index: 1350;
@@ -1271,8 +1311,11 @@
   html.mobile-ui .md-hidden { display: none !important; }
   html.mobile-ui .md-wide { width: 100%; box-sizing: border-box; }
 
-  /* #btn-clean-exit 会被 JS 搬进「设置」Sheet 并加 .md-wide：
-     未搬移时（仍是 body 直接子节点）留在右上角；搬进 Sheet 后回归普通按钮。 */
+  /* ⚠ 别把 #btn-clean-exit 搬进任何 Sheet。它是 clean-mode（全屏）下唯一的逃生出口，
+     而 clean-mode 会把工具区与面板全部隐藏 —— 一旦搬进去，用户进了全屏就再也退不出来。
+     mobile-ui.js 的 moveNodes() / buildFabGroup() 都刻意不含它（那边的注释记着实测经过）。
+     下面这条规则靠 `body > #btn-clean-exit`（直接子选择器）把它钉在右上角，
+     所以它必须保持是 <body> 直接子节点。 */
   html.mobile-ui body > #btn-clean-exit {
     position: fixed;
     top: 8px;
@@ -1349,11 +1392,12 @@
      §2.2.1 允许「窄屏省略 #eye-coord」
      ========================================================================== */
   @media (max-width: 374px) {
-    html.mobile-ui #mobile-dock #eye-coord { display: none; }
-    html.mobile-ui #mobile-dock #speed-select { max-width: 44px; font-size: 0.66rem; }
-    html.mobile-ui #mobile-dock #time-display { max-width: 92px; font-size: 0.72rem; }
+    /* 2026-09-25：这里原有 #speed-select / #time-display 的窄屏压缩、以及 .md-time 的
+       padding-right（给绝对定位的 .md-clock 让位），都是 Dock 还在「单行塞下全部控件」
+       时代写的。拆成两行布局后，那三条已被后写的同优先级规则盖死（实测 computed 全是
+       none），纯属死代码，故删除。320px 下行2 = 102 + 66 + 66 = 234 ≤ 304，本来也不
+       需要压缩。.md-clock 现已隐藏，其规则留着无害，一并保留以便回滚。 */
     html.mobile-ui #mobile-dock .md-clock { max-width: 42px; }
-    html.mobile-ui #mobile-dock .md-time { padding-right: 46px; }
   }
 
   /* ==========================================================================
@@ -1423,3 +1467,133 @@
     html.mobile-ui #gba-label { top: 50px; }
   }
 }
+
+
+
+  /* ==========================================================================
+     §0 · 首屏防闪（2026-09-25）
+     本文件所有移动端规则都是按「JS 已把 #tool-controls / #layer-switcher /
+     #time-panel / #eye-coord 等搬进底部 Sheet 之后」的状态写的（见 §3.5、§5 注释）。
+     而搬移发生在 mobile-ui.js 的 build()，build() 又等主逻辑 window.__mainReady
+     —— 中间有 5800 行 JS + 数据加载，手机上实测约 1 秒。这段时间这些节点还停在
+     PC 原位上，用户会看到「左侧一整条桌面工具栏」闪一下。
+     兜底：build() 完成前先把 body 里的 PC 节点藏起来，只放行 #map 和顶部那两件
+     本来就该在场的 —— #title（台风名）与 #news-ticker（快讯条，未就绪时自带
+     「加载中…」文案，正好当占位）。这样首屏是「标题 + 加载提示」而不是一片白。
+     build() 末尾
+     给 <html> 加 .mobile-ready 解锁；mobile-ui.js 入口另有 8s 超时放行。
+     桌面端 html.mobile-ui 不匹配，零影响。
+
+     ⚠ 用 visibility 不用 display：#tool-controls 按 flex 布局搬移，且搬移/测量
+       逻辑要读元素尺寸，display:none 会让 getBoundingClientRect() 全变 0
+       （canvas 尺寸那次已踩过同类坑）。
+     ⚠ #mobile-dock 挂在 <html> 下（body 的兄弟节点），`body > *` 天然不匹配它，
+       所以 Dock 不受本规则影响。
+     ========================================================================== */
+  html.mobile-ui:not(.mobile-ready)
+  body > *:not(#map):not(#title):not(#news-ticker) {
+    visibility: hidden !important;
+  }
+
+  /* ==========================================================================
+     §0.5 · Dock 行1 拆两行（2026-09-25）
+     原来行1 挤了「6 个播放键 + 倍速 + 时钟徽标」≈458px，360px 屏可用仅 344px，
+     放不下，键宽只能压到 44px 触控下限。现拆为：
+       行1 = 5 个播放键独占整行（.md-time > #playback-controls 占 100% 换行）
+       行2 = 完整时间读数（左） + 循环键 + 倍速（右）
+     代价：Dock 高约 +44px；--dock-h 由 syncDockHeight 自动跟随，贴底浮层会一起让位。
+     ========================================================================== */
+  html.mobile-ui #mobile-dock .md-time {
+    flex-wrap: wrap;                 /* 让 #playback-controls 的 100% 换到下一行 */
+    padding-right: 0;                /* 原 50px 是给绝对定位的 .md-clock 让位，徽标已隐藏 */
+  }
+
+  /* 行1：5 个播放键均分整行 */
+  html.mobile-ui #mobile-dock #playback-controls {
+    flex: 0 0 100%;
+    justify-content: space-between;
+  }
+
+  html.mobile-ui #mobile-dock #playback-controls button {
+    flex: 1 1 0;
+    min-width: 44px;
+    max-width: 84px;                 /* 平板/横屏下别无限拉宽 */
+  }
+
+  /* 行2 左：完整时间读数 */
+  html.mobile-ui #mobile-dock #time-display {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: none;
+    margin-right: auto;              /* 把它和右侧的循环键、倍速推开 */
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ==========================================================================
+     §0.5b · 矮屏/横屏下让位给 §17（2026-09-27 修 ⑭）
+     §17 用 @media (max-height:480px) 把 Dock 压成单行，但它写在 §0.5 之前，而两条
+     规则选择器特异性完全相同（#playback-controls = (2,1,1)、… button = (2,1,2)）
+     → 靠后的 §0.5 恒胜，于是横屏下 Dock 仍被留成两行（199px），
+     在 390px 高的屏幕上吃掉一半高度。
+     这里在 §0.5 之后重新声明，把 §17 的意图拿回来（更靠后 + 同特异性即取胜）。
+     ⚠ 若日后调整 §0.5 里播放键的 flex，这里要同步改。
+     ========================================================================== */
+  @media (max-height: 480px) {
+    html.mobile-ui #mobile-dock #playback-controls { flex: 0 1 auto; }
+    html.mobile-ui #mobile-dock #playback-controls button {
+      flex: 0 1 32px;
+      min-height: 32px;
+      font-size: 0.9rem;
+    }
+  }
+
+  /* 行2 右：循环键（已摘出 #playback-controls，按播放键规格补齐尺寸） */
+  /* 与 #speed-select 同宽（各 66px），两个框对齐；原来一个是 44 一个是 58+，
+     并排看着一宽一窄。66px 是 360px 屏下行1 播放键的宽度（5 键均分 344px），
+     视觉上两排的格子大小一致。 */
+  html.mobile-ui #mobile-dock #btn-loop {
+    flex: 0 0 66px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  html.mobile-ui #mobile-dock #btn-loop:active { transform: none; }  /* 与其余播放键一致 */
+
+  /* 时钟徽标：行1 已被播放键占满，绝对定位的它只会压在按钮上；时间读数改由
+     #time-display 在行2 显示完整值，故隐藏。syncDockClock 仍写 title，无害。 */
+  html.mobile-ui #mobile-dock .md-clock { display: none; }
+
+  /* ==========================================================================
+     §0.6 · 行2 循环键与倍速的视觉规格（2026-09-25）
+     目标：与行1 播放键同号、同为蓝色调。
+     - 循环键：🔁 是彩色 emoji，字形粗细与颜色由 emoji 字体决定，CSS 调不动，
+       视觉重量远轻于 ⏪（实心蓝块+白箭头），看着像"小一号"。故移动端换 SVG
+       （可控 size/color/线宽），PC 端仍用原 emoji —— 与 .vs-glyph 那次同思路。
+     - 倍速：原 0.7rem（10.4px）比播放键的 1rem（15.8px）小了三分之一，放大对齐。
+     ========================================================================== */
+  #btn-loop .loop-svg { display: none; }              /* PC：保持原 emoji */
+
+  html.mobile-ui #mobile-dock #btn-loop .loop-emoji { display: none; }
+  html.mobile-ui #mobile-dock #btn-loop .loop-svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    margin: 0 auto;
+    color: #1565c0;                                   /* 与全站蓝一致（同 .md-clock） */
+  }
+
+  html.mobile-ui #mobile-dock #speed-select {
+    flex: 0 0 66px;                                   /* 与 #btn-loop 同宽，见上 */
+    min-width: 0;
+    max-width: none;
+    min-height: 44px;
+    padding: 0 4px;
+    font-size: 1rem;                                  /* 0.7rem → 1rem，对齐播放键 */
+    font-weight: 700;
+    color: #1565c0;
+    background: #f0f0f0;                              /* 与播放键同底色（原为纯白） */
+  }
