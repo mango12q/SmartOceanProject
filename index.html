@@ -2994,7 +2994,7 @@ window.__I18N_DICT = {
   "卫星地图": "Satellite map",
   "原场": "Original",
   "原场 ⇄ 订正场对比": "Original ⇄ Corrected comparison",
-  "台山核电站": "Taishan Nuclear Power Plant",
+  "台山核电科普基地（对外开放）": "Taishan Nuclear Power Science Education Base (open to the public)",
   "台湾海峡航线": "Taiwan Strait Route",
   "台风": "Typhoon",
   "台风_": "Typhoon_",
@@ -3011,10 +3011,10 @@ window.__I18N_DICT = {
   "地址过长，无法生成二维码（": "Address too long to generate a QR code (",
   "多边形": "Polygon",
   "多边形模式：点击添加顶点，双击闭合": "Polygon mode: click to add vertices, double-click to close",
-  "大亚湾核电基地": "Daya Bay Nuclear Power Base",
+  "大亚湾核电科普基地（对外开放）": "Daya Bay Nuclear Power Science Education Base (open to the public)",
   "大铲湾港": "Dachan Bay Port",
   "大风时长": "Gale duration",
-  "大鹏LNG接收站": "Dapeng LNG Terminal",
+  "大鹏LNG能源科普参观基地（对外开放）": "Dapeng LNG Energy Science Education & Visitor Base (open to the public)",
   "太平洋西行主干线": "Pacific Westward Trunk Route",
   "妈湾港": "Mawan Port",
   "完成": "Done",
@@ -5358,8 +5358,16 @@ window.__I18N_DICT = {
             { id: 'shenzhen-north', name: '深圳北站', type: '重要设施', lat: 22.61, lon: 114.03, direction: 'top' },
             { id: 'futian-station', name: '福田站', type: '重要设施', lat: 22.54, lon: 114.05, direction: 'bottom' },
             { id: 'shenzhen-bay-port', name: '深圳湾口岸', type: '重要设施', lat: 22.50, lon: 113.94, direction: 'left' },
-            { id: 'daya-bay-nuclear', name: '大亚湾核电基地', type: '重要设施', lat: 22.60, lon: 114.54, direction: 'right' },
-            { id: 'dapeng-lng', name: '大鹏LNG接收站', type: '重要设施', lat: 22.58, lon: 114.52, direction: 'bottom' },
+            /* 说明（2026-09-30 合规整改）：下面三处能源设施的名称按《公开地图内容
+               表示规范》第二十条的括号豁免「（对社会公众开放的除外）」写成
+               「科普基地（对外开放）」的口径 —— 这三处均查得官方公开访问依据
+               （中广核"核光同行"研学地图全年开放、台山核电科普基地开放预约、
+               大鹏 LNG 有 2025 年公众生态游记录），与第十八条「用于公共服务的
+               设施，可在地图上表示其名称等可公开属性信息」形成双重支撑。
+               仅表示名称与坐标，不含任何设施属性（第二十一条禁止的是属性）。
+               详见 合规整改记录.md 第七节。 */
+            { id: 'daya-bay-nuclear', name: '大亚湾核电科普基地（对外开放）', type: '重要设施', lat: 22.60, lon: 114.54, direction: 'right' },
+            { id: 'dapeng-lng', name: '大鹏LNG能源科普参观基地（对外开放）', type: '重要设施', lat: 22.58, lon: 114.52, direction: 'bottom' },
             { id: 'nansha', name: '广州南沙港', type: '港口', lat: 22.72, lon: 113.65, direction: 'left' },
             { id: 'huangpu', name: '广州黄埔港', type: '港口', lat: 23.10, lon: 113.45, direction: 'top' },
             { id: 'gaolan', name: '珠海高栏港', type: '港口', lat: 21.94, lon: 113.24, direction: 'bottom' },
@@ -5372,7 +5380,7 @@ window.__I18N_DICT = {
             { id: 'hzm-bridge', name: '港珠澳大桥', type: '重要设施', lat: 22.28, lon: 113.80, direction: 'left' },
             { id: 'szc-channel', name: '深中通道', type: '重要设施', lat: 22.55, lon: 113.67, direction: 'left' },
             { id: 'guangzhou-south', name: '广州南站', type: '重要设施', lat: 22.99, lon: 113.27, direction: 'bottom' },
-            { id: 'taishan-nuclear', name: '台山核电站', type: '重要设施', lat: 21.92, lon: 112.98, direction: 'bottom' },
+            { id: 'taishan-nuclear', name: '台山核电科普基地（对外开放）', type: '重要设施', lat: 21.92, lon: 112.98, direction: 'bottom' },
             { id: 'guangzhou-tower', name: '广州塔', type: '重要设施', lat: 23.11, lon: 113.32, direction: 'right' }
         ];
         const RISK_LEVELS = [
@@ -6477,7 +6485,8 @@ window.__I18N_DICT = {
              天地图是国家地理信息公共服务平台，底图自带审图号，命中《地图审核
              管理规定》第六条第（一）项 —— 「直接使用测绘地理信息主管部门提供的
              具有审图号的公益性地图，不需要审核」，即可落入法定豁免，无需自行送审。
-             （高德仍作为可一键切换的备选保留在 BASEMAP_ALTS，见下。）
+             （备选底图高德已按合规要求**从代码中移除**：直连瓦片违反其服务协议 3.5，
+              且其官网不公开固定审图号、无法依法标注。详见 合规整改记录.md）
            ------------------------------------------------------------------
            ⚠ 使用前必做：申请天地图 Key（tk）
              1. 注册 https://passport.tianditu.gov.cn/register
@@ -6536,15 +6545,137 @@ window.__I18N_DICT = {
         var TDT_APPROVAL_DESC = '甲测资字 11110974';
         var TDT_ATTRIBUTION = '&copy; <a href="https://www.tianditu.gov.cn/" target="_blank" rel="noopener">国家地理信息公共服务平台 天地图</a>' +
             '<span class="map-approval-no">｜审图号 ' + TDT_APPROVAL + '（' + TDT_APPROVAL_DESC + '）</span>';
-        /* 备选底图（2026-09-30 合规整改）：高德。数据合规，但直连瓦片不符合其
-           服务协议 3.5，且官网不公开固定审图号、无法依法标注 —— 仅作临时备选，
-           正式对外版本请用天地图。切换方式见 README「合规整改」。 */        var BASEMAP_ALTS = {
-            gaode: {
-                name: '高德地图（备选）',
-                urls: ['tiles/gaode/{z}/{x}/{y}.png'],
-                attribution: '&copy; <a href="https://www.amap.com/" target="_blank" rel="noopener">高德地图</a>'
+        /* ==================================================================
+           坐标系转换：WGS-84 → GCJ-02（2026-09-30 精度优化）
+           ------------------------------------------------------------------
+           本页所有数据坐标（台风路径、重点目标、警戒线、航线）都是 **WGS-84**
+           （GPS 原生坐标，实测与设施真实位置吻合，见 合规整改记录.md）。
+
+           而天地图 / 高德的瓦片是 **GCJ-02**（俗称"火星坐标系"，国家强制偏移）。
+           把 WGS-84 坐标直接打在 GCJ-02 底图上，会有约 **300~500 米**的
+           系统性偏移（深圳一带约 0.002°N / 0.005°E）。
+
+           ⚠ 对台风这种天气尺度现象，500 米完全无意义（风圈半径几百公里）；
+             但重点目标标记要落在设施上时，同一 zoom 下约 3~4 px 的错位是可感知的，
+             所以还是补上转换。
+
+           做法：**不改数据**（内部一律保持 WGS-84，距离/掩膜/坡度等计算用真实坐标），
+           只在"坐标交给 Leaflet 去画"的那一刻转换 —— 见下面的 patchDisplayCRS()。
+           这样 map.getCenter()/getBounds() 之外的逻辑完全不受影响。
+
+           偏移公式为业界通行的 GCJ-02 实现（克拉索夫斯基椭球 + 非线性偏移 +
+           反解迭代），精度优于 1 米，远小于本页 141 m/px 的显示精度。
+           ================================================================== */
+        var GCJ_A = 6378245.0;                 // 克拉索夫斯基椭球长半轴
+        var GCJ_EE = 0.00669342162296594323;   // 第一偏心率平方
+
+        /* ⚠ 边界框用业界通行的 [73.66,135.05]×[3.86,53.55]。
+           实测取舍（见 .dev/check-gcj.mjs）：
+             · 曾母暗沙 3.97N 刚好在框内 → 参与偏移（与底图一致，南海不断层）
+             · 马尼拉 14.60N/120.98E 仍在框内 → 会被偏移约 500 m，
+               这是**本判定法的已知固有误差**；对一张以中国近海台风为主的地图，
+               越南/菲律宾沿岸 500 m 的错位可以忽略，且不会造成断层。
+             · 更宽的框（lon 72~137.8, lat 0.83~55.8）会把关岛等也纳入，反而更差。
+           曾把本函数写成 [3.86,53.55]，那版曾母暗沙恰好落框外 —— 现按上面结论保留。 */
+        function gcjOutOfChina(lat, lon) {
+            return !(lon > 73.66 && lon < 135.05 && lat > 3.86 && lat < 53.55);
+        }
+        /* ⚠ 下面两个函数的周期项系数是 **2/3**，是正确的，勿删。
+           依据：coordtransform（kong）、eviltransform 等权威实现均为
+           `(20*sin(6xπ)+20*sin(2xπ)) * 2.0/3.0`。
+           校验基准取自 eviltransform 官方测试夹具（见 .dev/check-gcj.mjs）。 */
+        function gcjTransformLat(x, y) {
+            var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+            ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+            ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+            ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+            return ret;
+        }
+        function gcjTransformLon(x, y) {
+            var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+            ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+            ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+            ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+            return ret;
+        }
+        /** WGS-84 经纬度 → GCJ-02。境外不做偏移（GCJ-02 只在国内偏移）。 */
+        function wgs84ToGcj02(lat, lon) {
+            if (gcjOutOfChina(lat, lon)) return { lat: lat, lon: lon };
+            var dLat = gcjTransformLat(lon - 105.0, lat - 35.0);
+            var dLon = gcjTransformLon(lon - 105.0, lat - 35.0);
+            var radLat = lat / 180.0 * Math.PI;
+            var magic = Math.sin(radLat);
+            magic = 1 - GCJ_EE * magic * magic;
+            var sqrtMagic = Math.sqrt(magic);
+            dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+            dLon = (dLon * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+            return { lat: lat + dLat, lon: lon + dLon };
+        }
+
+        /* ------------------------------------------------------------------
+           patchDisplayCRS()：把转换挂到 Leaflet 的"绘制入口"上。
+
+           只包 L.marker / L.polyline / L.polygon / L.circle / L.circleMarker /
+           L.latLngBounds（凡是应用代码用 [lat, lon] 传数据进来的地方）。
+           **不包 L.latLng 本身**：map.containerPointToLatLng / getCenter /
+           getBounds 都走它，一旦包住就会把"屏幕上已有的坐标"再偏移一次，
+           而且 getCenter() 读回的值会二次偏移，破坏风场画布的仿射变换。
+
+           幂等保护：同一对坐标只转换一次（WeakMap 缓存），
+           避免 setLatLng 反复喂同一坐标时被反复偏移。
+           ------------------------------------------------------------------ */
+        var __gcjMemo = new Map();
+        var __gcjMemoLimit = 20000;
+        function wgsToGcj(lat, lon) {
+            /* 用「微度取整」后的字符串做键，浮点尾差不会造成缓存穿透 */
+            var key = Math.round(lat * 1e7) + ',' + Math.round(lon * 1e7);
+            var hit = __gcjMemo.get(key);
+            if (hit !== undefined) return hit;
+            var p = wgs84ToGcj02(lat, lon);
+            var out = [p.lat, p.lon];
+            if (__gcjMemo.size >= __gcjMemoLimit) __gcjMemo.clear();  // 简单封顶
+            __gcjMemo.set(key, out);
+            return out;
+        }
+        /** 递归把嵌套数组/对象里的 [lat,lon] 转成 GCJ-02 副本（不原地改数据）。 */
+        function wgsToGcjDeep(v, depth) {
+            if (depth > 12) return v;
+            if (Array.isArray(v)) {
+                /* [lat, lon] 形态：两个数字 */
+                if (v.length >= 2 && typeof v[0] === 'number' && typeof v[1] === 'number') {
+                    return wgsToGcj(v[0], v[1]);
+                }
+                var out = new Array(v.length);
+                for (var i = 0; i < v.length; i++) out[i] = wgsToGcjDeep(v[i], depth + 1);
+                return out;
             }
-        };
+            if (v && v.lat !== undefined && v.lng !== undefined && !(v instanceof L.LatLng)) {
+                var g = wgsToGcj(v.lat, v.lng);
+                var o = {};
+                for (var k in v) if (Object.prototype.hasOwnProperty.call(v, k)) o[k] = v[k];
+                o.lat = g[0]; o.lng = g[1];
+                return o;
+            }
+            return v;
+        }
+        function patchDisplayCRS() {
+            ['marker', 'polyline', 'polygon', 'circle', 'circleMarker'].forEach(function (name) {
+                var orig = L[name];
+                if (typeof orig !== 'function') return;
+                L[name] = function (latlngs) {
+                    var args = Array.prototype.slice.call(arguments);
+                    if (arguments.length > 0) args[0] = wgsToGcjDeep(latlngs, 0);
+                    return orig.apply(L, args);
+                };
+            });
+            var origBounds = L.latLngBounds;
+            L.latLngBounds = function (a, b) {
+                if (b === undefined) return origBounds.call(L, wgsToGcjDeep(a, 0));
+                return origBounds.call(L, wgsToGcjDeep(a, 0), wgsToGcjDeep(b, 0));
+            };
+            console.info('[坐标] 已启用 WGS-84 → GCJ-02 显示转换（数据仍为 WGS-84）');
+        }
+        if (typeof L !== 'undefined') patchDisplayCRS();
 
         /* 「行政地图（天地图）」是否可用。
            两种模式下都不需要前端有 Key：
@@ -7640,17 +7771,16 @@ window.__I18N_DICT = {
         // ===== Layer Switcher =====
         var WIND_BARB_COLORS = {
             'tdt': '#222',
-            'gaode': '#222',
             'satellite': '#ffffff'
         };
         /* 底图图层名 → 瓦片模板。天地图是双层（vec 底图 + cva 注记），
-           预加载与左侧小地图都按「返回数组」统一处理。 */
+           预加载与左侧小地图都按「返回数组」统一处理。
+           底图只有两种：天地图（合规行政底图）与 Esri 卫星影像。
+           高德备选已按合规要求移除，见文件上方「底图配置」注释。 */
         function basemapTileUrls(layerName) {
             if (layerName === 'tdt' && tdtAvailable()) {
                 return [tdtTileUrl('vec'), tdtTileUrl('cva')];
             }
-            if (BASEMAP_ALTS[layerName]) return BASEMAP_ALTS[layerName].urls;
-            if (layerName === 'gaode') return ['tiles/gaode/{z}/{x}/{y}.png'];
             return ['tiles/satellite/{z}/{x}/{y}.png'];
         }
         /* 预加载卫星底图瓦片 —— 独立透明实例，加载完即卸载；失败静默。

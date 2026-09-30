@@ -43,15 +43,21 @@ TDT_WMTS = ("https://{s}.tianditu.gov.cn/{layer}_w/wmts"
 
 UPSTREAM = {
     "satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    "gaode": "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scl={scl}&style=8&x={x}&y={y}&z={z}",
 }
-GAODE_SUB = ["1", "2", "3", "4"]
-TILE_RE = re.compile(r"^/tiles/(satellite|gaode|tdt)/(\d+)/(\d+)/(\d+)(@2x)?\.png$")
+# 已下线（2026-09-30 合规整改，切勿恢复）：
+#   gaode   —— 数据合规，但**直连其瓦片违反《高德地图开放平台服务协议》3.5**
+#              （不得以技术手段抓取服务数据），且官网不公开固定审图号、
+#              无法按《地图审核管理规定》第 27 条在页面上依法标注。
+#   osm     —— 瓦片上把藏南标为 "Arunachal Pradesh"、国界沿麦克马洪线、
+#              台湾按独立国家要素表示、无十段线。
+#   terrain —— OpenTopoMap 同源 OSM 数据，问题相同。
+# 三者下线后，即使有人手工构造 /tiles/<name>/... 请求，本代理也只会 404，
+# 不会再去上游取回一份不合规的表示。
+TILE_RE = re.compile(r"^/tiles/(satellite|tdt)/(\d+)/(\d+)/(\d+)(@2x)?\.png$")
 USER_AGENT = "typhoon-track-map/1.0 (typhoon visualization; contact: mango12q@163.com)"
-# 浏览器 UA 常量：天地图与高德都对「非浏览器 UA」做拦截
+# 浏览器 UA 常量：天地图对「非浏览器 UA」做 WAF 拦截，必须用它回源
 BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
-GAODE_UA = BROWSER_UA
 # ⚠ 天地图 WAF 实测（2026-09-30，逐个 UA 试出来的）：
 #   仅自定义 UA            -> 403 Forbidden
 #   无 UA（urllib 默认）   -> 403 Forbidden
@@ -158,17 +164,11 @@ class Handler(SimpleHTTPRequestHandler):
             return vec
 
     def _fetch(self, layer, z, x, y, is_retina):
+        """回源非天地图的底图（目前只剩 satellite = Esri World Imagery）。"""
         tpl = UPSTREAM[layer]
-        if layer == "satellite":
-            # ArcGIS doesn't support @2x, always fetch regular
-            url = tpl.format(z=z, x=x, y=y)
-            ua = USER_AGENT
-        else:
-            # Gaode retina via scl=2
-            scl = "2" if is_retina else "1"
-            url = tpl.format(s=GAODE_SUB[(int(x) + int(y) + int(z)) % 4], z=z, x=x, y=y, scl=scl)
-            ua = GAODE_UA
-        return self._http_get(url, ua, REFERER)
+        # ArcGIS 不支持 @2x，一律按普通分辨率取，避免 @2x 请求 404
+        url = tpl.format(z=z, x=x, y=y)
+        return self._http_get(url, USER_AGENT, REFERER)
 
     def _serve_file(self, path, ctype):
         try:
