@@ -2978,7 +2978,9 @@
 
         <script src="vendor/leaflet.js"></script>
         <script src="vendor/topojson-client.min.js"></script>
-        <script src="vendor/html2canvas.min.js"></script>
+        <!-- html2canvas（198 KB）不再同步外链：只在点「截图导出」时由主 module 的
+             loadHtml2canvas() 按需注入。首屏因此少等 198 KB，而绝大多数访问
+             根本不会点截图。 -->
         <!-- === I18N:JS:BEGIN === -->
         <script>
         /* === I18N:JS:BEGIN === */
@@ -3052,12 +3054,12 @@ window.__I18N_DICT = {
   "<span class=\"history-now\">当前</span>": "<span class=\"history-now\">Current</span>",
   "<span class=\"hr-dim\">维度</span><span class=\"hr-val orig\">原场</span>": "<span class=\"hr-dim\">Dimension</span><span class=\"hr-val orig\">Original</span>",
   "<span class=\"hr-val corr\">订正</span><span class=\"hr-delta\">Δ</span></div>": "<span class=\"hr-val corr\">Corrected</span><span class=\"hr-delta\">Δ</span></div>",
-  "<span class=\"legend-wind-item\"><i style=\"background:#29b6f6\"></i>热带低压（≤10.8）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#29b6f6\"></i>Tropical Depression (≤10.8)</span>",
-  "<span class=\"legend-wind-item\"><i style=\"background:#aa00ff\"></i>超强台风（≥41.5）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#aa00ff\"></i>Super Typhoon (≥41.5)</span>",
-  "<span class=\"legend-wind-item\"><i style=\"background:#d50000\"></i>强台风（32.7-41.4）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#d50000\"></i>Severe Typhoon (32.7-41.4)</span>",
-  "<span class=\"legend-wind-item\"><i style=\"background:#f44336\"></i>台风（24.5-32.6）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#f44336\"></i>Typhoon (24.5-32.6)</span>",
-  "<span class=\"legend-wind-item\"><i style=\"background:#ff9800\"></i>强热带风暴（17.2-24.4）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#ff9800\"></i>Severe Tropical Storm (17.2-24.4)</span>",
-  "<span class=\"legend-wind-item\"><i style=\"background:#ffca28\"></i>热带风暴（10.9-17.1）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#ffca28\"></i>Tropical Storm (10.9-17.1)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#29b6f6\"></i>热带低压（10.8-17.1）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#29b6f6\"></i>Tropical Depression (10.8-17.1)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#aa00ff\"></i>超强台风（≥51.0）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#aa00ff\"></i>Super Typhoon (≥51.0)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#d50000\"></i>强台风（41.5-50.9）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#d50000\"></i>Severe Typhoon (41.5-50.9)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#f44336\"></i>台风（32.7-41.4）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#f44336\"></i>Typhoon (32.7-41.4)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#ff9800\"></i>强热带风暴（24.5-32.6）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#ff9800\"></i>Severe Tropical Storm (24.5-32.6)</span>",
+  "<span class=\"legend-wind-item\"><i style=\"background:#ffca28\"></i>热带风暴（17.2-24.4）</span>": "<span class=\"legend-wind-item\"><i style=\"background:#ffca28\"></i>Tropical Storm (17.2-24.4)</span>",
   "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#2e7d32\"></i>I 低</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#2e7d32\"></i>I Low</span>",
   "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#7b1fa2\"></i>V 极高</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#7b1fa2\"></i>V Very high</span>",
   "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#d32f2f\"></i>IV 高</span>": "<span class=\"port-risk-key\"><i class=\"port-risk-dot\" style=\"background:#d32f2f\"></i>IV High</span>",
@@ -3358,12 +3360,12 @@ window.__I18N_DICT = {
   "当前": "Current",
   "维度": "Dimension",
   "订正": "Corrected",
-  "热带低压（≤10.8）": "Tropical Depression (≤10.8)",
-  "超强台风（≥41.5）": "Super Typhoon (≥41.5)",
-  "强台风（32.7-41.4）": "Severe Typhoon (32.7-41.4)",
-  "台风（24.5-32.6）": "Typhoon (24.5-32.6)",
-  "强热带风暴（17.2-24.4）": "Severe Tropical Storm (17.2-24.4)",
-  "热带风暴（10.9-17.1）": "Tropical Storm (10.9-17.1)",
+  "热带低压（10.8-17.1）": "Tropical Depression (10.8-17.1)",
+  "超强台风（≥51.0）": "Super Typhoon (≥51.0)",
+  "强台风（41.5-50.9）": "Severe Typhoon (41.5-50.9)",
+  "台风（32.7-41.4）": "Typhoon (32.7-41.4)",
+  "强热带风暴（24.5-32.6）": "Severe Tropical Storm (24.5-32.6)",
+  "热带风暴（17.2-24.4）": "Tropical Storm (17.2-24.4)",
   "I 低": "I Low",
   "V 极高": "V Very high",
   "IV 高": "IV High",
@@ -4631,6 +4633,25 @@ window.__I18N_DICT = {
     var IS_MOBILE = !!(MQ && MQ.matches);
     if (!IS_MOBILE) return;                       // 桌面端：什么都不做
 
+    /* --------------------------------------------------- 断点跨越的自救（2026-10-07）
+     * 本层只在**加载时**判定一次，节点一旦搬进 Dock/Sheet 就不再搬回，而它们的
+     * 全部样式都在 `@media (max-width:768px),(max-height:480px) and (pointer:coarse)`
+     * 里 —— 于是「加载时是手机/平板竖屏，之后变成桌面尺寸」（iPad 竖→横 1024px、
+     * 桌面窗口从 ≤768px 拖宽）会让 Dock 掉出媒体查询、连 `body{overflow:hidden}`
+     * 一起把播放键、时间轴、全屏/缩放/收起按钮变成**永久不可达**，同时桌面侧
+     * 留下一个空的时间面板框。
+     *
+     * 修法取向：跨出移动端范围时整页重载，让页面按新尺寸重新选布局。
+     * 为什么不就地拆解还原 DOM：Dock/Sheet/FAB 三处共搬了十几个原节点、
+     * 还注入过覆盖样式，手工还原要逐个记录原位，一旦漏一个就留下比现在更隐蔽的
+     * 状态错乱；重载是唯一不会留下半拆状态的方案，代价是旋转时一次约 1 秒的刷新。
+     * 只在匹配状态**翻转**时触发（粗指针的横竖屏都仍在范围内，不会误触发）。 */
+    if (MQ && MQ.addEventListener) {
+        MQ.addEventListener('change', function (e) {
+            if (e.matches !== IS_MOBILE) window.location.reload();
+        });
+    }
+
     var doc = document;
     var html = doc.documentElement;
     var $ = function (id) { return doc.getElementById(id); };
@@ -5435,15 +5456,16 @@ window.__I18N_DICT = {
         function updateLegend(layerName) {
             var keys = LEGEND_LAYERS[layerName] || LEGEND_LAYERS.tdt;
             var html = keys.map(function(k) { return '<div>' + LEGEND_ITEMS[k] + '</div>'; }).join('');
+            /* 2026-10-07：由 WIND_CATEGORIES + WIND_RANGES 生成，不再硬编码。
+               原先这里手写 6 条、区间整体错位一档（写「超强台风 ≥41.5」而代码判
+               ≥51.0），中英词表也照着错的那份翻译，双语一起错。 */
             var gradeHtml =
                 '<div style="margin-top:4px;padding-top:4px;border-top:1px solid rgba(0,0,0,0.12);font-weight:600;margin-bottom:2px;">台风强度分级 (m/s)</div>' +
                 '<div class="legend-wind-grid">' +
-                    '<span class="legend-wind-item"><i style="background:#29b6f6"></i>热带低压（≤10.8）</span>' +
-                    '<span class="legend-wind-item"><i style="background:#ffca28"></i>热带风暴（10.9-17.1）</span>' +
-                    '<span class="legend-wind-item"><i style="background:#ff9800"></i>强热带风暴（17.2-24.4）</span>' +
-                    '<span class="legend-wind-item"><i style="background:#f44336"></i>台风（24.5-32.6）</span>' +
-                    '<span class="legend-wind-item"><i style="background:#d50000"></i>强台风（32.7-41.4）</span>' +
-                    '<span class="legend-wind-item"><i style="background:#aa00ff"></i>超强台风（≥41.5）</span>' +
+                    WIND_CATEGORIES.map(function(cat, i) {
+                        return '<span class="legend-wind-item"><i style="background:' + cat.color + '"></i>' +
+                               cat.name + '（' + WIND_RANGES[i] + '）</span>';
+                    }).join('') +
                 '</div>';
             /* 2026-10-04：把「图例弹窗」里的版权说明（数据来源 / 开源许可）整段同步到
                PC 图例框（用户要求「和移动端一字不差」）。直接从弹窗 DOM 取 outerHTML，
@@ -5631,6 +5653,13 @@ window.__I18N_DICT = {
             { name: '强台风', max: 50.9, color: '#d50000' },
             { name: '超强台风', max: Infinity, color: '#aa00ff' }
         ];
+
+        /* 各档风速区间**文本**（GB/T 19201-2006）。这里是唯一来源：
+           PC 图例（updateLegend）与移动端图例（initLegendCategories）都从它取。
+           2026-10-05 那次「max 写成下界导致高判一档」只改了 WIND_CATEGORIES，
+           PC 图例里那份硬编码副本没跟着改，于是图例文案与判定逻辑又矛盾了一轮
+           （代码判 50 m/s 为强台风，图例却写「超强台风 ≥41.5」）。别再复制一份。 */
+        const WIND_RANGES = ['10.8-17.1', '17.2-24.4', '24.5-32.6', '32.7-41.4', '41.5-50.9', '≥51.0'];
 
         function getWindCategory(wind) {
             for (const cat of WIND_CATEGORIES) {
@@ -6551,6 +6580,22 @@ window.__I18N_DICT = {
         var typhoonLock = false;
         var windLayerActive = true;
         var windFieldCache = {};
+        /* 2026-10-07：加 FIFO 上限。实测单帧解码后 814~1382 条记录 ≈ 0.07~0.12 MB，
+           一个台风 264~312 个时次 × 原场/订正场两条链路 ≈ 36~61 MB 常驻 JS 堆，
+           手机上连续播放/来回拖动会一直涨（原先只在切换台风时清空）。
+           上限 24 帧（≈3 MB）足够覆盖连续播放与来回拖动；淘汰只影响性能，
+           被淘汰的时次下次照常重新 fetch，行为不变。 */
+        var WIND_CACHE_MAX = 24;
+        var windCacheOrder = [];
+        function cacheWindField(k, data) {
+            if (!(k in windFieldCache)) windCacheOrder.push(k);
+            windFieldCache[k] = data;
+            while (windCacheOrder.length > WIND_CACHE_MAX) {
+                var stale = windCacheOrder.shift();
+                if (stale !== k) delete windFieldCache[stale];
+            }
+            return data;
+        }
         var windCurrentT = -1;
         var windRequestSeq = 0;
         var windCanvasCtx = null;
@@ -7456,7 +7501,7 @@ window.__I18N_DICT = {
                         if (!res.ok) return null;
                         var buf = await res.arrayBuffer();
                         var data = msgpack.decode(new Uint8Array(buf));
-                        windFieldCache[k] = data;
+                        cacheWindField(k, data);
                         return data;
                     } catch (e) { return null; }
                 }
@@ -8445,7 +8490,7 @@ window.__I18N_DICT = {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 var buf = await res.arrayBuffer();
                 var data = msgpack.decode(new Uint8Array(buf));
-                windFieldCache[k] = data;
+                cacheWindField(k, data);
                 return data;
             }
 
@@ -8978,7 +9023,7 @@ window.__I18N_DICT = {
             /* 2026-10-05 修：原来渲染成「热带低压 (≤ 10.8 m/s)」，与本页下方的预警图例
                （10.8-17.1 / 17.2-24.4 / 24.5-32.6 / ≥32.7）自相矛盾 —— 表本身也写错了。
                改为显式区间，两端一致。 */
-            var CAT_RANGES = ['10.8-17.1', '17.2-24.4', '24.5-32.6', '32.7-41.4', '41.5-50.9', '≥51.0'];
+            var CAT_RANGES = WIND_RANGES;   // 单一来源：见 WIND_CATEGORIES 旁的 WIND_RANGES
             container.innerHTML = WIND_CATEGORIES.map(function(cat, i) {
                 return '<div class="legend-item"><span class="color-dot" style="background:' + cat.color + '"></span><span>' + cat.name + ' (' + CAT_RANGES[i] + ' m/s)</span></div>';
             }).join('');
@@ -9714,6 +9759,7 @@ window.__I18N_DICT = {
 
             clearTyphoonOverlays();
             windFieldCache = {};
+            windCacheOrder = [];      // 与缓存一起清，否则淘汰顺序会残留旧键
             windCurrentT = -1;
 
             var slider = document.getElementById('time-slider');
@@ -10197,13 +10243,14 @@ window.__I18N_DICT = {
                 });
             })();
             document.getElementById('btn-shot').addEventListener('click', function() {
-                if (!window.html2canvas) {
-                    alert(tCanvas('截图组件未加载，请检查网络后重试'));
-                    return;
-                }
-                html2canvas(document.getElementById('map'), {
-                    useCORS: true,
-                    backgroundColor: '#ffffff'
+                /* 2026-10-07：html2canvas（198 KB）改为「点了才下载」。
+                   原先它是 <head> 里的同步外链，首屏白等 198 KB，而绝大多数
+                   访问根本不会点截图。这里按需注入，加载失败再给出原来的提示。 */
+                loadHtml2canvas().then(function() {
+                    return html2canvas(document.getElementById('map'), {
+                        useCORS: true,
+                        backgroundColor: '#ffffff'
+                    });
                 }).then(function(canvas) {
                     var a = document.createElement('a');
                     var ts = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
@@ -10212,8 +10259,34 @@ window.__I18N_DICT = {
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                }).catch(function(err) { console.error('screenshot failed:', err); });
+                }).catch(function(err) {
+                    if (!window.html2canvas) {
+                        alert(tCanvas('截图组件未加载，请检查网络后重试'));
+                    }
+                    console.error('screenshot failed:', err);
+                });
             });
+
+            /* 懒加载并缓存同一个 Promise：连点两次不会重复插标签、不会重复下载。 */
+            function loadHtml2canvas() {
+                if (window.html2canvas) return Promise.resolve(window.html2canvas);
+                if (!window.__h2cPromise) {
+                    window.__h2cPromise = new Promise(function(resolve, reject) {
+                        var s = document.createElement('script');
+                        s.src = 'vendor/html2canvas.min.js';
+                        s.onload = function() {
+                            if (window.html2canvas) resolve(window.html2canvas);
+                            else reject(new Error('html2canvas 未挂载'));
+                        };
+                        s.onerror = function() {
+                            window.__h2cPromise = null;   // 允许下次点击重试
+                            reject(new Error('html2canvas 下载失败'));
+                        };
+                        document.head.appendChild(s);
+                    });
+                }
+                return window.__h2cPromise;
+            }
             map.on('dragstart', function() {
                 if (typhoonLock) {
                     typhoonLock = false;

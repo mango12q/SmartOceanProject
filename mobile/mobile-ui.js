@@ -21,6 +21,25 @@
     var IS_MOBILE = !!(MQ && MQ.matches);
     if (!IS_MOBILE) return;                       // 桌面端：什么都不做
 
+    /* --------------------------------------------------- 断点跨越的自救（2026-10-07）
+     * 本层只在**加载时**判定一次，节点一旦搬进 Dock/Sheet 就不再搬回，而它们的
+     * 全部样式都在 `@media (max-width:768px),(max-height:480px) and (pointer:coarse)`
+     * 里 —— 于是「加载时是手机/平板竖屏，之后变成桌面尺寸」（iPad 竖→横 1024px、
+     * 桌面窗口从 ≤768px 拖宽）会让 Dock 掉出媒体查询、连 `body{overflow:hidden}`
+     * 一起把播放键、时间轴、全屏/缩放/收起按钮变成**永久不可达**，同时桌面侧
+     * 留下一个空的时间面板框。
+     *
+     * 修法取向：跨出移动端范围时整页重载，让页面按新尺寸重新选布局。
+     * 为什么不就地拆解还原 DOM：Dock/Sheet/FAB 三处共搬了十几个原节点、
+     * 还注入过覆盖样式，手工还原要逐个记录原位，一旦漏一个就留下比现在更隐蔽的
+     * 状态错乱；重载是唯一不会留下半拆状态的方案，代价是旋转时一次约 1 秒的刷新。
+     * 只在匹配状态**翻转**时触发（粗指针的横竖屏都仍在范围内，不会误触发）。 */
+    if (MQ && MQ.addEventListener) {
+        MQ.addEventListener('change', function (e) {
+            if (e.matches !== IS_MOBILE) window.location.reload();
+        });
+    }
+
     var doc = document;
     var html = doc.documentElement;
     var $ = function (id) { return doc.getElementById(id); };
