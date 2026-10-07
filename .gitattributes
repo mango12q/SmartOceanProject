@@ -1,0 +1,17 @@
+# 行尾策略（2026-10-07 新增）
+# ---------------------------------------------------------------------------
+# 背景：index.html 的行尾是 mobile/build.py 契约的一部分 —— 内联 CSS 块按 LF 生成，
+# 而正文其余部分历史上是 CRLF，于是工作区长期是「混合行尾」。
+# git 里这份文件是纯 LF，但本机 core.autocrlf=true 会在 checkout/clone 时把**整份**
+# 转成 CRLF，结果：
+#     · 新克隆上 `python mobile/build.py --check` 必然 exit 1（实测 10364 行全 CRLF）；
+#     · 任何「把整份文件统一成 CRLF」的编辑器/补丁工具都会打破同一个契约
+#       （AGENTS.md 里已经把它记成一条反复踩的坑）。
+#
+# 因此对 index.html 关闭行尾转换：仓库里是什么字节，工作区就是什么字节（= LF）。
+# 改完后：git 里 LF、工作区 LF、build.py 生成 LF，三者一致，--check 在全新克隆上也过。
+#
+# 另外 mobile/build.py 的 slurp() 现在会把 mobile/ 源码归一化成 LF，
+# 所以 mobile/*.js|css 即使被 checkout 成 CRLF 也不会再污染内联结果
+# （原先会产生每行 \r\r\n 的静默损坏），这里不必再单独声明。
+index.html -text

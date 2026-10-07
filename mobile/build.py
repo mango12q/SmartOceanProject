@@ -55,9 +55,17 @@ IND = " " * 8
 
 
 def slurp(name):
+    """读源码，并**归一化成 LF** 后再返回。
+
+    不归一化的话会静默出错：fill_block() 把 payload 里的 "\\n" 换成 nl（本文件是
+    CRLF，故 nl = CRLF），于是 CRLF 的源文件会变成每行 "\\r\\r\\n" —— JS 照样能解析，
+    所以看不出来，而 --check 拿同一套逻辑生成、自己跟自己一致，也发现不了。
+    2026-10-07 实测：CRLF 源码 → 输出含 2 处 \\r\\r\\n。
+    mobile/ 现在是 LF，但没有任何东西强制编辑器保持 LF，这里兜住。
+    """
     path = os.path.join(MOBILE, name)
     with io.open(path, "r", encoding="utf-8") as f:
-        return f.read().rstrip("\n")
+        return f.read().replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
 
 
 def block_body(inner):
@@ -155,6 +163,13 @@ def build(html):
         "",
     ])
     html = html[:a] + css_block + html[head_end:]
+
+    # 出口统一归一到 LF（2026-10-07）：.gitattributes 已把 index.html 固定为 `-text`
+    # （仓库与工作区都 LF），所以这里必须保证「跑一次 build 就回到 LF」——
+    # 否则被编辑器改成 CRLF 之后，build 只会得到一个自洽的**混合行尾**文件，
+    # git 会看到整份改动，而 AGENTS.md 承诺的「跑一次 build 即归一化」就不成立。
+    # 输入本来就是 LF 时这一行是空操作。
+    html = html.replace("\r\n", "\n")
 
     return bom + html
 
