@@ -55,6 +55,10 @@ python mobile/build.py --check            # index.html 是否与 mobile/ 源码�
 改 `mobile/` 下的东西后**必须**跑 `python mobile/build.py` 重新内联；
 `mobile/i18n-dict.js` 的对象字面量必须是**纯数据**（混注释会让 i18n 静默失效）。
 
+**改 `index.html` 之后也要跑一次 `python mobile/build.py`**：CSS 内联块按约定是 LF，
+而多数编辑器 / 补丁工具会把整份文件统一成 CRLF —— 于是 `build.py --check` 报「不同步」
+（内容其实没变）。跑一次 build 即归一化行尾，之后 `--check` 应回到 exit 0。
+
 ## Remote server context
 
 用户维护一台远程 Ubuntu 服务器 `haike@43.154.210.202`，已配置免密 SSH。

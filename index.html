@@ -7564,6 +7564,7 @@ window.__I18N_DICT = {
             var typhoonGone = validPoints.length > 0 && validPoints[validPoints.length - 1].t < t;
 
             if (!typhoonBorn) {
+                resetEyeSmooth();                 // 风眼没渲染，连续状态一并作废
                 if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
                 if (typhoonLabelMarker) { map.removeLayer(typhoonLabelMarker); typhoonLabelMarker = null; }
                 lastTyphoonPt = null;
@@ -7598,6 +7599,7 @@ window.__I18N_DICT = {
             }
 
             if (typhoonGone) {
+                resetEyeSmooth();                 // 同上：标记被移除，连续状态作废
                 if (currentMarker) { map.removeLayer(currentMarker); currentMarker = null; }
                 if (typhoonLabelMarker) { map.removeLayer(typhoonLabelMarker); typhoonLabelMarker = null; }
                 lastTyphoonPt = null;
@@ -7674,6 +7676,12 @@ window.__I18N_DICT = {
             }
             lastTyphoonPt = pt;
             positionTyphoonLabel(pt);
+            /* 记下等级标签相对风眼的地理偏移，供逐帧插值时按同一偏移平移
+               （见 moveEyeAt：避免每帧重跑 DOM 测量与避让打分）。 */
+            if (typhoonLabelMarker) {
+                var _labLL = typhoonLabelMarker.getLatLng();
+                eyeLabelOff = { dLat: _labLL.lat - pt.lat, dLon: _labLL.lng - pt.lon };
+            }
 
             // Update info panel
             updateInfoPanel(pt);
@@ -7683,16 +7691,156 @@ window.__I18N_DICT = {
             updateWatchCircles(pt);
             updateRouteImpacts(pt);
             if (focusMiniMap) syncMiniTyphoon(t);
-            /* ① 锁定风眼：平滑跟随（2026-09-27 用户反馈原来 animate:false 一格一格硬跳、不流畅）。
-               时长按当前倍速自适应 —— playSpeed 就是每拍毫秒数，取 80% 留余量，
-               并夹在 [0.06, 0.4] 秒：4x(100ms)≈0.08s 近乎即时，0.5x(800ms)/手动单步≈0.4s 缓缓滑过去。
-               Leaflet 的 setView 在缩放不变时会走 panBy 动画分支，且会先 _stop() 掉上一次动画，
-               所以高速播放时不会堆积成拖影。 */
-            if (typhoonLock) {
-                var _followDur = Math.min(0.4, Math.max(0.06, (playSpeed / 1000) * 0.8));
-                map.setView([pt.lat, pt.lon], map.getZoom(), { animate: true, duration: _followDur });
-            }
+            /* ① 风眼平滑跟随（2026-10-07 重做）。
+               老实现只把「地图追回来」那一段做成了动画，风眼本身仍是整点硬跳：
+               实测（真 Chrome 逐帧采样）每帧位移 p50 = 0.17px，但每个整点出现一次
+               5~22.7px 的单帧大跳，随后又被地图反向拉回中心 —— 锯齿状，就是
+               「风眼跟随一格一格顿」。
+               现在把「位置」与「数据」拆开：
+                 · 数据（风场画布、信息面板、快讯、时间文字、路径线）仍按整点更新，一小时一次；
+                 · 位置（风眼图标 / 等级标签 / 风圈）用 rAF 在相邻两整点之间线性插值连续移动；
+                 · 锁定时逐帧平移 map pane，把插值位置压在视图中心 ——
+                   风眼不再先蹿出去再被拉回来，地图变为匀速滑动。
+               播放中时长取整拍（playSpeed）：下一拍接手时从「当前显示时刻」续着走，
+               既不重叠也不跳帧。 */
+            /* ⚠ 先把「位置类」元素同步拨回当前显示时刻，再接着往新整点滑。
+               这一步不能省：上面的整点渲染刚把风眼 / 等级标签 / 风圈**硬挪到了新整点**
+               （currentMarker.setLatLng、positionTyphoonLabel、updateWindCircles），
+               若直接开始补间，就会变成「先跳到新整点 → 下一帧弹回旧时刻 → 再滑过去」，
+               实测表现为整点处「一帧跳 N px、下一帧又跳 N px」的来回抖。
+               同一帧内完成，浏览器只绘制一次，用户看不到中间态。 */
+            moveEyeAt(eyeShownT === null ? t : eyeShownT);
+            smoothFollowEye(t, isPlaying ? playSpeed : 220);
+            /* 逐帧平移刻意不派发 move/moveend —— map.on('moveend zoomend resize', resizeWindCanvas)
+               会按新视野重绘风场（含逐点陆地判定），每帧来一次会把播放拖垮。
+               改为每拍补一次，与原来「每拍一次动画平移 + 末尾一次 moveend」的频率一致。 */
+            if (typhoonLock) map.fire('moveend');
             loadWindField(t);
+        }
+
+        /* ==========================================================================
+           风眼平滑跟随（2026-10-07）—— 实现「位置按时间插值 + 逐帧跟随」
+           --------------------------------------------------------------------------
+           为什么不改时间轴：时间轴、风场、面板都是**小时**数据（wind_field_XXXX.bin
+           一小时一个文件），把整条时间轴变成连续时间会牵动数据层。这里只把
+           **风眼相关的三个位置元素**（图标 / 等级标签 / 风圈）做成连续量，
+           其余仍按整点更新 —— 视觉上该动的地方连续了，数据语义没变。
+           ========================================================================== */
+        var eyeSmoothRAF = null;     // 跟随动画的 rAF 句柄
+        var eyeShownT = null;        // 风眼「当前显示」的时刻（可为小数；null = 尚未定位）
+        var eyeLabelOff = null;      // 等级标签相对风眼的地理偏移（逐帧复用，免 DOM 测量）
+
+        /* 任意时刻的风眼位置 / 强度：在相邻两个整点之间线性插值。
+           ⚠ 轨道点不是每小时连续时（有缺口），故按 t 找「前一个整点」，不要用下标推。 */
+        function trackPointAt(tf) {
+            var tr = typhoonTrack;
+            if (!tr || !tr.length) return null;
+            if (tf <= tr[0].t) return tr[0];
+            var last = tr[tr.length - 1];
+            if (tf >= last.t) return last;
+            for (var i = tr.length - 2; i >= 0; i--) {
+                if (tr[i].t <= tf) {
+                    var a = tr[i], b = tr[i + 1];
+                    var span = b.t - a.t;
+                    if (!(span > 0)) return a;
+                    var f = (tf - a.t) / span;
+                    return {
+                        t: tf,
+                        lat: a.lat + (b.lat - a.lat) * f,
+                        lon: a.lon + (b.lon - a.lon) * f,
+                        psfc: a.psfc + (b.psfc - a.psfc) * f,
+                        wind: a.wind + (b.wind - a.wind) * f
+                    };
+                }
+            }
+            return tr[0];
+        }
+
+        /* 平移 map pane（= Leaflet 内部的 _rawPanBy：把 pane 的 translate 挪一格）。
+           ⚠ 不用 map.panBy()：它在 animate:false 下也会 fire move + moveend，而
+             map.on('moveend zoomend resize', resizeWindCanvas) 会按新视野重绘风场
+             （含逐点陆地判定），逐帧触发会把播放拖垮。
+           Leaflet 1.1.1 的像素原点按「pane 位移」换算（_getTopLeftPoint 会减去
+           _getMapPanePos），所以只动 pane 不会让标注/瓦片错位 —— 这正是它自己
+           做平移动画时走的路。 */
+        function shiftMapPane(offset) {
+            var pane = map.getPane('mapPane');
+            if (!pane) return;
+            L.DomUtil.setPosition(pane, L.DomUtil.getPosition(pane).subtract(offset));
+        }
+
+        /* 接管 pane 之前先停掉 Leaflet 正在跑的平移/飞行动画 ——
+           否则它会继续按自己的目标逐帧写 pane 位置，把我们的位移覆盖掉。
+           实测（2026-10-07）：点 🎯 时 setView(animate:true) 的动画还在跑，
+           紧接着拖动时间轴 → 归位被覆盖，风眼一直偏在中心外 ~96px，
+           直到下一拍补间才纠正过来。 */
+        function stopLeafletAnim() {
+            if (typeof map._stop === 'function') map._stop();   // Leaflet 1.1.1：取消 pan/fly 动画
+        }
+
+        /* 把风眼相关的位置元素移到 tf 时刻。返回 false 表示风眼还没渲染（台风未生成）。 */
+        function moveEyeAt(tf) {
+            var p = trackPointAt(tf);
+            if (!p || !currentMarker) return false;
+            eyeShownT = tf;
+            var ll = [p.lat, p.lon];
+            currentMarker.setLatLng(ll);
+            /* 风圈是 L.circle，setLatLng 即整体平移（半径不变） */
+            for (var i = 0; i < windCircleLayers.length; i++) {
+                if (windCircleLayers[i].setLatLng) windCircleLayers[i].setLatLng(ll);
+            }
+            if (typhoonLabelMarker) {
+                if (eyeLabelOff) {
+                    /* 用整点渲染时记下的地理偏移平移标签：位置连续，且不必每帧
+                       重跑 positionTyphoonLabel（DOM 测量 + 32 次避让打分）。 */
+                    typhoonLabelMarker.setLatLng([p.lat + eyeLabelOff.dLat, p.lon + eyeLabelOff.dLon]);
+                } else {
+                    positionTyphoonLabel(p);
+                }
+            }
+            if (typhoonLock) {
+                var c = map.latLngToContainerPoint(L.latLng(p.lat, p.lon));
+                var size = map.getSize();
+                var off = L.point(c.x - size.x / 2, c.y - size.y / 2);
+                /* 阈值取 0.05px 而不是 0.4px：一小时的位移摊到每拍几十帧上，单帧只有
+                   约 0.3px —— 阈值大于单帧位移就会「攒到整点一次性补齐」，
+                   又变回顿感（实测踩到过）。 */
+                if (Math.abs(off.x) > 0.05 || Math.abs(off.y) > 0.05) shiftMapPane(off);
+            }
+            return true;
+        }
+
+        function stopEyeSmooth() {
+            if (eyeSmoothRAF) { cancelAnimationFrame(eyeSmoothRAF); eyeSmoothRAF = null; }
+        }
+
+        /* 从「当前显示时刻」平滑滑到 tf，耗时 dur 毫秒（dur<=0 或已在目标点则直接到位）。
+           播放中每拍调用一次：下一拍从当前显示时刻续着走，所以整条轨迹是连续的。 */
+        function smoothFollowEye(tf, dur) {
+            stopEyeSmooth();
+            stopLeafletAnim();   // 别让在飞的 Leaflet 动画覆盖我们的 pane 位移
+            var from = (eyeShownT === null) ? tf : eyeShownT;
+            if (!(dur > 0) || from === tf) { moveEyeAt(tf); return; }
+            var t0 = null;
+            function frame(now) {
+                if (t0 === null) t0 = now;
+                var f = Math.min(1, (now - t0) / dur);
+                moveEyeAt(from + (tf - from) * f);
+                if (f < 1) {
+                    eyeSmoothRAF = requestAnimationFrame(frame);
+                } else {
+                    eyeSmoothRAF = null;
+                    moveEyeAt(tf);
+                }
+            }
+            eyeSmoothRAF = requestAnimationFrame(frame);
+        }
+
+        /* 切换台风 / 台风尚未生成 / 已消散：清掉连续状态，下次直接定位 */
+        function resetEyeSmooth() {
+            stopEyeSmooth();
+            eyeShownT = null;
+            eyeLabelOff = null;
         }
 
         function getWindRadius(wind, threshold) {
@@ -9557,6 +9705,7 @@ window.__I18N_DICT = {
 
             typhoonTrack.length = 0;
             Array.prototype.push.apply(typhoonTrack, d.track);
+            resetEyeSmooth();   // 换了台风，别让风眼从上一台的轨迹滑过来
 
             CONFIG.wrfStart = d.start || new Date('2025-09-15T00:00:00Z');
             CONFIG.minT = (d.minT != null) ? d.minT : d.track[0].t;
@@ -9939,12 +10088,18 @@ window.__I18N_DICT = {
                 typhoonLock = !typhoonLock;
                 this.classList.toggle('active', typhoonLock);
                 if (typhoonLock) {
-                    var idx = -1;
                     var cur = parseInt(document.getElementById('time-slider').value);
-                    for (var i = 0; i < typhoonTrack.length; i++) {
-                        if (typhoonTrack[i].t === cur) { idx = i; break; }
+                    /* 2026-10-07：改用风眼跟随自己的归位（直接平移 pane），不再走
+                       map.setView(..., {animate:true}) —— 那个动画会与「逐帧平移 pane」
+                       的跟随打架（动画继续按自己的目标写 pane 位置，把归位覆盖掉，
+                       实测风眼会一直偏在中心外约 96px 直到下一拍）。 */
+                    stopLeafletAnim();
+                    if (!moveEyeAt(cur)) {
+                        /* 风眼尚未渲染（时间在台风生成前）：退回一次性视图定位 */
+                        var b = L.latLngBounds([]);
+                        typhoonTrack.forEach(function(p) { b.extend([p.lat, p.lon]); });
+                        map.fitBounds(b, { padding: [40, 40], animate: false });
                     }
-                    if (idx >= 0) map.setView([typhoonTrack[idx].lat, typhoonTrack[idx].lon], map.getZoom(), { animate: true });
                 }
             });
             document.getElementById('btn-watch').addEventListener('click', function() {
