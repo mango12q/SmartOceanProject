@@ -80,12 +80,21 @@ def run_one(conf, name, steps, args):
             len(points), points[0]["t"], points[-1]["t"]))
 
     if "wind" in steps:
+        # 原始场
         process_wind.process(
             cfg, cfg["wrf_file"],
-            os.path.join(out_dir, "wind_field"),
+            os.path.join(out_dir, "wind_field_orig"),
             only_t=args.only,
             ocean_only=args.ocean_only
         )
+        # 订正场（可选，配置了 wrf_file_corrected 时生成）
+        if cfg.get("wrf_file_corrected"):
+            process_wind.process(
+                cfg, cfg["wrf_file_corrected"],
+                os.path.join(out_dir, "wind_field_corr"),
+                only_t=args.only,
+                ocean_only=args.ocean_only
+            )
 
     if "registry" in steps:
         block = build_registry.build_block(conf, args.out)

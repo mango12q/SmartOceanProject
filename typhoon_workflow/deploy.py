@@ -47,11 +47,17 @@ def main():
     target_root = remote_root or "/home/haike/test_web"
     remote_prefix = host + ":" + target_root
 
-    wind_local = os.path.join(base, "wind_field")
+    wind_local = os.path.join(base, "wind_field_orig")
     if os.path.isdir(wind_local):
         wind_dir = cfg.get("wind_dir", "")
         remote_wind = os.path.join(target_root, "wind_field", wind_dir.rstrip("/"))
         scp(args.key, wind_local, host + ":" + remote_wind)
+
+    wind_corr_local = os.path.join(base, "wind_field_corr")
+    if os.path.isdir(wind_corr_local):
+        wind_corr_dir = cfg.get("wind_dir_corrected", "")
+        remote_wind_corr = os.path.join(target_root, "wind_field", wind_corr_dir.rstrip("/"))
+        scp(args.key, wind_corr_local, host + ":" + remote_wind_corr)
 
     track_local = os.path.join(base, "track.json")
     if os.path.exists(track_local):

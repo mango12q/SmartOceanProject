@@ -80,10 +80,24 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
 
 
+WEB_ROOT = "/home/haike/test_web"      # 静态根（显式钉死，不再依赖启动时的 cwd）
+# 静态托管黑名单：源码、备份、日志、临时文件一律 404。
+# 2026-09-30：原先静态根就是 cwd，导致 tile_proxy.py
+# （含天地图 Key 明文）与 index.html.bak-* 全都能被匿名下载。
+DENY_RE = re.compile(r"\.(py|pyc|pyo|sh|log|swp|tmp|bak|conf|ini|env)($|[-.])", re.I)
+
+
 class Handler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        kwargs["directory"] = WEB_ROOT      # Python 3.7+ ；不传就退回 cwd
+        super().__init__(*args, **kwargs)
+
     def do_GET(self):
         m = TILE_RE.match(self.path)
         if not m:
+            base = os.path.basename(urllib.parse.urlparse(self.path).path)
+            if DENY_RE.search(base) or base.startswith("."):
+                return self.send_error(404, "Not found")
             return super().do_GET()
         layer, z, x, y, retina = m.group(1), m.group(2), m.group(3), m.group(4), m.group(5)
         is_retina = retina == "@2x"

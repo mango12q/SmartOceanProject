@@ -8,17 +8,20 @@
     "max_jump_deg": 2.0,
     "subsample": 5,
     "min_wind": 5.0,
-    "wind_dir": ""
+    "_comment_wind_radius_km": "2026-10-06 新增：track[].wind 的取数半径。原实现取「离中心最近格点」= 台风眼内静风，与 README §2 的契约（中心 10m 最大风速）不符。详见 fix_track_wind.py",
+    "wind_radius_km": 100
   },
   "typhoons": {
     "桦加沙": {
       "name": "桦加沙",
       "wrf_file": "/home/haike/test_web/wind_wrfout_d02_2025-09-15_000000",
+      "wrf_file_corrected": "/home/haike/test_web/TY_correction_data/2518_HJS/adjust_wind_wrfout_d02_2025-09-15_00:00:00",
       "start": "2025-09-15T00:00:00Z",
-      "slider_min_t": 61,
+      "slider_min_t": 93,
       "slider_max_t": 263,
       "default_t": 135,
       "wind_dir": "",
+      "wind_dir_corrected": "桦加沙_corr/",
       "track": {
         "source": "file",
         "file": "data/huajiasha.track.json",
@@ -27,9 +30,55 @@
       },
       "ticks": [
         { "t": 135, "label": "生成", "major": true },
-        { "t": 163, "label": "巅峰", "major": true },
         { "t": 225, "label": "登陆", "major": true },
+        { "t": 227, "label": "巅峰", "major": true },
         { "t": 249, "label": "消散", "major": true }
+      ]
+    },
+    "山竹": {
+      "name": "山竹",
+      "wrf_file": "/home/haike/test_web/TY_correction_data/1822_SZ/wind_wrfout_d02_2018-09-06_00:00:00",
+      "wrf_file_corrected": "/home/haike/test_web/TY_correction_data/1822_SZ/adjust_wind_wrfout_d02_2018-09-06_00:00:00",
+      "start": "2018-09-06T00:00:00Z",
+      "slider_min_t": 46,
+      "slider_max_t": 287,
+      "default_t": 205,
+      "wind_dir": "山竹/",
+      "wind_dir_corrected": "山竹_corr/",
+      "track": {
+        "source": "file",
+        "file": "data/山竹.track.json",
+        "track_from_t": 170,
+        "track_to_t": 255
+      },
+      "ticks": [
+        { "t": 170, "label": "生成", "major": true },
+        { "t": 213, "label": "巅峰1", "major": true },
+        { "t": 253, "label": "巅峰2", "major": true },
+        { "t": 255, "label": "消散", "major": true }
+      ]
+    },
+    "杜苏芮": {
+      "name": "杜苏芮",
+      "wrf_file": "/home/haike/test_web/TY_correction_data/2305_DSL/wind_wrfout_d02_2023-07-18_00:00:00",
+      "wrf_file_corrected": "/home/haike/test_web/TY_correction_data/2305_DSL/adjust_wind_wrfout_d02_2023-07-18_00:00:00",
+      "start": "2023-07-18T00:00:00Z",
+      "slider_min_t": 50,
+      "slider_max_t": 311,
+      "default_t": 230,
+      "wind_dir": "杜苏芮/",
+      "wind_dir_corrected": "杜苏芮_corr/",
+      "track": {
+        "source": "file",
+        "file": "data/杜苏芮.track.json",
+        "track_from_t": 110,
+        "track_to_t": 245
+      },
+      "ticks": [
+        { "t": 110, "label": "生成", "major": true },
+        { "t": 189, "label": "巅峰1", "major": true },
+        { "t": 243, "label": "巅峰2", "major": true },
+        { "t": 245, "label": "消散", "major": true }
       ]
     }
   }

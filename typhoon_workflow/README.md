@@ -11,13 +11,16 @@ typhoon_workflow/
 ├── typhoons.json        # 台风注册表（唯一的输入配置入口）
 ├── extract_track.py     # 台风中心路径提取（文件模式 / WRF 自动模式）
 ├── process_wind.py      # WRF 10m 风场 -> 逐时 msgpack 风羽 bin
+├── fix_track_wind.py    # 只重算 track[].wind 一列（半径内最大风速，其它列不动）
 ├── build_registry.py    # 生成/自动更新网页 TYPHOON_DATA 注册表 JS
 ├── run_pipeline.py      # 一键流水线：track -> wind -> registry
 ├── deploy.py            # 显式部署产物到服务器
 ├── verify_assets.py     # 产物校验（track 完整性、bin 可解码/与参考一致）
 ├── requirements.txt
 └── data/
-    └── huajiasha.track.json   # 桦加沙已整理路径（125~249 时次，125 点）
+    ├── huajiasha.track.json   # 桦加沙已整理路径（125~249 时次）
+    ├── 山竹.track.json         # 山竹已整理路径
+    └── 杜苏芮.track.json       # 杜苏芮已整理路径
 ```
 
 ## 2. 数据接口契约（与网页完全一致）
@@ -54,6 +57,7 @@ var TYPHOON_DATA = {
         minT: 61, maxT: 263, defaultT: 125,
         ticks: [ { t:125, label:'生成', major:true }, ... ],
         windDir: '',              // 新台风填 '台风名/'，对应 wind_field/<台风名>/
+        windDirCorrected: '',     // 订正场目录，对应 wind_field/<台风名>_corr/（可选）
         track: [ {"t":125,"lat":16.68,...} ]
     }
 };
@@ -84,6 +88,32 @@ var TYPHOON_DATA = {
 
 完全等价于服务器 `/home/haike/test_web/process_wind.py`：读取 WRF d02 的 `U10/V10/XLAT/XLONG`
 （可选 `HGT` 做海上掩膜），抽样后写 msgpack。`verify_assets.py --reference` 可逐字节对比新旧产物。
+`run_pipeline.py` 会按配置分别输出两路：`wind_field_orig`（原场，读 `wrf_file`）与
+`wind_field_corr`（订正场，读 `wrf_file_corrected`，未配置则跳过）；`deploy.py` 据此分别上传到
+`<target>/wind_field/<wind_dir>` 与 `<target>/wind_field/<wind_dir_corrected>`。
+
+### 3.2.1 `track[].wind` 的取数半径（`fix_track_wind.py`）
+
+`extract_track.py` 取的是**离中心最近那个格点**的 `sqrt(U10²+V10²)` —— 也就是台风眼内的静风值。
+实测桦加沙 88% 的时次因此低于热带低压下限（10.8 m/s），页面据此把超强台风显示成了热带低压，
+与 §2 的契约（「中心 10m 最大风速」）不符。本脚本把这一列改成：
+
+```text
+wind[t] = max( sqrt(U10² + V10²) )   over  { 格点 g : dist(g, center[t]) <= R }
+```
+
+`R` 取自 `typhoons.json` 的 `wind_radius_km`（缺省 100 km，各台风可单独配）。中心 `lat/lon` 与
+`psfc` **原样保留** —— 它们是准的（`psfc` 与风场的相关系数 ≈0.9，说明中心定位可靠）。
+
+```bash
+# 先只看不写文件的效果（对比不同 R）
+python3 fix_track_wind.py --name 桦加沙 --radius-km 50,75,100,150 --dry-run
+# 定好 R 之后正式生成（写新文件，不覆盖原文件）
+python3 fix_track_wind.py --name 桦加沙 --radius-km 100 --out out/桦加沙/track.windfix.json
+```
+
+默认读 `wrf_file`（原场），加 `--field corrected` 改读 `wrf_file_corrected`（订正场）——
+**口径要与页面主画布一致**（页面默认显示原场）。
 
 ### 3.3 可视化接入（`build_registry.py`）
 
@@ -105,6 +135,8 @@ var TYPHOON_DATA = {
      "start": "2025-07-24T00:00:00Z",
      "slider_min_t": 0, "slider_max_t": 263, "default_t": 120,
      "wind_dir": "杜苏芮/",
+     "wrf_file_corrected": "/home/haike/test_web/TY_correction_data/2305_DSL/adjust_wind_wrfout_d02_2023-07-18_00:00:00",
+     "wind_dir_corrected": "杜苏芮_corr/",
      "track": {
        "source": "auto",
        "ocean_hgt_max": 0.0,
@@ -118,13 +150,14 @@ var TYPHOON_DATA = {
    ```
 
    `track.ticks` 留空时自动生成“生成/巅峰/消散”三点。
+   `wrf_file_corrected` / `wind_dir_corrected` 用于页面上的「订正场」那一列，不配就只有原场。
 
 3. **计算**（在服务器上执行）：
 
    ```bash
    python3 run_pipeline.py --name 杜苏芮 --steps track,wind --out /home/haike/typhoon_workflow/out
    python3 verify_assets.py --track out/杜苏芮/track.json \
-                            --wind out/杜苏芮/wind_field --range 0 263
+                            --wind out/杜苏芮/wind_field_orig --range 0 263
    ```
 
 4. **接入页面**：
@@ -145,7 +178,9 @@ var TYPHOON_DATA = {
 - 仓库 `SmartOceanProject` 保存了从零到初版的完整提交历史：路径提取（海洋最低 PSFC）、
   风场叠加（msgpack+Canvas 风羽）、方向公式修正、瓦片代理、清理误追踪段等。
 - 服务器 `/home/haike/test_web` 是线上演进版：`index.html` 已扩展出风场开关、峰图、
-  港口风险、测距/绘制关注区、台风切换注册表等；`process_wind.py / inspect_wrf.py /
-  tile_proxy.py` 与仓库基本一致（服务器额外有高德瓦片预热与代理）。
+  港口风险、测距/绘制关注区、台风切换注册表等；`process_wind.py` 与仓库基本一致。
+  瓦片代理 `tile_proxy.py` 已按合规整改：底图只剩天地图（服务端合成 vec+cva）与 Esri 卫星影像，
+  高德直连与 OSM/OpenTopoMap 已下线（手工构造 `/tiles/osm/...` 也只会 404），
+  脚本实体现在放在 web 根之外的 `/home/haike/tile_proxy.py`。
 - 本模块把上面两处的计算方法收敛为可重复执行的流水线，接口与线上页面保持一致，
   新增台风无需再手工改页面 JS。
