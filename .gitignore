@@ -19,8 +19,26 @@ Thumbs.db
 # Reasonix
 .reasonix/
 
-# Local dev/test harness (vendored assets fetched from server)
-.dev/
+# Local dev/test harness（探针、截图、历史副本、从服务器取的站点快照）
+# 用 `.dev/*` 而不是 `.dev/`：整个目录被排除时，无法再逐个 negate 里面的文件。
+# 下面这些是「契约级」脚本 —— README/AGENTS 要求改完必跑的那几个，加上本地/线上验证台 ——
+# 必须入库；否则 git clone 之后一条校验命令都跑不了（2026-10-07 之前就是这个状态）。
+.dev/*
+!.dev/check-syntax.mjs
+!.dev/check-dict.mjs
+!.dev/check-gcj.mjs
+!.dev/check-tileproxy-deny.py
+!.dev/check-tileproxy-perf.py
+!.dev/verify-live-hardening.py
+!.dev/verify-page.mjs
+!.dev/verify-desktop.mjs
+!.dev/verify-mobile.mjs
+!.dev/page-check.mjs
+!.dev/touch-test.mjs
+!.dev/mouse-test.mjs
+!.dev/jig-proxy.py
+!.dev/gen-i18n-dict.mjs
+!.dev/i18n-scan.mjs
 
-# Node deps (�����ع������������뽻��)
+# Node deps (仅本地工具链，不参与交付)
 node_modules/
