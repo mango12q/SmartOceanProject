@@ -60,14 +60,22 @@ python mobile/build.py --check            # index.html 是否与 mobile/ 源码�
 用户维护一台远程 Ubuntu 服务器 `haike@43.154.210.202`，已配置免密 SSH。
 站点目录 `/home/haike/test_web/`，由 `tile_proxy.py` 在 **:8899** 提供服务（公网可访问）。
 
+**脚本实体在站点目录之外**（2026-10-07 起）：`/home/haike/tile_proxy.py`（`chmod 600`，含明文 Key）。
+**绝不要把带 Key 的 `tile_proxy.py` 放回 `~/test_web/`** —— 线上跑着的进程是 2026-09-30 17:11
+启动的旧版，**没有静态文件黑名单**（`DENY_RE`），web 根里任何文件都会被匿名下载
+（实测 `/data/convert_simplify.py`、`index.html.bak-*` 都返回 200）；带 Key 的脚本放进去
+就等于公网公开 Key。`~/test_web/` 里现在也确实没有这个文件。
+
 ```bash
 # 上传
 scp -o StrictHostKeyChecking=no <local_file> haike@43.154.210.202:/home/haike/test_web/
 
-# 重启瓦片代理（当前无 systemd 单元，手工 nohup）
-ssh haike@43.154.210.202 'cd ~/test_web && kill $(ss -lntp | grep ":8899" | grep -oP "pid=\K[0-9]+" | head -1); nohup python3 tile_proxy.py > /tmp/tile_proxy.log 2>&1 &'
+# 重启瓦片代理（无 systemd 单元，手工 nohup；脚本在 web 根之外，cwd 仍取站点目录）
+ssh haike@43.154.210.202 'kill $(ss -lntp | grep ":8899" | grep -oP "pid=\K[0-9]+" | head -1); cd ~/test_web && nohup python3 /home/haike/tile_proxy.py > /tmp/tile_proxy.log 2>&1 &'
 ```
 
+- **待办（等用户择时执行）**：重启一次让 `DENY_RE` 黑名单生效，届时 `/tile_proxy.py`、
+  `/*.bak`、`/*.log` 等一律 404；在那之前 web 根里不要放任何敏感文件
 - `sudo` 需要密码，**代理不可用**；凡需 root 的操作（如装 systemd 单元）交给用户执行
 - 改服务器上 `tile_proxy.py` 的 `TDT_KEY` 时，用脚本从**服务器现有文件**里读出旧值再填回，
   不要把 Key 复制到本地或写进任何受版本控制的文件

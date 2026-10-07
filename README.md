@@ -130,30 +130,40 @@ python mobile/build.py --check   # index.html 是否与 mobile/ 源码一致
 转换为 **GCJ-02**（天地图瓦片坐标系）。**不要修改数据本身的坐标系**，
 也不要给 `L.latLng` 加转换（会二次偏移并破坏风场画布变换）。详见 合规整改记录.md 第八节。
 
-服务器目录 `~/test_web/` 结构：
+服务器目录结构（2026-10-07 校核）：
 
 ```
-/home/haike/test_web/
+/home/haike/tile_proxy.py   # 常驻 HTTP 服务：静态文件 + 瓦片代理缓存（:8899）
+                            # ← 在 web 根【之外】，chmod 600，含明文天地图 Key
+/home/haike/test_web/       # ← 站点根目录：只放可以公开的文件
 ├── index.html              # 交互式地图页面（前端核心，唯一入口）
-├── tile_proxy.py           # 常驻 HTTP 服务：静态文件 + 瓦片代理缓存（:8899）
 ├── wind_field/             # 逐时风场 msgpack 风羽数据（264 个时次，wind_field_XXXX.bin）
 ├── tiles/                  # 瓦片磁盘缓存
 │   ├── tdt/<Key哈希>/...   #   天地图：服务端把 vec_w 底图 + cva_w 注记合成一张 PNG
 │   └── satellite/...       #   Esri 卫星影像
-├── data/                   # 陆地掩膜数据（Natural Earth countries-50m.json）
-├── inspect_wrf.py          # WRF 文件结构检查工具
-├── process_wind.py         # WRF 10m 风场 -> 逐时 msgpack 风羽 bin
-└── wind_wrfout_d02_*       # WRF 原始输出（约 241 MB）
+├── data/                   # 陆地掩膜数据（countries-50m.json）等
+├── vendor/                 # Leaflet / msgpack 等随页面分发的第三方文件
+├── TY_correction_data/     # 各台风的订正场 WRF 输出
+└── wind_wrfout_d02_*       # WRF 原始输出（约 253 MB）
 ```
+
+> ⚠️ **脚本实体不在站点根目录内**（2026-10-07 起因安全外移）。线上跑着的进程是
+> 2026-09-30 启动的旧版，**没有静态文件黑名单**（`DENY_RE`），web 根里任何文件都能被匿名下载
+> （实测 `/data/*.py`、`index.html.bak-*` 均返回 200）—— 把带 Key 的服务端脚本放进去，
+> 等于把 Key 公开到公网。重启一次即可让黑名单生效（见下），在此之前请勿把敏感文件放进 `test_web/`。
 
 服务管理：
 
 ```bash
-# 启动（前台）
-python3 tile_proxy.py
+# 启动（前台；脚本在 web 根之外，cwd 仍取站点目录）
+cd /home/haike/test_web && python3 /home/haike/tile_proxy.py
 
 # 后台常驻
-nohup python3 tile_proxy.py > /tmp/tile_proxy.log 2>&1 &
+cd /home/haike/test_web && nohup python3 /home/haike/tile_proxy.py > /tmp/tile_proxy.log 2>&1 &
+
+# 重启（无 systemd 单元）
+kill $(ss -lntp | grep ":8899" | grep -oP "pid=\K[0-9]+" | head -1)
+cd /home/haike/test_web && nohup python3 /home/haike/tile_proxy.py > /tmp/tile_proxy.log 2>&1 &
 
 # 可选：本地验证时覆盖端口/缓存目录/Key
 python3 tile_proxy.py 8898 /tmp/cache <你的天地图Key>
@@ -162,7 +172,8 @@ python3 tile_proxy.py 8898 /tmp/cache <你的天地图Key>
 - 监听端口 `8899`，同时服务静态文件与 `/tiles/<layer>/<z>/<x>/<y>.png` 瓦片
 - 瓦片命中缓存直接返回，未命中回源并写盘缓存；**只有 `satellite` 与 `tdt` 两层**，
   其余路径（如 `/tiles/osm/...`）一律 404，不会再取回不合规的表示
-- **天地图 Key 只放在服务端** `tile_proxy.py` 的 `TDT_KEY`，不下发到浏览器
+- **天地图 Key 只放在服务端**（`/home/haike/tile_proxy.py` 的 `TDT_KEY`，位置在 web 根之外、
+  权限 `600`），不下发到浏览器
 - 天地图回源**必须用浏览器 UA**（实测自定义 UA / 无 UA 会被其 WAF 403，
   表现为瓦片全部 404、底图空白）；`tiles/tdt/` 缓存目录名带 Key 哈希，换 Key 自动换缓存
 
@@ -207,10 +218,12 @@ python3 tile_proxy.py 8898 /tmp/cache <你的天地图Key>
 - **备份**：`index.html` / `tile_proxy.py` 每次改版会保留
   `*.bak-<时间戳>-<说明>` 备份，勿随意删除近期备份
 - **服务**：`tile_proxy.py` 为单进程常驻，**崩溃或服务器重启后需手动重启**
-  （无开机自启，见上文）；重启后检查端口 8899
+  （无开机自启，见上文）；重启后检查端口 8899。脚本实体在 `/home/haike/tile_proxy.py`
+  （web 根之外），重启命令见上文
 - **防火墙**：需放行 TCP 8899
-- **换天地图 Key**：改 `tile_proxy.py` 的 `TDT_KEY` 后重启即可；
-  旧 Key 的 `tiles/tdt/<旧哈希>/` 缓存可删（换 Key 会自动换目录，不会串号）
+- **换天地图 Key**：改 `/home/haike/tile_proxy.py` 的 `TDT_KEY` 后重启即可；
+  旧 Key 的 `tiles/tdt/<旧哈希>/` 缓存可删（换 Key 会自动换目录，不会串号）。
+  Key 不要复制到本地或写进受版本控制的文件
 
 ## 数据来源
 
