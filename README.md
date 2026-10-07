@@ -148,13 +148,20 @@ python mobile/build.py --check   # index.html 是否与 mobile/ 源码一致
 ```
 
 > ⚠️ **脚本实体不在站点根目录内**（2026-10-07 起因安全外移）。web 根里只放可以公开的文件：
-> 服务端已启用静态文件黑名单（`DENY_RE`，2026-10-07 22:17 重启后生效），
-> `/tile_proxy.py`、`*.bak`、`*.log`、`*.py`、`*.pyc` 等一律 404；实测页面资产不受影响
-> （`/`、`/tiles/…`、`/data/countries-50m.json`、`/wind_field/*.bin` 仍 200）。
-> **取备份 / 脚本请走 scp / sftp**（SSH 不受该黑名单约束）。
+> 服务端已启用静态文件黑名单（`DENY_RE`），`/tile_proxy.py`、`*.bak`、`*.log`、`*.py`、`*.pyc`
+> 等一律 404；实测页面资产不受影响（`/`、`/tiles/…`、`/data/countries-50m.json`、
+> `/wind_field/*.bin` 仍 200）。**取备份 / 脚本请走 scp / sftp**（SSH 不受该黑名单约束）。
 > 历史教训：在 22:17 重启之前，旧进程没有黑名单，`/data/*.py` 与 web 根里那份
 > `index.html.bak-*` 一度都是 200（可匿名下载）；日志里也能看到有人在按精确文件名
 > 探测 `/tile_proxy.py.bak-…` 与 7 个 `index.html.bak-*`（当时即 404，未泄露）。
+>
+> **2026-10-07 又修掉一个绕过**：黑名单最初拿 `urlparse().path` 的 basename 去匹配，
+> 而 `urlparse()` **不做** percent-decode、后面的 `translate_path()` **却会** ——
+> 于是 `/data/convert_simplify%2epy` 直接 200 返回源码全文（`%2E` 大小写都行，
+> `index.html%2ebak` 同理），等于把上面那条黑名单整个架空。现已改为**先 `unquote` 再匹配**，
+> 并且覆写 `list_directory()` 让 `/data/`、`/tiles/`、`/vendor/`、`/wind_field/`
+> 一律 404（在此之前它们会匿名列出目录内容，等于把「站内有哪些 .py/.bak」的清单
+> 递给攻击者）。回归：`.dev/check-tileproxy-deny.py`（本地）+ `.dev/verify-live-hardening.py`（线上）。
 
 服务管理：
 
@@ -167,6 +174,11 @@ cd /home/haike/test_web && python3 -u /home/haike/tile_proxy.py
 cd /home/haike/test_web && nohup python3 -u /home/haike/tile_proxy.py > /tmp/tile_proxy.log 2>&1 &
 
 # 重启（无 systemd 单元）
+# ⚠ 下面这条单行命令里的 PID 提取实测取不到值（kill 只报 usage）→ 新进程会因
+#   "Address already in use" 退出，而端口看起来仍在监听（旧进程还在），
+#   于是改动**静默没生效**。稳妥做法：先 `ss -lntp | grep ':8899'` 在本地读出 pid，
+#   再 `ssh … "kill <pid>"`、等 2 秒、最后启动；启动后确认 PID 变了、
+#   `head -2 /tmp/tile_proxy.log` 里有 `tdt_key=set`（天地图 Key 没丢）。
 kill $(ss -lntp | grep ":8899" | grep -oP "pid=\K[0-9]+" | head -1)
 cd /home/haike/test_web && nohup python3 -u /home/haike/tile_proxy.py > /tmp/tile_proxy.log 2>&1 &
 
