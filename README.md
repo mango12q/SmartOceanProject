@@ -147,23 +147,28 @@ python mobile/build.py --check   # index.html 是否与 mobile/ 源码一致
 └── wind_wrfout_d02_*       # WRF 原始输出（约 253 MB）
 ```
 
-> ⚠️ **脚本实体不在站点根目录内**（2026-10-07 起因安全外移）。线上跑着的进程是
-> 2026-09-30 启动的旧版，**没有静态文件黑名单**（`DENY_RE`），web 根里任何文件都能被匿名下载
-> （实测 `/data/*.py`、`index.html.bak-*` 均返回 200）—— 把带 Key 的服务端脚本放进去，
-> 等于把 Key 公开到公网。重启一次即可让黑名单生效（见下），在此之前请勿把敏感文件放进 `test_web/`。
+> ⚠️ **脚本实体不在站点根目录内**（2026-10-07 起因安全外移）。web 根里只放可以公开的文件：
+> 服务端已启用静态文件黑名单（`DENY_RE`，2026-10-07 22:17 重启后生效），
+> `/tile_proxy.py`、`*.bak`、`*.log`、`*.py`、`*.pyc` 等一律 404；实测页面资产不受影响
+> （`/`、`/tiles/…`、`/data/countries-50m.json`、`/wind_field/*.bin` 仍 200）。
+> **取备份 / 脚本请走 scp / sftp**（SSH 不受该黑名单约束）。
+> 历史教训：在 22:17 重启之前，旧进程没有黑名单，`/data/*.py` 与 web 根里那份
+> `index.html.bak-*` 一度都是 200（可匿名下载）；日志里也能看到有人在按精确文件名
+> 探测 `/tile_proxy.py.bak-…` 与 7 个 `index.html.bak-*`（当时即 404，未泄露）。
 
 服务管理：
 
 ```bash
 # 启动（前台；脚本在 web 根之外，cwd 仍取站点目录）
-cd /home/haike/test_web && python3 /home/haike/tile_proxy.py
+# -u = 不缓冲；不加则 stdout/stderr 是块缓冲，访问日志要攒到 4-8KB 才落盘
+cd /home/haike/test_web && python3 -u /home/haike/tile_proxy.py
 
 # 后台常驻
-cd /home/haike/test_web && nohup python3 /home/haike/tile_proxy.py > /tmp/tile_proxy.log 2>&1 &
+cd /home/haike/test_web && nohup python3 -u /home/haike/tile_proxy.py > /tmp/tile_proxy.log 2>&1 &
 
 # 重启（无 systemd 单元）
 kill $(ss -lntp | grep ":8899" | grep -oP "pid=\K[0-9]+" | head -1)
-cd /home/haike/test_web && nohup python3 /home/haike/tile_proxy.py > /tmp/tile_proxy.log 2>&1 &
+cd /home/haike/test_web && nohup python3 -u /home/haike/tile_proxy.py > /tmp/tile_proxy.log 2>&1 &
 
 # 可选：本地验证时覆盖端口/缓存目录/Key
 python3 tile_proxy.py 8898 /tmp/cache <你的天地图Key>
