@@ -1,4 +1,23 @@
-numpy
-xarray
-netCDF4
-msgpack
+# 台风流水线 Python 依赖：pip install -r requirements.txt
+# 版本一律用「宽松下界」，不钉死小版本 —— 本机(Linux/py3.10)与服务器(py3)版本差异大，
+# 钉死具体小版本反而会装不上；只要不低于下界即可。
+
+# --- WRF 格点读取与数值运算 ---
+# extract_track.py / fix_track_wind.py / process_wind.py / verify_assets.py 都用
+numpy>=1.20
+# 读取 wind_wrfout_d02_* 的 U10/V10/PSFC/HGT/XLAT/XLONG 等变量（xr.open_dataset）
+xarray>=0.20
+# xarray 打开 WRF netCDF 文件所必需的后端引擎；缺它会报 "no engine available"
+netCDF4>=1.5
+
+# --- 风场 bin 序列化 ---
+# wind_field_XXXX.bin = msgpack 编码的 [lon, lat, spd, dir] 列表
+# process_wind.py 写、verify_assets.py 读，两边都必须能解
+msgpack>=1.0
+
+# --- 瓦片合成（tile_proxy.py 服务端常驻进程）---
+# 天地图瓦片是两层：vec_w（矢量底图，含国界/省界）+ cva_w（矢量注记，含地名文字）。
+# tile_proxy.py 用 Pillow 的 Image.alpha_composite 把两层叠成一张 PNG。
+# 缺 Pillow 时它不会报错，而是「静默退化」为只返回 vec_w 底层 —— 表现是地图上
+# 只剩底图、没有中文地名的注记层，很难第一时间发现，所以必须显式声明。
+Pillow>=8.0

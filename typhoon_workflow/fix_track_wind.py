@@ -166,7 +166,7 @@ def main():
     # 不变量检查：新值必然 >= 旧值（旧值取自半径内的一个格点）
     bad = [(i, old[i], w_new[i]) for i in range(len(old)) if w_new[i] < old[i] - 1e-6]
     if bad:
-        print('⚠ 有 %d 个点新值小于旧值（不该发生）:' % len(bad))
+        print('[warn] 有 %d 个点新值小于旧值（不该发生）:' % len(bad))
         for i, a, b in bad[:5]:
             print('    t=%d  old=%.1f  new=%.1f' % (track[i]['t'], a, b))
 
