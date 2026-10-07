@@ -20,6 +20,7 @@ TDT_USE_LOCAL_TILES=true）在服务端把两层合成一张 PNG 再落盘，
 
 缓存目录里带 API Key 的短哈希：换 Key 后旧缓存自然失效，不会串号。
 """
+import gzip
 import hashlib
 import io
 import os
@@ -28,6 +29,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+from email.utils import parsedate_to_datetime
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
 
@@ -86,8 +88,53 @@ WEB_ROOT = "/home/haike/test_web"      # 静态根（显式钉死，不再依赖
 # （含天地图 Key 明文）与 index.html.bak-* 全都能被匿名下载。
 DENY_RE = re.compile(r"\.(py|pyc|pyo|sh|log|swp|tmp|bak|conf|ini|env)($|[-.])", re.I)
 
+# ---------------------------------------------------------------------------
+# 2026-10-07 三项加固/性能改动
+# ---------------------------------------------------------------------------
+# ① gzip：index.html 未压缩 615 KB，而首屏还要拉 vendor/ 下近 400 KB 的 js/css。
+#    静态文本资源压缩后能省掉大约 3/4 的传输量。只压文本类、且只压 ≥1KB 的，
+#    并保留 Last-Modified + 304（否则每次回访都要重传，反而更差）。
+COMPRESSIBLE_EXT = (".html", ".htm", ".css", ".js", ".mjs", ".json", ".svg", ".txt",
+                    ".geojson", ".xml")
+GZIP_MIN_SIZE = 1024
+GZIP_CACHE = {}                 # path -> (mtime, size, gz_bytes)
+GZIP_LOCK = threading.Lock()
+
+# ② 单次回源（single-flight）：同一瓦片被并发请求时只让一个线程真去上游。
+#    实测（.dev/_audit_fanout_probe.py）加之前 8 个并发请求打了 **6 次**上游。
+INFLIGHT = {}                   # 缓存路径 -> threading.Event
+INFLIGHT_LOCK = threading.Lock()
+
+# ③ 失败短缓存：上游 404/超时不再每次平移都重打一遍（原先每次请求都会重试）。
+TILE_FAIL = {}                  # 缓存路径 -> 到期时间戳
+TILE_FAIL_TTL = 120             # 秒；短一点，避免上游抖动让瓦片长时间空白
+
+
+def inflight_claim(path):
+    """认领某个瓦片的回源权：返回 (event, is_owner)。"""
+    with INFLIGHT_LOCK:
+        ev = INFLIGHT.get(path)
+        if ev is None:
+            ev = threading.Event()
+            INFLIGHT[path] = ev
+            return ev, True
+        return ev, False
+
+
+def inflight_release(path, ev):
+    with INFLIGHT_LOCK:
+        INFLIGHT.pop(path, None)
+    ev.set()
+
 
 class Handler(SimpleHTTPRequestHandler):
+    # HTTP/1.0（父类默认）意味着**每个瓦片一条新 TCP 连接**：一屏卫星底图几十个请求，
+    # 每次都要握手。改成 1.1 开 keep-alive —— 代价是每个响应都必须带正确的
+    # Content-Length，本文件所有分支（_serve_bytes / _send_gzip / send_error /
+    # 父类静态分支）都已满足。timeout 防住闲置连接长期占线程。
+    protocol_version = "HTTP/1.1"
+    timeout = 30
+
     def __init__(self, *args, **kwargs):
         kwargs["directory"] = WEB_ROOT      # Python 3.7+ ；不传就退回 cwd
         super().__init__(*args, **kwargs)
@@ -95,7 +142,15 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         m = TILE_RE.match(self.path)
         if not m:
-            base = os.path.basename(urllib.parse.urlparse(self.path).path)
+            # ⚠ 必须**先 percent-decode 再匹配**黑名单。
+            #   urlparse() 不做解码，而匹配失败后 SimpleHTTPRequestHandler 的
+            #   translate_path() **会** unquote —— 于是 /data/x%2epy（甚至 %2E）
+            #   绕过 DENY_RE 落到静态处理器，又被解码成 x.py 原样下发。
+            #   2026-10-07 实测：线上 /data/convert_simplify%2epy 曾 200 返回源码全文，
+            #   与本文件顶部"源码/备份一律 404"的加固意图正好相反。
+            raw = urllib.parse.unquote(urllib.parse.urlparse(self.path).path,
+                                       errors="replace")
+            base = os.path.basename(raw)
             if DENY_RE.search(base) or base.startswith("."):
                 return self.send_error(404, "Not found")
             return super().do_GET()
@@ -108,25 +163,113 @@ class Handler(SimpleHTTPRequestHandler):
         path = os.path.join(base, z, x, y + suffix + ".png")
         if os.path.exists(path) and os.path.getsize(path) > 0:
             return self._serve_file(path, "image/png")
-        if layer == "tdt":
-            data = self._fetch_tdt(z, x, y)
-        else:
-            data = self._fetch(layer, z, x, y, is_retina)
-            if data is None and is_retina:
-                # Fallback: serve normal-res tile so the map never shows a blank tile
-                data = self._fetch(layer, z, x, y, False)
-        if data is None:
-            self.send_error(404, "Tile not found")
-            return
+        now = time.time()
+        if TILE_FAIL.get(path, 0) > now:
+            return self.send_error(404, "Tile not found")
+
+        ev, is_owner = inflight_claim(path)
         try:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            tmp = path + ".tmp"
-            with open(tmp, "wb") as f:
-                f.write(data)
-            os.replace(tmp, path)
-        except Exception:
-            pass
-        self._serve_bytes(data, "image/png")
+            if not is_owner:
+                # 别的线程正在回源同一张瓦片：等它落盘，然后直接读缓存
+                ev.wait(20)
+                if os.path.exists(path) and os.path.getsize(path) > 0:
+                    return self._serve_file(path, "image/png")
+                # 它失败了/超时了：自己也去取一次，别让这个请求空手而归
+            if layer == "tdt":
+                data = self._fetch_tdt(z, x, y)
+            else:
+                data = self._fetch(layer, z, x, y, is_retina)
+                if data is None and is_retina:
+                    # Fallback: serve normal-res tile so the map never shows a blank tile
+                    data = self._fetch(layer, z, x, y, False)
+            if data is None:
+                # 失败短缓存：否则每次平移都会把同一个 404 再打向上游一遍
+                TILE_FAIL[path] = time.time() + TILE_FAIL_TTL
+                if len(TILE_FAIL) > 4096:       # 顺手清过期项，避免无界增长
+                    for k in [k for k, v in TILE_FAIL.items() if v <= now]:
+                        TILE_FAIL.pop(k, None)
+                self.send_error(404, "Tile not found")
+                return
+            try:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                # 唯一临时名。原先固定用 path + ".tmp"：两个线程同时写同一个临时文件，
+                # Linux 上 os.replace 之后先写者仍持着「已发布」inode 的 fd（发布后被改写，
+                # 读取方可能读到半截 PNG），Windows 上 rename 被占用会抛 PermissionError
+                # 并被下面那个 except 静默吞掉、留下孤儿 .tmp。
+                tmp = "%s.tmp.%d.%d" % (path, os.getpid(), threading.get_ident())
+                with open(tmp, "wb") as f:
+                    f.write(data)
+                os.replace(tmp, path)
+            except Exception:
+                pass
+            self._serve_bytes(data, "image/png")
+        finally:
+            if is_owner:
+                inflight_release(path, ev)
+
+    def send_head(self):
+        """静态文本资源走 gzip（保留 Last-Modified + 304），其余交给父类。
+
+        ⚠ 必须自己解析「目录 → index.html」这一步：`/` 经 translate_path 得到的是
+        **目录**，若只判 os.path.isfile 就会落到父类分支，于是首页（615 KB，全站
+        最大的一份）反而不压缩 —— 实测踩到，.dev/check-tileproxy-perf.py 里有 `/`
+        的回归用例。
+        """
+        path = self.translate_path(self.path)
+        if os.path.isdir(path):
+            for index in ("index.html", "index.htm"):
+                cand = os.path.join(path, index)
+                if os.path.isfile(cand):
+                    path = cand
+                    break
+        if os.path.isfile(path) and path.lower().endswith(COMPRESSIBLE_EXT):
+            if "gzip" in (self.headers.get("Accept-Encoding") or "").lower():
+                try:
+                    st = os.stat(path)
+                except OSError:
+                    return super().send_head()
+                if st.st_size >= GZIP_MIN_SIZE:
+                    return self._send_gzip(path, st)
+        return super().send_head()
+
+    def _send_gzip(self, path, st):
+        last_mod = self.date_time_string(st.st_mtime)
+        # 304 必须保留：少了它，浏览器每次回访都要重传整份，比不压缩还糟
+        ims = self.headers.get("If-Modified-Since")
+        if ims:
+            try:
+                if int(st.st_mtime) <= int(parsedate_to_datetime(ims).timestamp()):
+                    self.send_response(304)
+                    self.send_header("Last-Modified", last_mod)
+                    self.end_headers()
+                    return None
+            except Exception:
+                pass
+        with GZIP_LOCK:
+            hit = GZIP_CACHE.get(path)
+        if hit and hit[0] == st.st_mtime and hit[1] == st.st_size:
+            body = hit[2]
+        else:
+            try:
+                with open(path, "rb") as f:
+                    raw = f.read()
+            except OSError:
+                return super().send_head()
+            body = gzip.compress(raw, 6)
+            with GZIP_LOCK:
+                GZIP_CACHE[path] = (st.st_mtime, st.st_size, body)
+        ctype = self.guess_type(path)
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        if ctype.startswith("text/html"):
+            # 页面改了就要立刻看到，不让浏览器用启发式缓存
+            self.send_header("Cache-Control", "no-cache")
+        self.send_header("Content-Encoding", "gzip")
+        self.send_header("Vary", "Accept-Encoding")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Last-Modified", last_mod)
+        self.end_headers()
+        return io.BytesIO(body)
 
     def _http_get(self, url, ua, referer=None):
         headers = {"User-Agent": ua}
@@ -183,6 +326,16 @@ class Handler(SimpleHTTPRequestHandler):
         # ArcGIS 不支持 @2x，一律按普通分辨率取，避免 @2x 请求 404
         url = tpl.format(z=z, x=x, y=y)
         return self._http_get(url, USER_AGENT, REFERER)
+
+    def list_directory(self, path):
+        """关掉目录列表（/data/ /tiles/ /vendor/ /wind_field/ 都曾 200 列目录）。
+
+        2026-10-07：目录列表会把「站点里到底有哪些 .py/.bak/.log」直接列给匿名访问者，
+        等于给上面那条黑名单绕过一个现成的目标清单。目录请求一律 404；
+        实体文件仍按显式路径正常下发（页面只用显式路径，不依赖列表）。
+        """
+        self.send_error(404, "Not found")
+        return None
 
     def _serve_file(self, path, ctype):
         try:
