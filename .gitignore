@@ -29,6 +29,7 @@ Thumbs.db
 !.dev/check-gcj.mjs
 !.dev/check-tileproxy-deny.py
 !.dev/check-tileproxy-perf.py
+!.dev/check-md-reload.mjs
 !.dev/verify-live-hardening.py
 !.dev/verify-page.mjs
 !.dev/verify-desktop.mjs

@@ -62,6 +62,7 @@ node mobile/test-qr.mjs && node mobile/selftest-css.mjs && node mobile/test-i18n
 python mobile/build.py --check            # index.html 是否与 mobile/ 源码同步
 python .dev/check-tileproxy-deny.py       # 静态黑名单：%2e 绕过必须 404、目录列表必须关闭
 python .dev/check-tileproxy-perf.py       # gzip / HTTP-1.1 / 304 / single-flight / 唯一 tmp
+node   .dev/check-md-reload.mjs <url>     # 断点回退自救：加载期抖动不重载、真实旋转才重载
 ```
 
 动了 `index.html` 的界面行为之后，还要跑真机无头验证（用本机 Chrome，`.dev/page-check.mjs`
@@ -70,6 +71,11 @@ python .dev/check-tileproxy-perf.py       # gzip / HTTP-1.1 / 304 / single-fligh
 ```bash
 node .dev/page-check.mjs --url http://127.0.0.1:8123/index.html --devices 390x844,768x1024,1440x900
 ```
+
+> `--wait` 现在的含义是「就绪之后的稳定期」（默认 1500ms）：测试台会先轮询
+> `window.__mainReady` 再注入探针。这一点很要紧 —— 线上走公网要 **约 5.3 秒**才就绪
+> （本地 0.44 秒），原先固定睡 3500ms 会偶发「mobile-ui=true 但 dock=none」的假故障
+> （同一命令连跑 5 次出现 1 次）。
 
 线上部署之后跑线上验收（只读 GET，同时断言「绕过硬封死」「资产没被误伤」「性能生效」）：
 

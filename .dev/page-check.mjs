@@ -27,7 +27,8 @@ const URL_ = arg('url', 'http://127.0.0.1:8123/preview.html');
 const OUT = arg('out', '.dev/shots');
 const DEVICES = arg('devices', '390x844,360x800,768x1024,1440x900')
   .split(',').map(s => s.trim()).filter(Boolean);
-const WAIT = Number(arg('wait', '3500'));
+// --wait 现在是「就绪之后的稳定期」，不再是固定等待时长（配合 waitReady()）
+const WAIT = Number(arg('wait', '1500'));
 const PORT = Number(arg('port', '9333'));
 const KEEP = process.argv.includes('--keep-open');
 
@@ -48,6 +49,31 @@ const chrome = spawn(CHROME, [
 ], { stdio: ['ignore', 'pipe', 'pipe'] });
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* 等页面真正就绪，而不是睡一个固定时长。
+ *
+ * 2026-10-07 实测踩到的假故障：线上（走公网）到 `window.__mainReady` 置位、移动端 Dock
+ * 建出来要约 **5.3 秒**（本地 0.44 秒），而原先固定 `--wait 3500` 会在页面还没就绪时
+ * 就注入探针 —— 同一个命令连跑 5 次出现 1 次「mobile-ui=true 但 dock=none」，
+ * 看起来像渲染回归，其实只是等太短。`__mainReady` 由主逻辑 init 末尾无条件置位
+ * （桌面端也置），所以拿它当就绪信号最可靠；就绪后再叠加 `--wait` 作为稳定期
+ * （留给首帧、字体、瓦片）。 */
+async function waitReady(cdp, sessionId, settleMs) {
+  const deadline = Date.now() + 25000;
+  let ready = false;
+  while (Date.now() < deadline) {
+    await sleep(250);
+    try {
+      const r = await cdp.send('Runtime.evaluate', {
+        expression: `document.readyState === 'complete' && window.__mainReady === true`,
+        returnByValue: true
+      }, sessionId);
+      if (r.result && r.result.value === true) { ready = true; break; }
+    } catch { /* 导航切换中执行上下文会失效，下一轮再试 */ }
+  }
+  if (!ready) console.log('   [warn] 25000ms 内未见 __mainReady，仍按 --wait 继续');
+  await sleep(Math.max(300, settleMs));
+}
 
 async function getWsUrl() {
   for (let i = 0; i < 60; i++) {
@@ -167,7 +193,7 @@ async function run() {
     }, sessionId);
     await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: mobile, maxTouchPoints: 5 }, sessionId);
     await cdp.send('Page.navigate', { url: URL_ }, sessionId);
-    await sleep(WAIT);
+    await waitReady(cdp, sessionId, WAIT);
 
     const errors = cdp.events
       .filter(e => e.method === 'Runtime.exceptionThrown' ||

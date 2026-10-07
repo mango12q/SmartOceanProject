@@ -4645,10 +4645,30 @@ window.__I18N_DICT = {
      * 为什么不就地拆解还原 DOM：Dock/Sheet/FAB 三处共搬了十几个原节点、
      * 还注入过覆盖样式，手工还原要逐个记录原位，一旦漏一个就留下比现在更隐蔽的
      * 状态错乱；重载是唯一不会留下半拆状态的方案，代价是旋转时一次约 1 秒的刷新。
-     * 只在匹配状态**翻转**时触发（粗指针的横竖屏都仍在范围内，不会误触发）。 */
+     *
+     * ⚠ 三个必须有的保护（2026-10-07 补，实测踩到过其中一个）：
+     *   1) 只在匹配状态**翻转**时触发（粗指针的横竖屏都仍在范围内，不会误触发）；
+     *   2) **加载后的前 2 秒不响应**：Chrome 设备模拟（CDP 的 device-metrics 覆盖）
+     *      是在导航之后才生效的，于是这个查询会先 false 再 true，属于加载期抖动 ——
+     *      没有这道闸时，探针会在页面重新初始化时测到「没有 Dock」（实测碰到一次：
+     *      同一命令连跑 5 次里 1 次出现 dock=none）。这条闸顺带断掉
+     *      「重载 → 又翻转 → 再重载」的环：每次重载都会重置这个时间窗。
+     *   3) 翻转后**延迟 400ms 再确认一次**，若这期间又切回原状态就撤销重载。
+     *      真正的旋转远晚于加载期，不受影响。 */
     if (MQ && MQ.addEventListener) {
+        var mdFlipAt = Date.now();
+        var mdReloadTimer = null;
         MQ.addEventListener('change', function (e) {
-            if (e.matches !== IS_MOBILE) window.location.reload();
+            if (e.matches === IS_MOBILE) {                 // 又切回原状态：撤销待办
+                if (mdReloadTimer) { clearTimeout(mdReloadTimer); mdReloadTimer = null; }
+                return;
+            }
+            if (Date.now() - mdFlipAt < 2000) return;      // 加载期抖动，不管
+            if (mdReloadTimer) return;                     // 已在等，别重复排队
+            mdReloadTimer = setTimeout(function () {
+                mdReloadTimer = null;
+                if (MQ.matches !== IS_MOBILE) window.location.reload();
+            }, 400);
         });
     }
 
