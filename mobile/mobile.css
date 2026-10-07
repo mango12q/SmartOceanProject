@@ -1,10 +1,10 @@
 /* mobile.css — inlined into index.html by Lead; do not reference externally */
 /* 台风路径可视化 · 手机端布局样式（SPEC v1 §2.2 的 18 条要求）
-   门控：外层 @media (max-width:768px) + 每条规则 html.mobile-ui 前缀（双保险 → 桌面端零影响）。
+   门控：外层 @media (max-width:768px), (max-height:480px) and (pointer:coarse) + 每条规则 html.mobile-ui 前缀（双保险 → 桌面端零影响）。
    内联位置：index.html <style> 末尾，靠后生效，可覆盖第 678–702 行既有 768/480 断点。
    禁止：@import / @font-face / 外部字体 / url(http...)。 */
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 480px) and (pointer: coarse) {
 
   /* ==========================================================================
      §0 · 变量与基础（§2.2.16 --dock-h fallback；§2.2.18 性能）
@@ -12,6 +12,9 @@
   html.mobile-ui {
     --dock-h: 150px;                              /* fallback；JS 写入真实像素值覆盖 */
     --md-safe-b: env(safe-area-inset-bottom, 0px);
+    /* 2026-10-05：顶部安全区。此前只有底部那一档，加入主屏以 PWA 独立运行时
+       （apple-mobile-web-app-capable=yes）标题/右上角 EN/快讯条会落进状态栏。 */
+    --md-safe-t: env(safe-area-inset-top, 0px);
     --md-blue: #1565c0;
     --md-line: rgba(21, 101, 192, 0.18);
     --md-sheet-bg: #ffffff;
@@ -34,7 +37,7 @@
        文字自适配屏幕缩放（需求 3）
        根字号随视口宽度线性变化，所有 rem 尺寸的文字一起缩放：
          320px → 15.6px   390px → 16.0px   430px → 16.2px   768px → 18px（封顶）
-       桌面端不生效：本文件全部规则都在 @media (max-width:768px) 内，
+       桌面端不生效：本文件全部规则都在上面的外层媒体查询内，
        且需要 html.mobile-ui 类（由 JS 仅在移动端加上）—— 双保险。
        ------------------------------------------------------------------ */
     font-size: clamp(15px, calc(13.9px + 0.53vw), 18px);
@@ -355,6 +358,7 @@
     bottom: var(--dock-h);
     width: auto;
     height: 60vh;
+    height: 60dvh;
     max-height: calc(100vh - var(--dock-h));
     max-height: calc(100dvh - var(--dock-h));
     z-index: 1400;
@@ -446,8 +450,9 @@
     display: flex;
     flex-direction: column;
     max-height: min(72vh, 560px);
+    max-height: min(72dvh, 560px);
     box-sizing: border-box;
-    padding-bottom: calc(var(--dock-h) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--dock-h);
     background: var(--md-sheet-bg);
     border-top: 1px solid var(--md-line);
     border-radius: 14px 14px 0 0;
@@ -785,14 +790,16 @@
      #title 去掉 transform：否则会成为 fixed 子元素（#typhoon-menu）的包含块
      ========================================================================== */
   html.mobile-ui #title {
-    top: 8px;
+    top: calc(8px + var(--md-safe-t));
     left: 8px;
     right: 8px;
     transform: none;
     margin: 0 auto;
     width: max-content;
     max-width: calc(100vw - 128px);   /* 右侧给 #btn-lang 留位（需求 4） */
-    padding: 7px 14px;
+    /* 2026-10-03：7px → 11px。给它加了 role/tabindex 之后它就是可点控件了，
+       实测高 42px（38px 起步）仍低于 44px 触控下限，补到 44px。 */
+    padding: 11px 14px;
     font-size: 0.95rem;
     letter-spacing: 0.06em;
     border-radius: 16px;
@@ -808,7 +815,7 @@
   }
 
   html.mobile-ui #top-controls {
-    top: 8px;
+    top: calc(8px + var(--md-safe-t));
     right: 8px;
     left: auto;
     bottom: auto;
@@ -931,10 +938,15 @@
      §6 · 灾害雷达（§2.2.6）：全宽底部 Sheet + 纵向自适应
      ========================================================================== */
   html.mobile-ui #hazard-radar {
+    /* 2026-10-04 修：原来沿用 PC 段的 z-index:1000，低于强度演变图(1250)、
+       快讯条(1230)、测距条(1420)、对比图例(1450) —— 横屏下「先开强度演变再开
+       灾害预警」时雷达被图压住 126519px²，关闭键都点不到。抬到 1460
+       （仍低于 Sheet 1490 / Dock 1500）。FAB(1520) 由 syncFabHide() 收起。 */
     left: 8px;
     right: 8px;
     top: auto;
     bottom: calc(var(--dock-h) + 8px);
+    z-index: 1460;
     width: auto;
     max-width: none;
     max-height: calc(100vh - var(--dock-h) - 70px);
@@ -1010,7 +1022,11 @@
   html.mobile-ui #history-chart {
     left: 8px;
     right: 8px;
-    top: 64px;
+    /* 2026-10-05 修：原 top:64 落在快讯条(46~80, z1230)里 —— 实测图表与快讯条
+       重叠 5744px²，且 44×44 的折叠键(#history-chart-toggle)与快讯 ✕(41~85)
+       重叠 420px²，点 ✕ 下半截会命中折叠键。下移到快讯条下方 92px
+       （与横屏块、#gba-label 同一条基准线）。 */
+    top: 92px;
     width: auto;
     max-width: none;
     padding: 6px 10px 6px;
@@ -1103,6 +1119,7 @@
 
   html.mobile-ui #legend-modal-content {
     max-height: 72vh;
+    max-height: 72dvh;
     width: 94%;
     padding: 18px 16px;
     border-radius: 14px;
@@ -1130,7 +1147,7 @@
   html.mobile-ui #news-ticker {
     left: 8px;
     right: 8px;
-    top: 46px;
+    top: calc(46px + var(--md-safe-t));
     transform: none;
     max-width: none;
     min-width: 0;
@@ -1158,15 +1175,31 @@
     max-width: 100%;
   }
 
+  /* 2026-10-03：原 40×40，低于 44px 触控下限。但条子只有 34px 高（当初特意从 46 压到
+     34 省纵向空间），而本按钮是绝对定位、撑不大容器 —— 直接写 44px 会让圆上下各溢出 5px。
+     故把「命中区」与「视觉圆」拆开：按钮 44×44 但背景透明，圆交给 ::before 画在 inset 7px
+     （视觉直径 30px，落在条子内）。::before 要退到文字之下，就得靠按钮自身的 z-index 建
+     层叠上下文，否则 z-index:-1 会连条子的红底一起被盖掉。 */
   html.mobile-ui #news-ticker-close {
-    right: 2px;
+    right: -3px;
     top: 50%;
     transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    min-height: 40px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    background: transparent;
+    z-index: 1;
     font-size: 1rem;
   }
+  html.mobile-ui #news-ticker-close::before {
+    content: '';
+    position: absolute;
+    top: 7px; right: 7px; bottom: 7px; left: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    z-index: -1;
+  }
+  html.mobile-ui #news-ticker-close:hover::before { background: rgba(255,255,255,0.4); }
 
   /* ==========================================================================
      §10 · 大湾区标签（§2.2.10）：不与 #title / #news-ticker 重叠
@@ -1174,7 +1207,7 @@
      是否可见由 JS 同步 html.md-ticker-on（主逻辑只改 #news-ticker 的 display）。
      ========================================================================== */
   html.mobile-ui #gba-label {
-    top: 86px;
+    top: calc(86px + var(--md-safe-t));
     left: 8px;
     right: auto;
     font-size: 0.74rem;
@@ -1187,10 +1220,10 @@
   }
 
   /* 快讯被用户关掉后，标签上移补位（JS 维护 html.md-ticker-off） */
-  html.mobile-ui.md-ticker-off #gba-label { top: 50px; }
+  html.mobile-ui.md-ticker-off #gba-label { top: calc(50px + var(--md-safe-t)); }
 
   /* 快讯被关掉后，其余顶部浮层也可上移 */
-  html.mobile-ui.md-ticker-off #title { top: 8px; }
+  html.mobile-ui.md-ticker-off #title { top: calc(8px + var(--md-safe-t)); }
 
   /* ==========================================================================
      §11 · 测距信息条（§2.2.11）
@@ -1220,7 +1253,7 @@
   html.mobile-ui #measure-info button {
     flex: 0 0 auto;
     min-width: 56px;
-    min-height: 40px;
+    min-height: 44px;      /* 2026-10-04：原 40px 低于触控下限 */
     font-size: 0.8rem;
   }
 
@@ -1240,6 +1273,7 @@
     min-width: 0;
     max-width: calc(100vw - 16px);
     height: 36vh;
+    height: 36dvh;
     min-height: 0;
     max-height: calc(100vh - var(--dock-h) - 16px);
     max-height: calc(100dvh - var(--dock-h) - 16px);
@@ -1260,7 +1294,18 @@
     font-size: 1.2rem;
   }
 
-  html.mobile-ui #focus-window-resize { width: 24px; height: 24px; }   /* §2.2.12 把手 ≥20px */
+  /* 2026-10-04 修：原 24×24 太小，触屏上几乎点不中。命中区放大到 44px，
+     视觉三角仍保持 24px（画在 ::after 上，贴右下角）。 */
+  html.mobile-ui #focus-window-resize { width: 44px; height: 44px; background: none; }
+  html.mobile-ui #focus-window-resize::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, transparent 45%, #1976d2 45%, #1976d2 55%, transparent 55%);
+  }
 
   /* ==========================================================================
      §13 · 已完成于 Dock 行1（#eye-coord，见上）
@@ -1458,13 +1503,19 @@
 
     html.mobile-ui #mobile-dock .md-tab svg { width: 18px; height: 18px; }
 
-    html.mobile-ui #left-panel { height: 72vh; }
+    html.mobile-ui #left-panel { height: 72vh; height: 72dvh; }   /* 2026-10-04：补 dvh */
 
-    html.mobile-ui #history-chart { top: 56px; }
+    /* 2026-10-04 修：本块里 #news-ticker 占 48~88px 且 z=1230，而图表原来是
+       top:56 / z=1250 —— 实测重叠 22368px²，快讯条的 ✕ 被图表的折叠键整块挡住。
+       下移到快讯条下方（92px 与 #gba-label 同一条基准线）。 */
+    html.mobile-ui #history-chart { top: 92px; }
 
     html.mobile-ui #news-ticker { top: 48px; min-height: 40px; }
 
-    html.mobile-ui #gba-label { top: 50px; }
+    /* 2026-10-03 修：本块里 #news-ticker 是 top:48 / min-height:40（占 48–88），
+       而 #gba-label 只有 top:50 —— 实测完全落在快讯条底下，且快讯条 z 1230 > 标签 1220，
+       标签被整块遮住。下移到快讯条下方。 */
+    html.mobile-ui #gba-label { top: 92px; }
   }
 }
 

@@ -238,7 +238,24 @@ check('§2.3.2 url() 仅允许 data:', () => {
  * 白名单按【精确选择器 / at-rule 前奏】匹配（空白归一后），未列出的新顶层规则一律挡下。
  */
 const normPrelude = (s) => s.replace(/\s+/g, ' ').trim();
-const isGatePrelude = (s) => /^@media\s*\(\s*max-width\s*:\s*768px\s*\)$/i.test(normPrelude(s));
+/*
+ * 2026-10-07 登记（实现先行，规范追认 —— 与 2026-09-30 那次同一套做法）：
+ * 外层门控由 `@media (max-width:768px)` 扩为
+ *   `@media (max-width:768px), (max-height:480px) and (pointer:coarse)`。
+ *
+ * 理由：横屏手机（844×390 等）宽度越过 768，整套移动端 CSS 因此失效，而
+ * html.mobile-ui 类在竖屏首帧加上后不会再撤销 —— **类还在、样式没了**，
+ * Dock 从 fixed 掉成 static 飞出视口，播放键与工具条（被 moveNodes 搬进来的
+ * 原节点）随之整块消失。修法即把门控补上「矮屏 + 触屏」这一支，并与
+ * index.html 首屏脚本的判定条件保持一致（两侧必须同串）。
+ * `pointer: coarse` 把鼠标设备排除在外，故「桌面端零影响」这一安全属性不变。
+ * 旧串保留在集合里，便于对历史版本做回归。
+ */
+const GATE_PRELUDES = new Set([
+  '@media (max-width: 768px)',
+  '@media (max-width: 768px), (max-height: 480px) and (pointer: coarse)',
+]);
+const isGatePrelude = (s) => GATE_PRELUDES.has(normPrelude(s));
 
 // E2：顶层规则（全部带 html.mobile-ui 前缀，与 768px 断点等价）
 const GATE_RULE_EXCEPTIONS = new Set([
@@ -376,16 +393,25 @@ check('§3.3 .md-sheet 由 CSS 定位显隐（Lead 冻结）', () => {
     'max-height:min(72vh,560px)': /max-height\s*:\s*min\(72vh,\s*560px\)/,
     'transform:translateY(105%)': /transform\s*:\s*translateY\(105%\)/,
     'visibility:hidden': /visibility\s*:\s*hidden/,
-    'safe-area padding': /padding-bottom\s*:[^;]*env\(\s*safe-area-inset-bottom/,
+    /* 2026-10-07 改：原断言要求 sheet 自己的 padding-bottom 里含
+       env(safe-area-inset-bottom)。但按 SPEC §2.2.16，--dock-h 是 mobile-ui.js 用
+       dock.getBoundingClientRect().height 写入的**实测高度**，而 Dock 自身
+       padding-bottom 已含 var(--md-safe-b) —— 即 --dock-h 本就含安全区。
+       sheet 再叠加一次 env(...) 属于**重复计算**（刘海机上多空出约一整条安全区）。
+       故改为断言「为 Dock 让位」，安全区由 §2.2.16 的 Dock 断言负责（仍 PASS），
+       并加一条反向守卫，防止再退回重复叠加的写法。 */
+    'padding-bottom: var(--dock-h)': /padding-bottom\s*:\s*var\(\s*--dock-h\s*\)/,
   };
   const missing = Object.entries(need).filter(([, re]) => !re.test(body)).map(([k]) => k);
+  const doubleSafe = /padding-bottom\s*:[^;]*env\(\s*safe-area-inset-bottom/.test(body);
   const openOk = /\.md-sheet\.open\s*\{[^}]*transform\s*:\s*translateY\(0\)[^}]*visibility\s*:\s*visible/.test(flat);
   const bodyOk = /\.md-sheet-body\s*\{[^}]*overflow-y\s*:\s*auto/.test(flat);
   const hitOk = !/\.md-grabber[^{]*\{[^}]*pointer-events\s*:\s*none/.test(flat) &&
     !/\.md-sheet-head[^{]*\{[^}]*pointer-events\s*:\s*none/.test(flat);
   return {
-    ok: missing.length === 0 && openOk && bodyOk && hitOk,
+    ok: missing.length === 0 && !doubleSafe && openOk && bodyOk && hitOk,
     detail: (missing.length ? '缺失: ' + missing.join(',') + ' ' : '') +
+      (doubleSafe ? 'padding-bottom 重复叠加 safe-area（--dock-h 已含）' : '') +
       (openOk ? '' : '.open 展开态缺失 ') + (bodyOk ? '' : '.md-sheet-body 滚动缺失 ') +
       (hitOk ? '' : '拖拽区被 pointer-events:none 关闭'),
   };
@@ -619,14 +645,33 @@ check('需求4 #title 为 #btn-lang 让出宽度', () => {
 });
 
 /* 需求 5：顶部浮层不重叠 + 快讯不滚动 */
+/*
+ * 2026-10-07 修：top 值现在可能是 `calc(<n>px + var(--md-safe-t))`（顶部安全区，
+ * 见 2026-10-05 那次改动）。原正则只认裸 `top: <n>px`，遇到 calc 会静默取 0 ——
+ * 两侧同时变 0，于是 34 ≤ 0 判 FAIL（假阴性），实际布局没坏（46+34=80 ≤ 86）。
+ * 现在统一取 calc 里的 <n> 作为基准偏移；若一侧用 calc、另一侧用裸值，
+ * 说明两个浮层不再共用同一条基准线，直接判 FAIL（这才是真该挡的情况）。
+ */
 check('需求5 快讯条与大湾区标签错开', () => {
   const flat = noComments.replace(/\s+/g, ' ');
   const tick = flat.match(/#news-ticker\s*\{([^}]*)\}/);
   const gba = flat.match(/#gba-label\s*\{([^}]*)\}/);
-  const tTop = tick && parseFloat((tick[1].match(/top\s*:\s*(\d+(?:\.\d+)?)px/) || [])[1] || '0');
-  const tickH = tick && parseFloat((tick[1].match(/min-height\s*:\s*(\d+(?:\.\d+)?)px/) || [])[1] || '0');
-  const gTop = gba && parseFloat((gba[1].match(/top\s*:\s*(\d+(?:\.\d+)?)px/) || [])[1] || '0');
-  return { ok: gTop >= tTop + tickH, detail: 'ticker ' + tTop + '+' + tickH + '=' + (tTop + tickH) + ' ≤ gba ' + gTop };
+  const topOf = (body) => {
+    if (!body) return { n: 0, safeT: false };
+    const v = ((body.match(/top\s*:\s*([^;]+)/) || [])[1] || '').trim();
+    const safeT = /^calc\(\s*[\d.]+px\s*\+\s*var\(\s*--md-safe-t\s*\)\s*\)$/.test(v);
+    const m = v.match(/(\d+(?:\.\d+)?)px/);
+    return { n: m ? parseFloat(m[1]) : 0, safeT: safeT };
+  };
+  const t = topOf(tick && tick[1]);
+  const g = topOf(gba && gba[1]);
+  const tickH = tick ? parseFloat((tick[1].match(/min-height\s*:\s*(\d+(?:\.\d+)?)px/) || [])[1] || '0') : 0;
+  const sameBasis = t.safeT === g.safeT;
+  return {
+    ok: sameBasis && g.n >= t.n + tickH,
+    detail: 'ticker ' + t.n + '+' + tickH + '=' + (t.n + tickH) + ' ≤ gba ' + g.n +
+      (sameBasis ? (t.safeT ? '（两侧同加 safe-t）' : '') : ' ✗ 基准不一致: safe-t ' + t.safeT + ' vs ' + g.safeT),
+  };
 });
 
 check('需求5 手机端快讯改为静态省略（关闭 marquee）', () => {

@@ -9,7 +9,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="description" content="台风路径可视化：路径、强度演变、风场与灾害预警">
+    <meta name="description" data-i18n-meta content="台风路径可视化：路径、强度演变、风场与灾害预警">
+    <!-- 2026-10-04：分享到社交平台时的标题/描述（无图，仅文本卡片） -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="风暴智校——台风路径智能订正和预测">
+    <meta property="og:description" data-i18n-meta content="台风路径可视化：路径、强度演变、风场与灾害预警">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="风暴智校——台风路径智能订正和预测">
+    <meta name="twitter:description" data-i18n-meta content="台风路径可视化：路径、强度演变、风场与灾害预警">
     <!-- 站点图标：风暴智校原稿笔触图标（源 logo-out/原版/原版-icon.png）；内联 PNG 以保持单文件部署 -->
     <link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADZUlEQVR42nWTXUyTdxjFz//tywuzfFhYU6CyYmulKg4IumnFDzQsysTFMCILRDRuidtwJiP7yDKXbtmyLCRbli0LeMHNom7RbJII7sp1pIgMIiCjkFbUFobQstFBC7al79mFLM4sO3fPyfklz8U5wH9E6V+HAvKZbtJEAiAFQAE+yojHWUoQQiVZWtCC4nvA7lgxOrEdHfBBTxN8AlABwX8Q+RELiIdwdVXjufM+uUATm0m7iFdbR8nP9x4ANgjCBWAWoAohPI9//gOzSFr0Je8EcMxFvNwVqnnftTBMejr+iKvXQuTxX6ORIi+HG/qiy8fIVpCSDFDUEjnfbcHab0L9bywmZepT0nIf7CjPSE1fn463W7qso0spcZFvS1TkycklgWhh8b0IXLrs52ABZEJQ7OOmlnbYe5t7t4loQv26YY1meOk+vzz0FhFeTqw3PynlNRyVz04YEpvVYCI9f/X8pAWfAEiRq0gbjmBfW3Pv6VDfiOa9l3aopoIk8embP+PI6ZNiRNkgZt13sCfsQUmRQbrmDIqoMic1Ii94A9BKV4CJLfUYGZzLSPG4p5idrYc+GTj8wja8UqxBU2EI0wkdzlwIYH54EOaUB/HOO5HMW4AFQgQlAKKvCj27DttuyrtPKKc++lGdGbiPJvsa3Owbg1FHPDFwCZhT4Bv6DdH4sliyWTHmhx2kXdPucBhtZ1HnrYM311xQOjkdVVqdHnjiyZBTtTjf8xf83b2oObQRXt9t+NaViOcPFsbXGaSf+l2Y0vzpcKRNXFiudbrHXr8bjvPEfpNm6Ho/nFd/wVDEAKsahFGJISArWNxZrp6q3iqfNEv+6QF0X55HQIC0vwuUOzsWPnb3+uNicgal+pjITU2Ct6cLssGIkYV81B/fiGeNafjK0anqik1Km8M+mgsc1egcjqdiAMu0yasqn85cW7c1UwonaRNXg1ExpTeTm3aysW5zoiiD4vvrEfi1evRd6o6lm405e6zp7WKlxy+m3YapVoeKW+fcFdnBSanwYBGXVmexTJuQ3BEJF50B/D4yy6Yaq1jUrMLdEAa/rcQugBSvkdkkTSCzKsn92NvVsb26LfjhlZm5M8McD5MfeMjmss/GQ/2LvEHyC4yzHv+nlenmgLSATF0xM0haASoA8HCOFH8DiG2dR9aM4YoAAAAASUVORK5CYII=">
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAALcklEQVR42r2XeXRW9ZnHP79777u/b/Z9TwhZ2AkKElKRQYpFNkViS0EttFRczyh2BkctdjjFM7VUi50R6oaDgIB4KGqRJezIKjsEAglZCNlJQt4373qf+SPgse10ls458/x7f/fZfs/5Pd8P/K0mgIjG/5eJiCYiGiJwXXIB49aHEpbKs5mVMk1EchBx/m/8av/T4EopUyllooiJmUSmY6Xcz3PyOQ9/vZZBdKYVcgroAEKIWL71s/Z/rVwBPC0y4InXLm0qf771CfvP5Q310zNif+nmERFx3zpnFRGXpUW+zzJ5DxFjvkgqIg5AIWIgokOfv//O1C2n0SC6iJRs21/XNGvBv4nl3tU+teiaxKyX/WfPSlbyI1IeP0emgaT0XYt4RCRa+hxYERn7n1T1TRLGXwkuiNgmQHS3kFq+4P1P7Lo/eU2Vy0fJGHtKSVpj0ZZNBwf99PAWbsz7HRSuE5Hyf0amr79KlKMSf47IPoFtVkgPieQ/DlkAb8MelIr0dUL9RTv6gtdK7MEsVKlSHRllb21sa7k4wx9b2MvICYZeGEf87o/rWg42ZxfcOzlwcdXIzUBiy42uceKJNlp8wq5m4YOrQkOXr/fehzyvHWnmwaRWc6hC6O2vH9lvY4YLrgHqWwn0ZcQK6Uc7cbyojs7+B5mxt+K5jXVeV0ArmaKb+Zmoroum7DhvTH/2B7JkupMGbLo3YnIjFAl1hFVktButLF5R49PNqXt9RofTadzp8VLYEAjqVnv4fIHT2ZjL6qNKzRER/c+uQHTWMetGBcvvrNjxyqSRhx6r2G6ayuZWpmbH0MD0ObVxi35gDhvpkkVXdXAQznZotPVoqrY7aLxzMyyxuvDDPKuxfLhFljaH/ck1PVqJiRYWjNbKQLg+JnZEX79V5FYCooEy2S0F1sW+vFjl6mrzSeqzC9/Kbaxu7WXAUEt8TDSuQECGTi1SxUV2dnZZCdVfU5bDe/RDJ87iNaKwlo1H5eSqeqtDzuzrlPH93STEWIyAQ+PEsVrl8bjN3tJ+Vi2W+lvDeKsDgkKJ4tdMDzqcbSJi6fFyx7bdJ0W5nZrDk8yEfjr5BQ7lLLJTH7DSs3aNuvTeKrxdvegxyWh2B75zV2DIKPRx45TT5WTLthrJHZpCvkNneJHL/Khd7Fq8pe0oLFC3Bs4AVN9UgjUiRTFubMCTH3+6/Y72huZgbFaeNiDbxs8mRtPsNvgaKxeXv8+JZSsgrQi9OFkcnhiVF6MzdUwajtR0jmoaFXYHVmlTNZ8cJnpAlNmd4DeGF4w9PjaH8ozDlCByDaUCGkB/kWJE0sNddRl+S93ol9ZfXdDS1CqmifRLsfBAiTCk0MPRoI2W4+fY/e/b0MfPJmP2E2TNeVq5xzxEY8o9rNkfxGxq5NNHM9Q7IxyKpBgcpp9xmU51ob6F2kNfZc+C7tZ3eTAVBt1+B+TKc7xmeZDNoa6gmA5r1o4j54KcPBLB0LSyUcVMuzuH+l6TqpAmNbtOK+Oe7/LL5+8n7Exiz8UgV2MNekImLQ2pvLxyJQcOvyir3nmFiUl2vooS8vNSVE9nR/BUaygBeCb4ezWrcaVEqVu7QJnLeCZUxn770PwLvraAWemLMY+erhNCETo7e1RaegpaKESG6VfNaXn8dtF9PD8qiYWDYW5mO7HtZ2lr7MUbicUom8zWXQ38Yes+Rmd4MIImFz/fxM4vD2h1YYMXjjNVRBIV+EGU1vcwqloUtSt+xzmHrmldjkK0lByFCqnPjt7kaqufrCidYS6YM6mI72U6mDPrBXl35UYeGpXKA+k+zGNr0du6McMJaNGxvLX2AKcvtzHvrjjWn+wglD1IBS26bDpTmwjYUAhyaxuWi6QjeC5E09U/y9GFO8EIl84xdbuNjupTvPj7Svy9JuWZsHBgNNdrm1i99ku1av1eABIGD0ZvOEWkdh/SFUZF5XLqq9Nk2f0kFxRhcUUTysrEmpUkjqDX8wG4ERyg0AHOxy4eO/8umt+ErIb7PHu8PqYf6UyWiCVJrI37VXtNJVsuJ5KSnEy2K0JudjyTp93Hk/MmcbThJpU+C/vWbiToV2DLQq6cJC9XZ3RRPHt3HMRr8RAeVYIr1m18/87suiU7cQeXV78hk9/8Vx2Ara9eOv744sR4N3GLYMvBAjxj0yIjKk5HqQ7JVj3BauovHGZXawKVejyNmouCIfG8vWI7O1sMTHFx8MNVopypyq15GJh4je+VxvPG5ipqIjFE3T1KYgZmh9OdFmP5YOPQ0iCfhi5EFTNRW2UgEh0HxR1LmXLDX/ciRtYyXuaEy20G1jzvcHzxxxz5snGuarEpOjs7+OREI0cv1fAvP15DOy5m/mYqO367iUjYovA7eOrpIeSnFbPomSWkj5iIWZhP7LB8mRIvqgmrcsOO3jW0zF+m/3ilUhGdxYs9oYUsduZzIrhl98jyou7SXs06c9LyRmtOP5f56sOpqr/qJHL+GK0nDnBj+wZa//gxndHZpD3+CjWbv6Zm05skDRnHjHGpeLjOsVP11JvRNA25k5xB6YwfGGdOSVD27mRt42jFBmWc/c3xj649QvXbq25vQ90rkuoq37tr5sSE/IgjMbBpT7027++SVLemyIt08fkXRzh7vBa0AGQOFX3YWOU+vpv7i8MMLx1A1YFDnKrsouZaF+awEhhayITJA/j7PJ1ga1AcPr8qzo6pddjYoNrY7tlN5s2Zqi+BmSLpPwH51YbuPTsv1eTdU5QRvnyyUaurOAslA0nyNpCrdxIX7eE74+/gZkcX9YdPorovEJeWiJGYwwdrL2GoKBLKBuEoG8CMOxwM7/Kx+sNqdld5cRb04ydT4oynymzY4RcKLnthl45IfNWv606vKo1ec2WgzXNAiy890tnrz+ufZGhmmO7qBoiKQ09OIdDbS/haNVfOnuX4yXNy5fJ1LjV0qa9uZtIbe5eY/TL40Y+K1CND7RRc72DjuiscPnaEa9X7Mb0XOWvGB5ttyTIhg4EzYaMLqnQWL9bNQHShPZeEo/VU5te3jikZkhxr08Jawcgcs7w0leX3xTMl18BpsVPVa+VMVTM+W7wKFI+UlrvLCcQPwsh1qwUPJqklJTbcPQG21gjBogxu2mO4Hk6l83I9gb3rNPeIsvCg/lExuoW2LKU+NVCqB3jMLzL7D5l0UJ4y+6WlLJk/xpnm8AcTNYvD2HTZx1vrLlPdFEQfWSzJc4okEjHwalZVaDHp7zTVd9LsPF6o89mZThZtaKbqegCbx82AobkkjUnlZkJ/vHtipOnCFe1GOJ0UaLylAUUhferMEJkfbiWbh1lRvoNX677ofLT9fHN4mNMXGVeapaemRnE+oklFY4AoTHVvgsHcHANN4KpXePmEP7J+b7dgoidaDTU6TWdOiY0vG3SON4Ykvb3NtKdYrJO/m1XzWAplAk0KEQ2FjBRyTiw8WZ33+rAfZlRxT1UjWYWF6O3HfCO/XnUwyjhVESoryTefmjNKswzJZUN9GOULSoxVcdnU5UKPRo6EbXdnuTh8sjW4/5RX2ZtbJD/Dza8WDhdHxG/dcb6TvW36TSlPfG4rrBYIfVurOxEpEZF8ERksSLwgVhEZW+qXD7XpmyIkzpP4oicjP/vFpsihcy2hzVd9waXH2+X1815594JPRGSviPzy9epI09xVl4MMXyP/9FmzBETkpFe6XgjKBsejFWH3TvlH+jDPUP8FEkUDvcxjBO9x0SUM633i2s/lxOahFpvdKBiQ7Rw8KF31K8pqssc5LxYO4/2ZSn0E6M4GWTflSPt0V6fr1Nw5dq3YYFccrFNgARKALSgVug1A/Ik0F1HyLZ6TPyOZB0QyEMlFZBgVMgok5lsYp4tIlIhME5FRIlKAVzJuM4f8jXSo3Vawf0Hn31C6KBEx/jrFCyLfFPgn5/4Dd0pxJReb3xMAAAAASUVORK5CYII=">
@@ -20,10 +27,14 @@
     /* 首屏同步判定移动端并加上 html.mobile-ui。
        mobile-ui.js 要等主逻辑 window.__mainReady 才 build()，在那之前页面按桌面布局
        渲染，手机上会先闪一下 PC 布局再跳成移动端 UI。这里提前同步加类让 CSS 立刻生效。
-       判定条件与 mobile-ui.js 保持一致（matchMedia ≤768px），避免两边判定不一致。 */
+       判定条件与 mobile-ui.js 保持一致（≤768px，或「矮屏 + 触屏」的横屏手机）。 */
     (function () {
         try {
-            if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+            /* 2026-10-05：断点补上「矮屏 + 触屏」这一支（= 横屏手机）。原来只认宽度，
+               手机竖屏加载后转横屏（844x390 等）宽度越过 768，整套移动端 CSS 因此失效，
+               而 mobile-ui 类还在 —— Dock 从 fixed 掉成 static 飞出视口，播放键与工具条
+               （被 moveNodes 搬进 Dock/Sheet 的原节点）随之整块消失。 */
+            if (window.matchMedia && window.matchMedia('(max-width: 768px), (max-height: 480px) and (pointer: coarse)').matches) {
                 document.documentElement.classList.add('mobile-ui');
             }
         } catch (e) { /* 判定失败就走原逻辑，不影响功能 */ }
@@ -286,7 +297,10 @@
 
         /* Measure info bar */
         #measure-info {
-            position: absolute; bottom: 38px; left: 15px; z-index: 1100;
+            /* 2026-10-06 修：原来 left:15 与左下角的 #left-panel-toggle(left:15/bottom:38/
+               z1000) 完全同点，测距条更宽更高且 z 更高 —— 实测在开关中心点击命中的是
+               #measure-text，「路径数据」面板根本打不开。右移让开那一列 38px 按钮。 */
+            position: absolute; bottom: 38px; left: 64px; z-index: 1100;
             display: flex; align-items: center; gap: 10px;
             background: rgba(255,255,255,0.95);
             padding: 7px 12px; border-radius: 8px;
@@ -323,6 +337,11 @@
         }
         #focus-window-close:hover { background: rgba(255,255,255,0.2); border-radius: 4px; }
         #focus-window-map { flex: 1 1 auto; position: relative; }
+        /* 2026-10-04：小地图尺寸小，署名缩到 9px 免得挡住底图 */
+        #focus-window-map .leaflet-control-attribution {
+            font-size: 9px; line-height: 1.25; padding: 0 3px; max-width: 100%;
+            background: rgba(255,255,255,0.78);
+        }
         #focus-window-resize {
             position: absolute; right: 0; bottom: 0; width: 16px; height: 16px;
             cursor: nwse-resize; z-index: 1200;
@@ -380,6 +399,13 @@
         body.clean-mode #gba-label,
         body.clean-mode #hazard-radar,
         body.clean-mode #focus-window,
+        /* 2026-10-06 补：实测全屏下 #time-panel / #legend / #btn-clear-overlays 仍可见可点，
+           与「只剩地图」的意图矛盾（#btn-clear-overlays 在 366 行的注释里就已自认全屏下无事可做）。
+           ⚠ 不要动 #btn-clean-exit —— 它是全屏唯一的出口。 */
+        body.clean-mode #time-panel,
+        body.clean-mode #legend,
+        body.clean-mode #btn-clear-overlays,
+        body.clean-mode #focus-done-btn,
         body.clean-mode .leaflet-control-scale { display: none !important; }
 
         /* Typhoon eye coordinates (bottom-left) */
@@ -396,14 +422,26 @@
         /* 审图号角标（地图左下角，2026-09-30 合规整改新增）：
            常显、小字、白底描边，确保在卫星/矢量底图上都清晰可读。 */
         #map-approval {
-            position: absolute; left: 15px; bottom: 30px; z-index: 1000;
+            /* left 64px（原 15px）：让开左下角 #left-panel-toggle（left:15 / 38px 宽），
+               否则按钮 paint 在角标之上，把「审图」两个字切掉 —— 实测重叠 580 px²。
+               竖直方向仍不碰比例尺条（角标下沿 814 < 比例尺上沿 821）。 */
+            position: absolute; left: 64px; bottom: 30px; z-index: 1000;
             background: rgba(255,255,255,0.88); color: #333;
             border: 1px solid rgba(0,0,0,0.15); border-radius: 4px;
             padding: 2px 7px; font-size: 0.72rem; line-height: 1.5;
             pointer-events: none; white-space: nowrap;
         }
-        /* 手机端：审图号跟随底图署名那条横带（由 mobile-ui 脚本统一定位） */
-        html.mobile-ui #map-approval { font-size: 0.66rem; padding: 1px 5px; }
+        /* 手机端：**不显示**这个角标（2026-09-30 改）。
+           实测 360x844：角标 rect L15 T794 R260 B814，而 #mobile-dock 是
+           T645–B844（高 199、z-index 1500）—— 两者重叠 4807 px²，角标 z 只有
+           1000，且 Dock 是半透明玻璃底，于是角标文字与「图层/工具/设置/数据/图例」
+           标签栏叠字穿帮（截图 shots/_live-mobile-bottom.png）。
+           第二十七条「左下角标注审图号」在移动端由**底图署名那条横带**满足：
+           它挂在天地图图层上、自带「天地图 + 审图号」，且已被抬到 Dock 之上
+           （见下面 .leaflet-bottom.leaflet-right 的 bottom: calc(var(--dock-h) + 6px)）。
+           ⚠ 必须带 !important：syncApprovalBadge() 会写 inline display,
+              inline style 的优先级高于普通 CSS 规则，不加就会被它重新显示出来。 */
+        html.mobile-ui #map-approval { display: none !important; }
 
         /* Typhoon selector (top-center dropdown) */
         #typhoon-menu {
@@ -500,7 +538,7 @@
         #time-display { font-size: 1rem; font-weight: bold; color: #333; }
         #time-slider { width: 100%; cursor: pointer; }
         #time-ticks { position: relative; width: 100%; height: 20px; }
-        .time-tick { position: absolute; top: 0; transform: translateX(-50%); text-align: center; font-size: 0.7rem; color: #666; white-space: nowrap; }
+        .time-tick { position: absolute; top: 0; transform: translateX(-50%); text-align: center; font-size: 0.7rem; color: #666; white-space: nowrap; cursor: pointer; }
         .time-tick::before { content: ''; position: absolute; top: -10px; left: 50%; width: 1px; height: 6px; background: #ccc; }
         .time-tick.major::before { height: 9px; background: #999; }
         .time-tick.major { font-weight: bold; color: #333; }
@@ -544,14 +582,23 @@
             position: absolute; top: 90px; right: 15px; z-index: 1000;
             display: none; flex-direction: column; align-items: center;
             width: 520px; max-width: calc(100vw - 30px);
-            max-height: calc(100vh - 128px - 46vh); overflow-y: auto;
-            max-height: calc(100dvh - 128px - 46dvh);
+            /* 2026-10-07 修：原为 calc(100vh - 128px - 46vh)（vh=820 时只有 314.8px）——
+               而面板自身内容约 332px，于是顶部那行被 flex 压扁、底部说明要滚动才看得全。
+               这里它只是个**封顶值**（内容小的时候不会把面板撑高），所以放宽到
+               「视口高度 − 面板顶边(90px) − 一点余量」即可：正常窗口下完整显示，
+               窗口真的很矮时才滚动。 */
+            max-height: calc(100vh - 108px); overflow-y: auto;
+            max-height: calc(100dvh - 108px);
             background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,249,255,0.98));
             border-radius: 14px; border: 1px solid rgba(21,101,192,0.25);
             box-shadow: 0 10px 30px rgba(13,71,161,0.25);
             -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
         }
         #hazard-radar.show { display: flex; }
+        /* 2026-10-07 修：本面板是 flex 列容器 + overflow-y:auto。内容略高于 max-height 时，
+           flex 子项会按 flex-shrink:1 被**压扁**（实测 #hazard-radar-pos 高度只剩 7+1=8px 的
+           padding，文字被 overflow:hidden 裁成半截）—— 正确行为应是保持自然高度、由容器滚动。 */
+        #hazard-radar > * { flex: 0 0 auto; }
         #hazard-radar-header {
             width: 100%; display: flex; justify-content: space-between; align-items: center;
             padding: 9px 12px; color: #fff;
@@ -676,6 +723,10 @@
             font-size: 0.82rem; color: #333; line-height: 1.9;
             cursor: pointer; transition: background 0.2s;
             max-height: 46vh; overflow-y: auto;
+            /* 2026-10-04：绝对定位且没写宽度时按内容自适应，加进版权说明后被长句
+               撑到 624px（中文）/ 985px（英文）宽，几乎糊满整屏。钉死上限，
+               保住原来 220px 的观感，长句改为在框内换行。 */
+            max-width: 220px;
         }
         #legend:hover { background: rgba(255,255,255,0.98); }
         #legend .line-sample {
@@ -948,6 +999,12 @@
         /* 数据来源 / 开源许可（2026-09-30 合规整改新增）：小字说明，可换行 */
         .legend-note { font-size: 0.78rem; line-height: 1.5; color: #555; margin-bottom: 5px; }
         .legend-note a { color: #1976d2; }
+        /* 2026-10-04：同一批版权说明也追加进了 PC 图例框（#legend），那里窄，
+           字号与小节间距都要收一档，否则一节就占掉大半个框。 */
+        #legend .legend-src-append .legend-section { margin-bottom: 9px; }
+        #legend .legend-src-append .legend-section h4 { font-size: 0.78rem; margin-bottom: 3px; }
+        #legend .legend-src-append .legend-note { font-size: 0.7rem; line-height: 1.45; margin-bottom: 4px; }
+        #legend .legend-src-sep { margin: 7px 0 7px; border-top: 1px solid rgba(0,0,0,0.12); }
         #legend-close {
             position: absolute; top: 12px; right: 14px;
             background: #f0f0f0; border: none; width: 28px; height: 28px;
@@ -1011,11 +1068,11 @@
 /* === MOBILE:CSS:BEGIN === */
 /* mobile.css — inlined into index.html by Lead; do not reference externally */
 /* 台风路径可视化 · 手机端布局样式（SPEC v1 §2.2 的 18 条要求）
-   门控：外层 @media (max-width:768px) + 每条规则 html.mobile-ui 前缀（双保险 → 桌面端零影响）。
+   门控：外层 @media (max-width:768px), (max-height:480px) and (pointer:coarse) + 每条规则 html.mobile-ui 前缀（双保险 → 桌面端零影响）。
    内联位置：index.html <style> 末尾，靠后生效，可覆盖第 678–702 行既有 768/480 断点。
    禁止：@import / @font-face / 外部字体 / url(http...)。 */
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 480px) and (pointer: coarse) {
 
   /* ==========================================================================
      §0 · 变量与基础（§2.2.16 --dock-h fallback；§2.2.18 性能）
@@ -1023,6 +1080,9 @@
   html.mobile-ui {
     --dock-h: 150px;                              /* fallback；JS 写入真实像素值覆盖 */
     --md-safe-b: env(safe-area-inset-bottom, 0px);
+    /* 2026-10-05：顶部安全区。此前只有底部那一档，加入主屏以 PWA 独立运行时
+       （apple-mobile-web-app-capable=yes）标题/右上角 EN/快讯条会落进状态栏。 */
+    --md-safe-t: env(safe-area-inset-top, 0px);
     --md-blue: #1565c0;
     --md-line: rgba(21, 101, 192, 0.18);
     --md-sheet-bg: #ffffff;
@@ -1045,7 +1105,7 @@
        文字自适配屏幕缩放（需求 3）
        根字号随视口宽度线性变化，所有 rem 尺寸的文字一起缩放：
          320px → 15.6px   390px → 16.0px   430px → 16.2px   768px → 18px（封顶）
-       桌面端不生效：本文件全部规则都在 @media (max-width:768px) 内，
+       桌面端不生效：本文件全部规则都在上面的外层媒体查询内，
        且需要 html.mobile-ui 类（由 JS 仅在移动端加上）—— 双保险。
        ------------------------------------------------------------------ */
     font-size: clamp(15px, calc(13.9px + 0.53vw), 18px);
@@ -1366,6 +1426,7 @@
     bottom: var(--dock-h);
     width: auto;
     height: 60vh;
+    height: 60dvh;
     max-height: calc(100vh - var(--dock-h));
     max-height: calc(100dvh - var(--dock-h));
     z-index: 1400;
@@ -1457,8 +1518,9 @@
     display: flex;
     flex-direction: column;
     max-height: min(72vh, 560px);
+    max-height: min(72dvh, 560px);
     box-sizing: border-box;
-    padding-bottom: calc(var(--dock-h) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--dock-h);
     background: var(--md-sheet-bg);
     border-top: 1px solid var(--md-line);
     border-radius: 14px 14px 0 0;
@@ -1796,14 +1858,16 @@
      #title 去掉 transform：否则会成为 fixed 子元素（#typhoon-menu）的包含块
      ========================================================================== */
   html.mobile-ui #title {
-    top: 8px;
+    top: calc(8px + var(--md-safe-t));
     left: 8px;
     right: 8px;
     transform: none;
     margin: 0 auto;
     width: max-content;
     max-width: calc(100vw - 128px);   /* 右侧给 #btn-lang 留位（需求 4） */
-    padding: 7px 14px;
+    /* 2026-10-03：7px → 11px。给它加了 role/tabindex 之后它就是可点控件了，
+       实测高 42px（38px 起步）仍低于 44px 触控下限，补到 44px。 */
+    padding: 11px 14px;
     font-size: 0.95rem;
     letter-spacing: 0.06em;
     border-radius: 16px;
@@ -1819,7 +1883,7 @@
   }
 
   html.mobile-ui #top-controls {
-    top: 8px;
+    top: calc(8px + var(--md-safe-t));
     right: 8px;
     left: auto;
     bottom: auto;
@@ -1942,10 +2006,15 @@
      §6 · 灾害雷达（§2.2.6）：全宽底部 Sheet + 纵向自适应
      ========================================================================== */
   html.mobile-ui #hazard-radar {
+    /* 2026-10-04 修：原来沿用 PC 段的 z-index:1000，低于强度演变图(1250)、
+       快讯条(1230)、测距条(1420)、对比图例(1450) —— 横屏下「先开强度演变再开
+       灾害预警」时雷达被图压住 126519px²，关闭键都点不到。抬到 1460
+       （仍低于 Sheet 1490 / Dock 1500）。FAB(1520) 由 syncFabHide() 收起。 */
     left: 8px;
     right: 8px;
     top: auto;
     bottom: calc(var(--dock-h) + 8px);
+    z-index: 1460;
     width: auto;
     max-width: none;
     max-height: calc(100vh - var(--dock-h) - 70px);
@@ -2021,7 +2090,11 @@
   html.mobile-ui #history-chart {
     left: 8px;
     right: 8px;
-    top: 64px;
+    /* 2026-10-05 修：原 top:64 落在快讯条(46~80, z1230)里 —— 实测图表与快讯条
+       重叠 5744px²，且 44×44 的折叠键(#history-chart-toggle)与快讯 ✕(41~85)
+       重叠 420px²，点 ✕ 下半截会命中折叠键。下移到快讯条下方 92px
+       （与横屏块、#gba-label 同一条基准线）。 */
+    top: 92px;
     width: auto;
     max-width: none;
     padding: 6px 10px 6px;
@@ -2114,6 +2187,7 @@
 
   html.mobile-ui #legend-modal-content {
     max-height: 72vh;
+    max-height: 72dvh;
     width: 94%;
     padding: 18px 16px;
     border-radius: 14px;
@@ -2141,7 +2215,7 @@
   html.mobile-ui #news-ticker {
     left: 8px;
     right: 8px;
-    top: 46px;
+    top: calc(46px + var(--md-safe-t));
     transform: none;
     max-width: none;
     min-width: 0;
@@ -2169,15 +2243,31 @@
     max-width: 100%;
   }
 
+  /* 2026-10-03：原 40×40，低于 44px 触控下限。但条子只有 34px 高（当初特意从 46 压到
+     34 省纵向空间），而本按钮是绝对定位、撑不大容器 —— 直接写 44px 会让圆上下各溢出 5px。
+     故把「命中区」与「视觉圆」拆开：按钮 44×44 但背景透明，圆交给 ::before 画在 inset 7px
+     （视觉直径 30px，落在条子内）。::before 要退到文字之下，就得靠按钮自身的 z-index 建
+     层叠上下文，否则 z-index:-1 会连条子的红底一起被盖掉。 */
   html.mobile-ui #news-ticker-close {
-    right: 2px;
+    right: -3px;
     top: 50%;
     transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    min-height: 40px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    background: transparent;
+    z-index: 1;
     font-size: 1rem;
   }
+  html.mobile-ui #news-ticker-close::before {
+    content: '';
+    position: absolute;
+    top: 7px; right: 7px; bottom: 7px; left: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    z-index: -1;
+  }
+  html.mobile-ui #news-ticker-close:hover::before { background: rgba(255,255,255,0.4); }
 
   /* ==========================================================================
      §10 · 大湾区标签（§2.2.10）：不与 #title / #news-ticker 重叠
@@ -2185,7 +2275,7 @@
      是否可见由 JS 同步 html.md-ticker-on（主逻辑只改 #news-ticker 的 display）。
      ========================================================================== */
   html.mobile-ui #gba-label {
-    top: 86px;
+    top: calc(86px + var(--md-safe-t));
     left: 8px;
     right: auto;
     font-size: 0.74rem;
@@ -2198,10 +2288,10 @@
   }
 
   /* 快讯被用户关掉后，标签上移补位（JS 维护 html.md-ticker-off） */
-  html.mobile-ui.md-ticker-off #gba-label { top: 50px; }
+  html.mobile-ui.md-ticker-off #gba-label { top: calc(50px + var(--md-safe-t)); }
 
   /* 快讯被关掉后，其余顶部浮层也可上移 */
-  html.mobile-ui.md-ticker-off #title { top: 8px; }
+  html.mobile-ui.md-ticker-off #title { top: calc(8px + var(--md-safe-t)); }
 
   /* ==========================================================================
      §11 · 测距信息条（§2.2.11）
@@ -2231,7 +2321,7 @@
   html.mobile-ui #measure-info button {
     flex: 0 0 auto;
     min-width: 56px;
-    min-height: 40px;
+    min-height: 44px;      /* 2026-10-04：原 40px 低于触控下限 */
     font-size: 0.8rem;
   }
 
@@ -2251,6 +2341,7 @@
     min-width: 0;
     max-width: calc(100vw - 16px);
     height: 36vh;
+    height: 36dvh;
     min-height: 0;
     max-height: calc(100vh - var(--dock-h) - 16px);
     max-height: calc(100dvh - var(--dock-h) - 16px);
@@ -2271,7 +2362,18 @@
     font-size: 1.2rem;
   }
 
-  html.mobile-ui #focus-window-resize { width: 24px; height: 24px; }   /* §2.2.12 把手 ≥20px */
+  /* 2026-10-04 修：原 24×24 太小，触屏上几乎点不中。命中区放大到 44px，
+     视觉三角仍保持 24px（画在 ::after 上，贴右下角）。 */
+  html.mobile-ui #focus-window-resize { width: 44px; height: 44px; background: none; }
+  html.mobile-ui #focus-window-resize::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, transparent 45%, #1976d2 45%, #1976d2 55%, transparent 55%);
+  }
 
   /* ==========================================================================
      §13 · 已完成于 Dock 行1（#eye-coord，见上）
@@ -2469,13 +2571,19 @@
 
     html.mobile-ui #mobile-dock .md-tab svg { width: 18px; height: 18px; }
 
-    html.mobile-ui #left-panel { height: 72vh; }
+    html.mobile-ui #left-panel { height: 72vh; height: 72dvh; }   /* 2026-10-04：补 dvh */
 
-    html.mobile-ui #history-chart { top: 56px; }
+    /* 2026-10-04 修：本块里 #news-ticker 占 48~88px 且 z=1230，而图表原来是
+       top:56 / z=1250 —— 实测重叠 22368px²，快讯条的 ✕ 被图表的折叠键整块挡住。
+       下移到快讯条下方（92px 与 #gba-label 同一条基准线）。 */
+    html.mobile-ui #history-chart { top: 92px; }
 
     html.mobile-ui #news-ticker { top: 48px; min-height: 40px; }
 
-    html.mobile-ui #gba-label { top: 50px; }
+    /* 2026-10-03 修：本块里 #news-ticker 是 top:48 / min-height:40（占 48–88），
+       而 #gba-label 只有 top:50 —— 实测完全落在快讯条底下，且快讯条 z 1230 > 标签 1220，
+       标签被整块遮住。下移到快讯条下方。 */
+    html.mobile-ui #gba-label { top: 92px; }
   }
 }
 
@@ -2619,7 +2727,7 @@
          内容由 initMap() 在确认底图后填入；未配置天地图时自动隐藏。 -->
     <div id="map-approval"></div>
 
-    <div id="title">
+    <div id="title" role="button" tabindex="0" aria-label="选择台风">
         <span class="title-name">桦加沙</span>
         <span class="title-caret">▾</span>
         <div id="typhoon-menu">
@@ -2641,11 +2749,11 @@
     <div id="hazard-radar">
         <div id="hazard-radar-header">
             <span class="hr-title">灾害预警六维雷达</span>
-            <button id="hazard-radar-close" title="关闭">✕</button>
+            <button id="hazard-radar-close" title="关闭" aria-label="关闭">✕</button>
         </div>
         <div id="hazard-radar-pos">点击地图任意点查看该处预警</div>
         <div id="hazard-radar-body">
-            <canvas id="hazard-radar-canvas"></canvas>
+            <canvas id="hazard-radar-canvas" role="img" aria-label="灾害预警六维雷达图"></canvas>
             <div id="hazard-radar-values"></div>
         </div>
         <div id="hazard-radar-compare-row">
@@ -2678,29 +2786,29 @@
 
         <div id="tool-controls">
             <div class="tool-group-label">绘图测量</div>
-            <button id="btn-measure" title="点击地图测距，双击结束" data-tip="测距">📏</button>
+            <button id="btn-measure" title="点击地图测距，双击结束" data-tip="测距" aria-label="点击地图测距，双击结束">📏</button>
             <div id="focus-menu-wrap">
-                <button id="btn-focus" title="绘制关注区域" data-tip="绘制关注区">✏️</button>
+                <button id="btn-focus" title="绘制关注区域" data-tip="绘制关注区" aria-label="绘制关注区域">✏️</button>
                 <div id="focus-menu">
                     <button id="btn-focus-rect" title="拖拽绘制矩形关注区域">矩形</button>
                     <button id="btn-focus-poly" title="绘制多边形关注重点区域，双击闭合">多边形</button>
                 </div>
             </div>
             <div class="tool-group-label">视图</div>
-            <button id="btn-clean" title="全屏" data-tip="全屏">⛶</button>
-            <button id="btn-lock" title="锁定台风风眼，视图跟随台风" data-tip="锁定风眼">🎯</button>
-            <button id="btn-watch" title="显示/隐藏24、48小时警戒线" data-tip="警戒线" class="active">⚠</button>
-            <button id="btn-fit" title="复位到台风全路径视野" data-tip="复位视图">⌂</button>
-            <button id="btn-zoom-in" title="放大" data-tip="放大">＋</button>
-            <button id="btn-zoom-out" title="缩小" data-tip="缩小">－</button>
+            <button id="btn-clean" title="全屏" data-tip="全屏" aria-label="全屏">⛶</button>
+            <button id="btn-lock" title="锁定台风风眼，视图跟随台风" data-tip="锁定风眼" aria-label="锁定台风风眼，视图跟随台风">🎯</button>
+            <button id="btn-watch" title="显示/隐藏24、48小时警戒线" data-tip="警戒线" class="active" aria-label="显示/隐藏24、48小时警戒线">⚠</button>
+            <button id="btn-fit" title="复位到台风全路径视野" data-tip="复位视图" aria-label="复位到台风全路径视野">⌂</button>
+            <button id="btn-zoom-in" title="放大" data-tip="放大" aria-label="放大">＋</button>
+            <button id="btn-zoom-out" title="缩小" data-tip="缩小" aria-label="缩小">－</button>
             <div class="tool-group-label">分析图表</div>
-            <button id="btn-chart" title="台风强度演变图" data-tip="强度演变">📈</button>
-            <button id="btn-hazard" title="灾害预警六维雷达" data-tip="灾害预警">⛑</button>
+            <button id="btn-chart" title="台风强度演变图" data-tip="强度演变" aria-label="台风强度演变图">📈</button>
+            <button id="btn-hazard" title="灾害预警六维雷达" data-tip="灾害预警" aria-label="灾害预警六维雷达">⛑</button>
             <div class="tool-group-label">对比导出</div>
-            <button id="btn-shot" title="截图导出当前画面为PNG" data-tip="截图导出">📸</button>
-            <button id="btn-compare" title="原场/订正场风场对比" data-tip="原场/订正场">🔄</button>
+            <button id="btn-shot" title="截图导出当前画面为PNG" data-tip="截图导出" aria-label="截图导出当前画面为PNG">📸</button>
+            <button id="btn-compare" title="原场/订正场风场对比" data-tip="原场/订正场" aria-label="原场/订正场风场对比">🔄</button>
             <div id="vs-menu-wrap">
-                <button id="btn-multi" title="选择要对比的台风" data-tip="双台风对比"><span class="vs-glyph">VS</span></button>
+                <button id="btn-multi" title="选择要对比的台风" data-tip="双台风对比" aria-label="选择要对比的台风"><span class="vs-glyph">VS</span></button>
                 <div id="vs-menu"></div>
             </div>
         </div>
@@ -2717,7 +2825,7 @@
     <div id="focus-window">
         <div id="focus-window-header">
             <span>关注区域</span>
-            <button id="focus-window-close" title="关闭">✕</button>
+            <button id="focus-window-close" title="关闭" aria-label="关闭">✕</button>
         </div>
         <div id="focus-window-map"></div>
         <div id="focus-window-resize"></div>
@@ -2726,7 +2834,7 @@
     <div id="history-chart">
         <div id="history-chart-title">
             <span class="hc-title">台风强度演变</span>
-            <button id="history-chart-toggle" title="折叠/展开">−</button>
+            <button id="history-chart-toggle" title="折叠/展开" aria-label="折叠/展开">−</button>
         </div>
         <div id="history-chart-legend">
             <span class="hc-legend"><i class="hc-dot" style="background:#ff6b6b"></i>中心气压 (hPa)</span>
@@ -2742,15 +2850,15 @@
         <div id="time-ticks"></div>
         <div id="playback-row">
             <div id="playback-controls">
-                <button id="btn-start" title="回到起点">⏮</button>
-                <button id="btn-prev" title="后退一帧">⏪</button>
-                <button id="btn-play" title="播放/暂停">▶️</button>
-                <button id="btn-next" title="前进一帧">⏩</button>
-                <button id="btn-end" title="跳到终点">⏭</button>
+                <button id="btn-start" title="回到起点" aria-label="回到起点">⏮</button>
+                <button id="btn-prev" title="后退一帧" aria-label="后退一帧">⏪</button>
+                <button id="btn-play" title="播放/暂停" aria-label="播放/暂停">▶️</button>
+                <button id="btn-next" title="前进一帧" aria-label="前进一帧">⏩</button>
+                <button id="btn-end" title="跳到终点" aria-label="跳到终点">⏭</button>
                 <!-- 循环键：emoji 的可控性太差（字形粗细/颜色由 emoji 字体定），
                      移动端改用 SVG，PC 端保留原 emoji（见 §0.6 的显隐规则） -->
-                <button id="btn-loop" title="循环播放开关" data-tip="循环播放"><span class="loop-emoji">🔁</span><svg class="loop-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>
-                <select id="speed-select" title="播放速度">
+                <button id="btn-loop" title="循环播放开关" data-tip="循环播放" aria-label="循环播放开关"><span class="loop-emoji">🔁</span><svg class="loop-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>
+                <select id="speed-select" title="播放速度" aria-label="播放速度">
                     <option value="800">0.5x</option>
                     <option value="400">1x</option>
                     <option value="267" selected>1.5x</option>
@@ -2763,7 +2871,7 @@
             <button id="wind-toggle" data-layer="wind">风场</button>
             <div id="wind-opacity-control">
                 <span>透明度</span>
-                <input type="range" id="wind-opacity" min="0" max="100" value="15" title="风场透明度">
+                <input type="range" id="wind-opacity" min="0" max="100" value="15" title="风场透明度" aria-label="风场透明度">
                 <span id="wind-opacity-value">15%</span>
             </div>
         </div>
@@ -2787,7 +2895,7 @@
         <div><span style="display:inline-block;width:20px;height:2px;background:#222;vertical-align:middle;margin-right:7px;"></span>风羽（风速m/s）</div>
     </div>
 
-    <button id="left-panel-toggle" title="路径数据">☰</button>
+    <button id="left-panel-toggle" title="路径数据" aria-label="路径数据">☰</button>
 
     <div id="left-panel">
         <div id="left-panel-header">
@@ -2843,7 +2951,7 @@
                 <div class="legend-item"><span class="color-dot" style="background:#d32f2f;width:10px;height:10px;display:inline-block;border-radius:50%;margin-right:7px;"></span><span>红色预警（12级以上风，≥32.7 m/s）</span></div>
             </div>
             <!-- 数据来源与开源许可（2026-09-30 合规整改新增，对应版权/许可条目） -->
-            <div class="legend-section">
+            <div class="legend-section legend-src-section">
                 <h4>数据来源</h4>
                 <div class="legend-note">行政底图：国家地理信息公共服务平台「天地图」，审图号 GS（2026）4921号（甲测资字 11110974）。</div>
                 <div class="legend-note"><a href="https://www.tianditu.gov.cn/" target="_blank" rel="noopener">https://www.tianditu.gov.cn/</a></div>
@@ -2851,7 +2959,7 @@
                 <div class="legend-note">陆地掩膜：Natural Earth 1:50m（公有领域）。风场与台风数据：WRF 模式输出，经本项目自研订正算法处理。</div>
                 <div class="legend-note">本页不自行绘制国界、省界等政治边界，边界表示以底图服务商经审核批准的内容为准。</div>
             </div>
-            <div class="legend-section">
+            <div class="legend-section legend-src-section">
                 <h4>开源许可</h4>
                 <div class="legend-note">Leaflet 1.9.4 — BSD-2-Clause，(c) 2010-2023 Vladimir Agafonkin，(c) 2010-2011 CloudMade</div>
                 <div class="legend-note">topojson-client — ISC License，(c) 2012-2016 Mike Bostock</div>
@@ -2865,7 +2973,7 @@
 
     <div id="news-ticker">
         <span class="ticker-content" id="ticker-text">【历史个例回放】加载中...</span>
-        <button id="news-ticker-close" title="关闭快讯">✕</button>
+        <button id="news-ticker-close" title="关闭快讯" aria-label="关闭快讯">✕</button>
     </div>
 
         <script src="vendor/leaflet.js"></script>
@@ -2883,7 +2991,7 @@
  *   + 台风首字徽标 3 条
  *   + 从 HTML 片段派生的纯文本词条 54 条（运行时拿到的是文本节点，不是片段）
  *   + 实体别名 6 条（源码 &lt; ↔ 运行时 <）
- * 共 379 条。
+ * 共 380 条。
  * 重新生成：node .dev/gen-i18n-dict.mjs
  */
 window.__I18N_DICT = {
@@ -3069,7 +3177,9 @@ window.__I18N_DICT = {
   "港口": "Port",
   "港珠澳大桥": "Hong Kong–Zhuhai–Macao Bridge",
   "澳门国际机场": "Macao International Airport",
+  "台风路径可视化：路径、强度演变、风场与灾害预警": "Typhoon track visualization: track, intensity evolution, wind field and hazard alerts",
   "灾害预警六维雷达": "Hazard alert six-axis radar",
+  "灾害预警六维雷达图": "Hazard alert six-axis radar chart",
   "点击地图任意点查看该处预警": "Click anywhere on the map to view the warning there",
   "点击地图添加测距点，双击结束": "Click the map to add measurement points, double-click to finish",
   "点数: ": "Points: ",
@@ -3115,6 +3225,7 @@ window.__I18N_DICT = {
   "较高": "Relatively high",
   "这是本地文件路径（file://），手机无法访问。请改用电脑的局域网 IP 或公网地址。": "This is a local file path (file://), which a phone cannot access. Use your computer's LAN IP or a public address instead.",
   "退出全屏": "Exit fullscreen",
+  "选择台风": "Select typhoon",
   "选择台风 ▾": "Select typhoon ▾",
   "透明度": "Opacity",
   "重要设施": "Key facility",
@@ -3184,6 +3295,7 @@ window.__I18N_DICT = {
   "大鹏LNG能源科普参观基地（对外开放）": "Dapeng LNG Energy Science Education & Visitor Base (open to the public)",
   "数据来源": "Data sources",
   "开源许可": "Open-source licences",
+  "国家地理信息公共服务平台 天地图": "Tianditu, the National Platform for Common Geospatial Information Services",
   "行政底图：国家地理信息公共服务平台「天地图」，审图号 GS（2026）4921号（甲测资字 11110974）。": "Administrative basemap: Tianditu, the National Platform for Common Geospatial Information Services. Map approval number GS(2026)4921 (surveying and mapping qualification no. 11110974).",
   "卫星影像：Esri World Imagery（Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community）。": "Satellite imagery: Esri World Imagery (Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community).",
   "陆地掩膜：Natural Earth 1:50m（公有领域）。风场与台风数据：WRF 模式输出，经本项目自研订正算法处理。": "Land mask: Natural Earth 1:50m (public domain). Wind field and typhoon data: WRF model output, processed by this project's own correction algorithm.",
@@ -3197,6 +3309,8 @@ window.__I18N_DICT = {
   "未配置天地图 Key": "Tianditu key not configured",
   "⚠ 行政底图未配置": "⚠ Administrative basemap not configured",
   "需先在 index.html 的 TDT_KEY 处填入天地图 Key": "Fill in the Tianditu key at TDT_KEY in index.html first",
+  "离线访问二维码": "Offline access QR code",
+  "离线访问地址": "Offline access URL",
   "手机扫码进入": "Scan the QR code to open on your phone",
   "点击查看详情": "Click for details",
   "台山核电站": "Taishan Nuclear Power Science Education Base (open to the public)",
@@ -3398,6 +3512,25 @@ window.__I18N_DICT = {
             } else {
                 var r = zhAttr.get(el);
                 if (r && (a in r) && el.getAttribute(a) !== r[a]) el.setAttribute(a, r[a]);
+            }
+        }
+        /* 2026-10-05：<meta> 的 content 是文案，却不在 ATTRS 里，也没有文本节点，
+           两条路都接不住（英文下分享卡片仍是中文）。viewport 那条绝不能被翻，
+           所以只认显式标了 data-i18n-meta 的 meta（og / twitter / description）。 */
+        if (el.tagName === 'META' && el.hasAttribute && el.hasAttribute('data-i18n-meta')) {
+            var mv = el.getAttribute('content');
+            if (lang === EN) {
+                if (mv && HAS_CN.test(mv)) {
+                    var mrec = zhAttr.get(el);
+                    if (!mrec) { mrec = {}; zhAttr.set(el, mrec); }
+                    if (!('content' in mrec)) mrec.content = mv;
+                    var mnv = t(mrec.content);
+                    if (mnv !== mv) el.setAttribute('content', mnv);
+                }
+            } else {
+                var mr = zhAttr.get(el);
+                if (mr && mr.content && el.getAttribute('content') !== mr.content)
+                    el.setAttribute('content', mr.content);
             }
         }
     }
@@ -4274,7 +4407,7 @@ window.__I18N_DICT = {
     var btn = $('btn-qr');
     if (!btn) return;                       // 没有入口（例如手机端被隐藏）就不装任何东西
     // 手机端：扫码是「电脑→手机」的入口，手机自己不需要；直接不初始化，省掉一次 DOM/画布开销
-    if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) return;
+    if (window.matchMedia && window.matchMedia('(max-width: 768px), (max-height: 480px) and (pointer: coarse)').matches) return;
 
     var DEFAULT_HINT = '手机与电脑需在同一网络（局域网 IP），或使用公网地址。';
     var state = { url: '', ready: false, modal: null };
@@ -4327,8 +4460,9 @@ window.__I18N_DICT = {
                 '<div class="qr-head"><h3>📱 手机扫码进入</h3>' +
                 '<button type="button" class="qr-close" aria-label="关闭">✕</button></div>' +
                 '<div class="qr-sub">用手机相机 / 微信扫一扫，直接打开下面这个地址（无需联网外网）。</div>' +
-                '<div class="qr-canvas-wrap"><canvas id="qr-canvas" width="228" height="228"></canvas></div>' +
+                '<div class="qr-canvas-wrap"><canvas id="qr-canvas" width="228" height="228" role="img" aria-label="离线访问二维码"></canvas></div>' +
                 '<div class="qr-url-row"><input id="qr-url-input" type="text" spellcheck="false" ' +
+                'aria-label="离线访问地址" ' +
                 'placeholder="http://192.168.x.x:8899/"></div>' +
                 '<div class="qr-btns">' +
                     '<button type="button" class="qr-act primary" data-act="copy">复制链接</button>' +
@@ -4367,10 +4501,12 @@ window.__I18N_DICT = {
         var origin = location.origin;
         var host = location.hostname;
         var port = location.port ? ':' + location.port : '';
+        /* 2026-10-05 修：两个分支都漏了 location.search —— 带 ?lang=zh 之类的地址，
+           一点「换成局域网 IP」查询串就没了（而「用当前地址」是保留的）。 */
         if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
-            return 'http://192.168.1.100' + port + location.pathname;
+            return 'http://192.168.1.100' + port + location.pathname + location.search;
         }
-        return origin + location.pathname;
+        return origin + location.pathname + location.search;
     }
 
     function validate(u) {
@@ -4491,7 +4627,7 @@ window.__I18N_DICT = {
     if (window.__mobileUiReady) return;
     window.__mobileUiReady = true;
 
-    var MQ = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+    var MQ = window.matchMedia ? window.matchMedia('(max-width: 768px), (max-height: 480px) and (pointer: coarse)') : null;
     var IS_MOBILE = !!(MQ && MQ.matches);
     if (!IS_MOBILE) return;                       // 桌面端：什么都不做
 
@@ -4552,7 +4688,7 @@ window.__I18N_DICT = {
         var s = doc.createElement('style');
         s.id = 'mobile-ui-overrides';
         s.textContent =
-            '@media (max-width: 768px){' +
+            '@media (max-width: 768px), (max-height: 480px) and (pointer: coarse){' +
             'html.mobile-ui #btn-qr{display:none !important;}' +
             'html.mobile-ui #qr-modal{display:none !important;}' +
             // 圆形「图例」按钮：与底部 Dock 的「图例」标签打开同一个 #legend-modal，
@@ -4593,20 +4729,41 @@ window.__I18N_DICT = {
                约 46px 并抢走点击（点最右列按钮会误触全屏/缩放）。面板自带 ✕ 与蒙层，
                收起入口不缺。 */
             'html.mobile-ui.md-sheet-open #md-fab-group{display:none;}' +
+            /* 2026-10-04 修：测距条 / 灾害雷达都贴在 Dock 上方那一带，而 FAB（z 1520）
+               比它们高，实测「测距条的完成按钮」中心命中的是 FAB 的「收起」—— 点完成
+               会把整个测距清掉。这两块浮层打开时把 FAB 收起来（与 Sheet 同一套做法）。
+               类由主逻辑的 syncFabHide() 维护。 */
+            'html.mobile-ui.md-fab-hide #md-fab-group{display:none;}' +
             /* 同上：图例弹窗打开时也藏掉按钮组。⑪ 把 #legend-modal 降到 1495 后，
                z 1520 的按钮组会浮到蒙层之上压住图例内容右缘（实测重叠 8800px²）。
                图例自带 ✕ 与「点蒙层关闭」两条退出路径，藏掉不影响使用。 */
             'html.mobile-ui:has(#legend-modal.open) #md-fab-group{display:none;}' +
-            /* 底图来源（Leaflet attribution）：抬到 Dock 上沿之上，与 PC 端右下角一致 */
+            /* 上一条依赖 :has()（Safari 15.4 / Chrome 105 起才支持）。旧浏览器会整条
+               丢弃，按钮组就浮到图例弹窗上抢点击。这里补一条由 JS 维护的类兜底 ——
+               类在 openSheet('legend') 里加、在 closeAll() 里去（两条关闭路径都经过它）。 */
+            'html.mobile-ui.md-legend-open #md-fab-group{display:none;}' +
+            /* 底图来源 + 审图号（Leaflet attribution）。2026-10-04 调整：
+               ① 原本 12px 要占两整行、横跨整屏，与 #eye-coord 重叠 2331px²
+                  （经纬度被压住）→ 字号压到 10px；
+               ② 用户要求「把经纬度挪到审图号右边那块空白」→ 署名条**收窄靠左**，
+                  右侧固定留出 124px 给经纬度。float:left 是必须的 —— Leaflet 的
+                  .leaflet-right 默认 float:right，不收窄就还是贴右、挤不出空间。
+               ⚠ 实测：署名条单行自然宽 465px；375 视口下 max-width 251 → 两行(29px)，
+                  245 → 三行(43px)。所以右侧留白不能超过 vw-251，取 124px。
+               ⚠ 窄屏（≤345px）右侧挤不出这一列，见文末的 @media 兜底。 */
             'html.mobile-ui .leaflet-bottom.leaflet-right{' +
-            'bottom:calc(var(--dock-h, 150px) + 6px);}' +
-            /* ⑫ 比例尺（Leaflet scale，创建时 position:bottomleft）：同样抬到 Dock 之上。
-               ⚠ 不能照抄底图来源的 +6px —— 那条高度正好是 #eye-coord 所在的横带
-               （eye-coord 固定在 dock-h+8、高 21px），会与其完全重叠（实测 x 5..114 对
-               12..123、y 616..639 对 616..637）。故再往上让一行：
-               dock-h + 8(eye-coord 偏移) + 21(其高度) + 5(间隙) = dock-h + 34。 */
+            'bottom:calc(var(--dock-h, 150px) + 4px);left:0;right:0;}' +
+            'html.mobile-ui .leaflet-bottom.leaflet-right .leaflet-control-attribution{' +
+            'float:left;clear:both;max-width:calc(100vw - 124px);}' +
+            'html.mobile-ui .leaflet-control-attribution{' +
+            'font-size:10px;line-height:1.35;padding:1px 5px;}' +
+            /* ⑫ 比例尺（Leaflet scale，创建时 position:bottomleft）。
+               2026-10-04 用户要求**放回原来的位置**（左侧）——撤掉「让到 left:132
+               与经纬度并排」那版。但署名条为此收窄了、会涨到三行（43px，顶边 +47），
+               所以锚点由 +38 抬到 **+52**：两行(+33) / 三行(+47) 两种都躲得开。
+               ⚠ 改这个值请一并复验重叠（_chk-mobile2.html 的 A 段）。 */
             'html.mobile-ui .leaflet-bottom.leaflet-left{' +
-            'bottom:calc(var(--dock-h, 150px) + 34px);}' +
+            'bottom:calc(var(--dock-h, 150px) + 52px);}' +
             /* 点击底部标签时收起前三行（2026-09-26 用户要求）：只留标签栏，露出更多
                地图。类名由 JS 在 openSheet / toggleDataDrawer / closeAll 里切换。 */
             /* Dock 前三行收起（2026-09-26）：改用 max-height + opacity 过渡，替掉原来的
@@ -4627,16 +4784,33 @@ window.__I18N_DICT = {
             /* 风眼经纬度：不再藏进 Dock，改固定在地图左下角、Dock 上沿之上，
                与 PC 端左下角（比例尺同行）保持一致（2026-09-26 用户要求）。 */
             'html.mobile-ui #eye-coord{' +
-            'position:fixed;left:12px;bottom:calc(var(--dock-h, 150px) + 8px);' +
+            /* 2026-10-04：用户要求挪到「审图号右边那块空白」——署名条已收窄靠左
+               （右侧留 130px），经纬度就落在那块留白里：right:6、与署名条同一横带。
+               y 取 +6 而不是 +4：FAB 最低那颗按钮在 dock-h+30，经纬度高 21px，
+               这样上下留 3px 余量不打架。 */
+            'position:fixed;left:auto;right:6px;bottom:calc(var(--dock-h, 150px) + 6px);' +
             /* ⑥ 修：必须显式 margin:0 —— PC 段 `#eye-coord.in-scale-row` 的
                `margin:0 0 5px 8px` 仍然命中（主逻辑给它加过 in-scale-row 类），
                不重置就会把实际位置从 12px/8px 顶到 20px/13px。
-               z-index 1450 → 1340：与测距条(1420)、关注区小窗(1350)共用同一个
-               `bottom: dock-h+8px` 锚点，降低后由它们盖住，不再互相叠字。 */
+               z-index 1450 → 1340：与测距条(1420)、关注区小窗(1350)共用同一条
+               Dock 上沿锚点，降低后由它们盖住，不再互相叠字。 */
             'z-index:1340;margin:0;max-width:60vw;padding:2px 8px;border-radius:8px;' +
             'background:rgba(255,255,255,0.82);font-size:0.72rem;font-weight:700;' +
             'letter-spacing:0.02em;color:#222;pointer-events:none;white-space:nowrap;}' +
-            'html.mobile-ui #mobile-dock #playback-controls button{min-width:34px;}' +
+            /* 2026-10-04：320 级窄屏右侧挤不出 111px 的列 —— 署名条会涨到四行
+               （56px、顶边 +60），把比例尺整个顶掉。这种宽度下改成：署名条恢复整宽
+               （回到两行），经纬度挪到署名条上方、与比例尺并排。
+               （这套就是 10-04 第一版，实测 375/320/横屏重叠均为 0。） */
+            '@media (max-width:345px){' +
+            'html.mobile-ui .leaflet-bottom.leaflet-right .leaflet-control-attribution{max-width:100%;}' +
+            'html.mobile-ui #eye-coord{left:12px;right:auto;bottom:calc(var(--dock-h, 150px) + 40px);}' +
+            'html.mobile-ui .leaflet-bottom.leaflet-left{left:132px;right:auto;bottom:calc(var(--dock-h, 150px) + 40px);}}' +
+            /* 播放键触控尺寸（2026-10-03 修）：@media (max-height:480px) 把播放键压到
+               flex-basis 32px / min-height 32px（§0.5b），加上原本这条 min-width:34px，
+               横屏实测只有 34×32px —— 远低于 44px 触控下限，而横屏 Dock 宽 715px 明明有富余。
+               注入段在文档序最后、与 §0.5b 同特异性 (2,1,2)，所以直接在这一条里兜住 44px。
+               竖屏不受影响：那里的播放键由 flex 均分到约 67px 宽。 */
+            'html.mobile-ui #mobile-dock #playback-controls button{min-width:44px;min-height:44px;}' +
             // 洁净（全屏）模式：Dock 必须让位，否则「全屏」名不副实。
             // ⚠ #mobile-dock 挂在 <html> 下（是 <body> 的**兄弟节点**，不是子节点），
             //   所以 `body.clean-mode #mobile-dock`（后代）永远不匹配 —— 实测踩到。
@@ -4734,6 +4908,15 @@ window.__I18N_DICT = {
             b.type = 'button';
             b.className = 'md-tab';
             b.setAttribute('data-tab', t.id);
+            /* 2026-10-04 无障碍：补上 tab 语义与选中态。
+               原先只有 .active 类，而 §… 里那条 .md-tab[aria-selected="true"]
+               选择器因为没人设过该属性而永不生效（死规则）。 */
+            b.setAttribute('role', 'tab');
+            b.setAttribute('aria-selected', 'false');
+            var _ctl = { layers: 'md-sheet-layers', tools: 'md-sheet-tools',
+                         settings: 'md-sheet-settings', data: 'left-panel',
+                         legend: 'legend-modal' }[t.id];
+            if (_ctl) b.setAttribute('aria-controls', _ctl);
             b.innerHTML = ICONS[t.id] + '<span>' + t.label + '</span>';
             tabs.appendChild(b);
         });
@@ -4894,7 +5077,16 @@ window.__I18N_DICT = {
             if (id === 'data') { toggleDataDrawer(tab); return; }
             var sec = $('md-sheet-' + id);
             if (!sec) return;
-            var isOpen = sec.classList.contains('open');
+            /* 2026-10-05 修：「图例」标签的实际载体是 #legend-modal，而 openSheet('legend')
+               只给弹窗加 .open、从不给 #md-sheet-legend 加 —— 于是 isOpen 恒为 false，
+               再点一次等于「先关再开」，看着就是关不掉（只能点 ✕ 或蒙层）。 */
+            var isOpen;
+            if (id === 'legend') {
+                var lm = $('legend-modal');
+                isOpen = !!(lm && lm.classList.contains('open'));
+            } else {
+                isOpen = sec.classList.contains('open');
+            }
             closeAll();
             if (!isOpen) openSheet(id, tab);
         });
@@ -4911,6 +5103,7 @@ window.__I18N_DICT = {
             var lm = $('legend-modal');
             if (lm) {
                 lm.classList.add('open');
+                html.classList.add('md-legend-open');
                 bindLegendModalClose();
             }
             setActiveTab(tab);
@@ -4927,6 +5120,7 @@ window.__I18N_DICT = {
         closeAll();
         if (lp && !wasOpen) {
             lp.classList.add('open');
+            if (window.__closeChartForDrawer) window.__closeChartForDrawer();  // 2026-10-06
             html.classList.add('md-dock-collapsed');
             html.classList.add('md-sheet-open');
             syncDockHeightAnimated();
@@ -4945,7 +5139,11 @@ window.__I18N_DICT = {
 
     function setActiveTab(tab) {
         var all = doc.querySelectorAll('#mobile-dock .md-tab');
-        for (var i = 0; i < all.length; i++) all[i].classList.toggle('active', all[i] === tab);
+        for (var i = 0; i < all.length; i++) {
+            var isOn = all[i] === tab;
+            all[i].classList.toggle('active', isOn);
+            all[i].setAttribute('aria-selected', isOn ? 'true' : 'false');   // 2026-10-04
+        }
     }
 
     function closeAll() {
@@ -4957,6 +5155,7 @@ window.__I18N_DICT = {
         if (lm) lm.classList.remove('open');
         html.classList.remove('md-sheet-open');
         html.classList.remove('md-dock-collapsed');
+        html.classList.remove('md-legend-open');
         syncDockHeightAnimated();
         setActiveTab(null);
     }
@@ -5246,16 +5445,28 @@ window.__I18N_DICT = {
                     '<span class="legend-wind-item"><i style="background:#d50000"></i>强台风（32.7-41.4）</span>' +
                     '<span class="legend-wind-item"><i style="background:#aa00ff"></i>超强台风（≥41.5）</span>' +
                 '</div>';
-            document.getElementById('legend').innerHTML = html + gradeHtml;
+            /* 2026-10-04：把「图例弹窗」里的版权说明（数据来源 / 开源许可）整段同步到
+               PC 图例框（用户要求「和移动端一字不差」）。直接从弹窗 DOM 取 outerHTML，
+               文案只有一份、不会两处走样；i18n 由 I18N.set() 的全量 apply(root()) 兜住。
+               移动端 #legend 是 display:none，所以只影响 PC。 */
+            var srcHtml = '';
+            var srcNodes = document.querySelectorAll('#legend-modal-content .legend-src-section');
+            for (var si = 0; si < srcNodes.length; si++) srcHtml += srcNodes[si].outerHTML;
+            if (srcHtml) {
+                srcHtml = '<div class="legend-src-append">' +
+                    '<div class="legend-src-sep"></div>' + srcHtml + '</div>';
+            }
+            document.getElementById('legend').innerHTML = html + gradeHtml + srcHtml;
             renderWindSpeedScale();
         }
 
 
         // ===== Typhoon Track Data =====
-        const typhoonTrack = [{"t":125,"lat":16.68,"lon":128.88,"psfc":98432,"wind":6.8},{"t":126,"lat":16.91,"lon":128.81,"psfc":98234,"wind":10.7},{"t":127,"lat":17.19,"lon":128.74,"psfc":98097,"wind":18.6},{"t":128,"lat":17.26,"lon":129.04,"psfc":97996,"wind":19},{"t":129,"lat":17.03,"lon":128.53,"psfc":97730,"wind":8.8},{"t":130,"lat":17.39,"lon":128.66,"psfc":97618,"wind":16.1},{"t":131,"lat":17.49,"lon":128.58,"psfc":97482,"wind":18.2},{"t":132,"lat":17.59,"lon":128.39,"psfc":97215,"wind":28.7},{"t":133,"lat":17.22,"lon":128.45,"psfc":97235,"wind":2.3},{"t":134,"lat":17.7,"lon":128.21,"psfc":97240,"wind":12.9},{"t":135,"lat":17.44,"lon":127.99,"psfc":96944,"wind":10.2},{"t":136,"lat":17.54,"lon":127.9,"psfc":96735,"wind":4.1},{"t":137,"lat":17.73,"lon":127.82,"psfc":96690,"wind":6.7},{"t":138,"lat":17.84,"lon":127.63,"psfc":96608,"wind":5.5},{"t":139,"lat":17.85,"lon":127.54,"psfc":96589,"wind":7.2},{"t":140,"lat":17.95,"lon":127.35,"psfc":96515,"wind":4.5},{"t":141,"lat":17.96,"lon":127.25,"psfc":96511,"wind":5.2},{"t":142,"lat":17.98,"lon":126.96,"psfc":96587,"wind":6.2},{"t":143,"lat":17.89,"lon":126.96,"psfc":96482,"wind":3.7},{"t":144,"lat":18.17,"lon":126.88,"psfc":96388,"wind":9.2},{"t":145,"lat":18.09,"lon":126.68,"psfc":96302,"wind":8.1},{"t":146,"lat":18,"lon":126.67,"psfc":96223,"wind":5.5},{"t":147,"lat":18.19,"lon":126.59,"psfc":96120,"wind":7},{"t":148,"lat":18.2,"lon":126.49,"psfc":96054,"wind":7.1},{"t":149,"lat":18.3,"lon":126.31,"psfc":95979,"wind":3.9},{"t":150,"lat":18.32,"lon":126.11,"psfc":95856,"wind":5.1},{"t":151,"lat":18.31,"lon":126.21,"psfc":95736,"wind":4.1},{"t":152,"lat":18.6,"lon":126.03,"psfc":95637,"wind":10.6},{"t":153,"lat":18.51,"lon":125.93,"psfc":95647,"wind":5.5},{"t":154,"lat":18.7,"lon":125.85,"psfc":95645,"wind":8.8},{"t":155,"lat":18.72,"lon":125.55,"psfc":95521,"wind":4.4},{"t":156,"lat":18.73,"lon":125.46,"psfc":95381,"wind":4.7},{"t":157,"lat":18.93,"lon":125.18,"psfc":95199,"wind":10.8},{"t":158,"lat":18.84,"lon":125.07,"psfc":95128,"wind":4.7},{"t":159,"lat":18.96,"lon":124.59,"psfc":95165,"wind":5.8},{"t":160,"lat":19.06,"lon":124.5,"psfc":94890,"wind":7.2},{"t":161,"lat":19.16,"lon":124.31,"psfc":94819,"wind":10.3},{"t":162,"lat":19.09,"lon":123.81,"psfc":94647,"wind":9.3},{"t":163,"lat":19.19,"lon":123.82,"psfc":94268,"wind":9.3},{"t":164,"lat":19.1,"lon":123.62,"psfc":94310,"wind":2.8},{"t":165,"lat":19.3,"lon":123.43,"psfc":94343,"wind":10.9},{"t":166,"lat":19.21,"lon":123.23,"psfc":94342,"wind":9.9},{"t":167,"lat":19.23,"lon":122.94,"psfc":94398,"wind":7.1},{"t":168,"lat":19.14,"lon":122.83,"psfc":94480,"wind":3.7},{"t":169,"lat":19.33,"lon":122.55,"psfc":94486,"wind":9.1},{"t":170,"lat":19.34,"lon":122.45,"psfc":94544,"wind":9.3},{"t":171,"lat":19.35,"lon":122.25,"psfc":94588,"wind":4.7},{"t":172,"lat":19.35,"lon":122.06,"psfc":94571,"wind":2.6},{"t":173,"lat":19.46,"lon":121.77,"psfc":94562,"wind":6.2},{"t":174,"lat":19.46,"lon":121.67,"psfc":94529,"wind":6.9},{"t":175,"lat":19.56,"lon":121.38,"psfc":94448,"wind":11.5},{"t":176,"lat":19.47,"lon":121.18,"psfc":94423,"wind":5.2},{"t":177,"lat":19.48,"lon":121.08,"psfc":94458,"wind":6.2},{"t":178,"lat":19.48,"lon":120.98,"psfc":94509,"wind":4.3},{"t":179,"lat":19.49,"lon":120.69,"psfc":94535,"wind":4.7},{"t":180,"lat":19.49,"lon":120.49,"psfc":94611,"wind":3.5},{"t":181,"lat":19.59,"lon":120.3,"psfc":94678,"wind":9.1},{"t":182,"lat":19.59,"lon":120.1,"psfc":94670,"wind":6.5},{"t":183,"lat":19.6,"lon":119.9,"psfc":94755,"wind":5.6},{"t":184,"lat":19.6,"lon":119.61,"psfc":94795,"wind":7.3},{"t":185,"lat":19.65,"lon":119.46,"psfc":94776,"wind":7.2},{"t":186,"lat":19.7,"lon":119.31,"psfc":94757,"wind":7.2},{"t":187,"lat":19.79,"lon":119.32,"psfc":94798,"wind":10.1},{"t":188,"lat":19.89,"lon":119.02,"psfc":94846,"wind":8.2},{"t":189,"lat":19.89,"lon":118.82,"psfc":94892,"wind":4.4},{"t":190,"lat":19.99,"lon":118.63,"psfc":94911,"wind":9.3},{"t":191,"lat":19.9,"lon":118.43,"psfc":94885,"wind":3.3},{"t":192,"lat":19.99,"lon":118.33,"psfc":94873,"wind":7.7},{"t":193,"lat":20.09,"lon":118.14,"psfc":94825,"wind":7.7},{"t":194,"lat":20.18,"lon":118.04,"psfc":94822,"wind":10.3},{"t":195,"lat":20.28,"lon":117.74,"psfc":94848,"wind":6.3},{"t":196,"lat":20.37,"lon":117.54,"psfc":94855,"wind":9},{"t":197,"lat":20.46,"lon":117.45,"psfc":94781,"wind":12.5},{"t":198,"lat":20.56,"lon":117.15,"psfc":94719,"wind":7.5},{"t":199,"lat":20.56,"lon":117.05,"psfc":94641,"wind":8.2},{"t":200,"lat":20.56,"lon":116.75,"psfc":94642,"wind":4.4},{"t":201,"lat":20.74,"lon":116.55,"psfc":94653,"wind":10.9},{"t":202,"lat":20.74,"lon":116.45,"psfc":94653,"wind":4.5},{"t":203,"lat":20.83,"lon":116.25,"psfc":94704,"wind":8},{"t":204,"lat":20.83,"lon":116.16,"psfc":94742,"wind":8.6},{"t":205,"lat":20.83,"lon":115.96,"psfc":94844,"wind":4.5},{"t":206,"lat":20.92,"lon":115.76,"psfc":94896,"wind":6.8},{"t":207,"lat":21.01,"lon":115.56,"psfc":94972,"wind":8.2},{"t":208,"lat":21.01,"lon":115.36,"psfc":94964,"wind":4.1},{"t":209,"lat":21.1,"lon":115.16,"psfc":94932,"wind":7.4},{"t":210,"lat":21.19,"lon":115.06,"psfc":94915,"wind":10.7},{"t":211,"lat":21.28,"lon":114.86,"psfc":94880,"wind":9.6},{"t":212,"lat":21.28,"lon":114.66,"psfc":94890,"wind":4.4},{"t":213,"lat":21.37,"lon":114.46,"psfc":94919,"wind":8.5},{"t":214,"lat":21.36,"lon":114.16,"psfc":94934,"wind":6.5},{"t":215,"lat":21.36,"lon":114.06,"psfc":94954,"wind":6.8},{"t":216,"lat":21.45,"lon":113.76,"psfc":95010,"wind":10},{"t":217,"lat":21.44,"lon":113.56,"psfc":95044,"wind":9.5},{"t":218,"lat":21.44,"lon":113.36,"psfc":95088,"wind":6.2},{"t":219,"lat":21.34,"lon":113.06,"psfc":95138,"wind":7.9},{"t":220,"lat":21.52,"lon":112.95,"psfc":95173,"wind":9.1},{"t":221,"lat":21.33,"lon":112.76,"psfc":95232,"wind":6.3},{"t":222,"lat":21.42,"lon":112.56,"psfc":95238,"wind":9.3},{"t":223,"lat":21.41,"lon":112.46,"psfc":95197,"wind":7.3},{"t":224,"lat":21.5,"lon":112.26,"psfc":95304,"wind":9.6},{"t":225,"lat":21.5,"lon":112.16,"psfc":95478,"wind":13.3},{"t":226,"lat":21.39,"lon":111.86,"psfc":96248,"wind":30.9},{"t":227,"lat":21.39,"lon":111.66,"psfc":96783,"wind":34.6},{"t":228,"lat":21.37,"lon":111.36,"psfc":97293,"wind":31.9},{"t":229,"lat":21.32,"lon":111.12,"psfc":97821,"wind":30.4},{"t":230,"lat":21.26,"lon":110.87,"psfc":98349,"wind":29},{"t":231,"lat":21.26,"lon":110.77,"psfc":98683,"wind":24},{"t":232,"lat":21.33,"lon":110.16,"psfc":98782,"wind":24.5},{"t":233,"lat":21.39,"lon":109.56,"psfc":98882,"wind":25},{"t":234,"lat":21.766441345214844,"lon":109.74038696289062,"psfc":97397,"wind":7.9},{"t":235,"lat":21.66344451904297,"lon":109.54608154296875,"psfc":97938,"wind":4.4},{"t":236,"lat":21.65296173095703,"lon":109.346435546875,"psfc":97945,"wind":5.3},{"t":237,"lat":21.64763641357422,"lon":109.24658203125,"psfc":98226,"wind":4.1},{"t":238,"lat":21.543968200683594,"lon":109.05288696289062,"psfc":98682,"wind":7.4},{"t":239,"lat":21.538436889648438,"lon":108.95318603515625,"psfc":98935,"wind":6.5},{"t":240,"lat":21.625579833984375,"lon":108.84738159179688,"psfc":99097,"wind":1.7},{"t":241,"lat":21.70690155029297,"lon":108.6416015625,"psfc":99238,"wind":0.5},{"t":242,"lat":21.7938232421875,"lon":108.53546142578125,"psfc":99459,"wind":6.1},{"t":243,"lat":21.86865234375,"lon":108.22921752929688,"psfc":98300,"wind":0.8},{"t":244,"lat":22.035614013671875,"lon":107.91583251953125,"psfc":96279,"wind":2.6},{"t":245,"lat":22.02289581298828,"lon":107.71572875976562,"psfc":98041,"wind":0.4},{"t":246,"lat":22.10260772705078,"lon":107.508544921875,"psfc":97474,"wind":4.5},{"t":247,"lat":22.089324951171875,"lon":107.308349609375,"psfc":97701,"wind":1.4},{"t":248,"lat":22.168472290039062,"lon":107.100830078125,"psfc":97747,"wind":3.4},{"t":249,"lat":22.06884002685547,"lon":107.0081787109375,"psfc":97946,"wind":3.8}];
-
-        // 去掉开头 10 个不稳定点（t=125~134，2025-09-20 13:00~22:00 北京时间）
-        typhoonTrack.splice(0, 10);
+        /* 2026-10-06：这里原来内联了一份 125 点的轨迹副本（其后再 splice 掉开头 10 点）。
+           但页面加载时用的正是这一份 —— switchTyphoon('桦加沙') 对当前台风名会提前 return，
+           于是 TYPHOON_DATA 里更新过的数据反而不会生效（实测：重跑数据管线后页面仍显示旧的 wind）。
+           现改成空数组，统一由 TYPHOON_DATA 灌入（见下方 bootstrap）。 */
+        const typhoonTrack = [];
 
         // ===== Typhoon Data Registry =====
         // 后续台风数据用同样算法处理后，往 TYPHOON_DATA 里加一项即可。
@@ -5273,7 +5484,7 @@ window.__I18N_DICT = {
                 ],
                 windDir: '',
                 windDirCorrected: '桦加沙_corr/',
-                track: [{"t":135,"lat":17.44,"lon":127.99,"psfc":96944,"wind":10.2},{"t":136,"lat":17.54,"lon":127.9,"psfc":96735,"wind":4.1},{"t":137,"lat":17.73,"lon":127.82,"psfc":96690,"wind":6.7},{"t":138,"lat":17.84,"lon":127.63,"psfc":96608,"wind":5.5},{"t":139,"lat":17.85,"lon":127.54,"psfc":96589,"wind":7.2},{"t":140,"lat":17.95,"lon":127.35,"psfc":96515,"wind":4.5},{"t":141,"lat":17.96,"lon":127.25,"psfc":96511,"wind":5.2},{"t":142,"lat":17.98,"lon":126.96,"psfc":96587,"wind":6.2},{"t":143,"lat":17.89,"lon":126.96,"psfc":96482,"wind":3.7},{"t":144,"lat":18.17,"lon":126.88,"psfc":96388,"wind":9.2},{"t":145,"lat":18.09,"lon":126.68,"psfc":96302,"wind":8.1},{"t":146,"lat":18,"lon":126.67,"psfc":96223,"wind":5.5},{"t":147,"lat":18.19,"lon":126.59,"psfc":96120,"wind":7},{"t":148,"lat":18.2,"lon":126.49,"psfc":96054,"wind":7.1},{"t":149,"lat":18.3,"lon":126.31,"psfc":95979,"wind":3.9},{"t":150,"lat":18.32,"lon":126.11,"psfc":95856,"wind":5.1},{"t":151,"lat":18.31,"lon":126.21,"psfc":95736,"wind":4.1},{"t":152,"lat":18.6,"lon":126.03,"psfc":95637,"wind":10.6},{"t":153,"lat":18.51,"lon":125.93,"psfc":95647,"wind":5.5},{"t":154,"lat":18.7,"lon":125.85,"psfc":95645,"wind":8.8},{"t":155,"lat":18.72,"lon":125.55,"psfc":95521,"wind":4.4},{"t":156,"lat":18.73,"lon":125.46,"psfc":95381,"wind":4.7},{"t":157,"lat":18.93,"lon":125.18,"psfc":95199,"wind":10.8},{"t":158,"lat":18.84,"lon":125.07,"psfc":95128,"wind":4.7},{"t":159,"lat":18.96,"lon":124.59,"psfc":95165,"wind":5.8},{"t":160,"lat":19.06,"lon":124.5,"psfc":94890,"wind":7.2},{"t":161,"lat":19.16,"lon":124.31,"psfc":94819,"wind":10.3},{"t":162,"lat":19.09,"lon":123.81,"psfc":94647,"wind":9.3},{"t":163,"lat":19.19,"lon":123.82,"psfc":94268,"wind":9.3},{"t":164,"lat":19.1,"lon":123.62,"psfc":94310,"wind":2.8},{"t":165,"lat":19.3,"lon":123.43,"psfc":94343,"wind":10.9},{"t":166,"lat":19.21,"lon":123.23,"psfc":94342,"wind":9.9},{"t":167,"lat":19.23,"lon":122.94,"psfc":94398,"wind":7.1},{"t":168,"lat":19.14,"lon":122.83,"psfc":94480,"wind":3.7},{"t":169,"lat":19.33,"lon":122.55,"psfc":94486,"wind":9.1},{"t":170,"lat":19.34,"lon":122.45,"psfc":94544,"wind":9.3},{"t":171,"lat":19.35,"lon":122.25,"psfc":94588,"wind":4.7},{"t":172,"lat":19.35,"lon":122.06,"psfc":94571,"wind":2.6},{"t":173,"lat":19.46,"lon":121.77,"psfc":94562,"wind":6.2},{"t":174,"lat":19.46,"lon":121.67,"psfc":94529,"wind":6.9},{"t":175,"lat":19.56,"lon":121.38,"psfc":94448,"wind":11.5},{"t":176,"lat":19.47,"lon":121.18,"psfc":94423,"wind":5.2},{"t":177,"lat":19.48,"lon":121.08,"psfc":94458,"wind":6.2},{"t":178,"lat":19.48,"lon":120.98,"psfc":94509,"wind":4.3},{"t":179,"lat":19.49,"lon":120.69,"psfc":94535,"wind":4.7},{"t":180,"lat":19.49,"lon":120.49,"psfc":94611,"wind":3.5},{"t":181,"lat":19.59,"lon":120.3,"psfc":94678,"wind":9.1},{"t":182,"lat":19.59,"lon":120.1,"psfc":94670,"wind":6.5},{"t":183,"lat":19.6,"lon":119.9,"psfc":94755,"wind":5.6},{"t":184,"lat":19.6,"lon":119.61,"psfc":94795,"wind":7.3},{"t":185,"lat":19.65,"lon":119.46,"psfc":94776,"wind":7.2},{"t":186,"lat":19.7,"lon":119.31,"psfc":94757,"wind":7.2},{"t":187,"lat":19.79,"lon":119.32,"psfc":94798,"wind":10.1},{"t":188,"lat":19.89,"lon":119.02,"psfc":94846,"wind":8.2},{"t":189,"lat":19.89,"lon":118.82,"psfc":94892,"wind":4.4},{"t":190,"lat":19.99,"lon":118.63,"psfc":94911,"wind":9.3},{"t":191,"lat":19.9,"lon":118.43,"psfc":94885,"wind":3.3},{"t":192,"lat":19.99,"lon":118.33,"psfc":94873,"wind":7.7},{"t":193,"lat":20.09,"lon":118.14,"psfc":94825,"wind":7.7},{"t":194,"lat":20.18,"lon":118.04,"psfc":94822,"wind":10.3},{"t":195,"lat":20.28,"lon":117.74,"psfc":94848,"wind":6.3},{"t":196,"lat":20.37,"lon":117.54,"psfc":94855,"wind":9},{"t":197,"lat":20.46,"lon":117.45,"psfc":94781,"wind":12.5},{"t":198,"lat":20.56,"lon":117.15,"psfc":94719,"wind":7.5},{"t":199,"lat":20.56,"lon":117.05,"psfc":94641,"wind":8.2},{"t":200,"lat":20.56,"lon":116.75,"psfc":94642,"wind":4.4},{"t":201,"lat":20.74,"lon":116.55,"psfc":94653,"wind":10.9},{"t":202,"lat":20.74,"lon":116.45,"psfc":94653,"wind":4.5},{"t":203,"lat":20.83,"lon":116.25,"psfc":94704,"wind":8},{"t":204,"lat":20.83,"lon":116.16,"psfc":94742,"wind":8.6},{"t":205,"lat":20.83,"lon":115.96,"psfc":94844,"wind":4.5},{"t":206,"lat":20.92,"lon":115.76,"psfc":94896,"wind":6.8},{"t":207,"lat":21.01,"lon":115.56,"psfc":94972,"wind":8.2},{"t":208,"lat":21.01,"lon":115.36,"psfc":94964,"wind":4.1},{"t":209,"lat":21.1,"lon":115.16,"psfc":94932,"wind":7.4},{"t":210,"lat":21.19,"lon":115.06,"psfc":94915,"wind":10.7},{"t":211,"lat":21.28,"lon":114.86,"psfc":94880,"wind":9.6},{"t":212,"lat":21.28,"lon":114.66,"psfc":94890,"wind":4.4},{"t":213,"lat":21.37,"lon":114.46,"psfc":94919,"wind":8.5},{"t":214,"lat":21.36,"lon":114.16,"psfc":94934,"wind":6.5},{"t":215,"lat":21.36,"lon":114.06,"psfc":94954,"wind":6.8},{"t":216,"lat":21.45,"lon":113.76,"psfc":95010,"wind":10},{"t":217,"lat":21.44,"lon":113.56,"psfc":95044,"wind":9.5},{"t":218,"lat":21.44,"lon":113.36,"psfc":95088,"wind":6.2},{"t":219,"lat":21.34,"lon":113.06,"psfc":95138,"wind":7.9},{"t":220,"lat":21.52,"lon":112.95,"psfc":95173,"wind":9.1},{"t":221,"lat":21.33,"lon":112.76,"psfc":95232,"wind":6.3},{"t":222,"lat":21.42,"lon":112.56,"psfc":95238,"wind":9.3},{"t":223,"lat":21.41,"lon":112.46,"psfc":95197,"wind":7.3},{"t":224,"lat":21.5,"lon":112.26,"psfc":95304,"wind":9.6},{"t":225,"lat":21.5,"lon":112.16,"psfc":95478,"wind":13.3},{"t":226,"lat":21.39,"lon":111.86,"psfc":96248,"wind":30.9},{"t":227,"lat":21.39,"lon":111.66,"psfc":96783,"wind":34.6},{"t":228,"lat":21.37,"lon":111.36,"psfc":97293,"wind":31.9},{"t":229,"lat":21.32,"lon":111.12,"psfc":97821,"wind":30.4},{"t":230,"lat":21.26,"lon":110.87,"psfc":98349,"wind":29},{"t":231,"lat":21.26,"lon":110.77,"psfc":98683,"wind":24},{"t":232,"lat":21.33,"lon":110.16,"psfc":98782,"wind":24.5},{"t":233,"lat":21.39,"lon":109.56,"psfc":98882,"wind":25},{"t":234,"lat":21.766441345214844,"lon":109.74038696289062,"psfc":97397,"wind":7.9},{"t":235,"lat":21.66344451904297,"lon":109.54608154296875,"psfc":97938,"wind":4.4},{"t":236,"lat":21.65296173095703,"lon":109.346435546875,"psfc":97945,"wind":5.3},{"t":237,"lat":21.64763641357422,"lon":109.24658203125,"psfc":98226,"wind":4.1},{"t":238,"lat":21.543968200683594,"lon":109.05288696289062,"psfc":98682,"wind":7.4},{"t":239,"lat":21.538436889648438,"lon":108.95318603515625,"psfc":98935,"wind":6.5},{"t":240,"lat":21.625579833984375,"lon":108.84738159179688,"psfc":99097,"wind":1.7},{"t":241,"lat":21.70690155029297,"lon":108.6416015625,"psfc":99238,"wind":0.5},{"t":242,"lat":21.7938232421875,"lon":108.53546142578125,"psfc":99459,"wind":6.1},{"t":243,"lat":21.86865234375,"lon":108.22921752929688,"psfc":98300,"wind":0.8},{"t":244,"lat":22.035614013671875,"lon":107.91583251953125,"psfc":96279,"wind":2.6},{"t":245,"lat":22.02289581298828,"lon":107.71572875976562,"psfc":98041,"wind":0.4},{"t":246,"lat":22.10260772705078,"lon":107.508544921875,"psfc":97474,"wind":4.5},{"t":247,"lat":22.089324951171875,"lon":107.308349609375,"psfc":97701,"wind":1.4},{"t":248,"lat":22.168472290039062,"lon":107.100830078125,"psfc":97747,"wind":3.4},{"t":249,"lat":22.06884002685547,"lon":107.0081787109375,"psfc":97946,"wind":3.8}]
+                track: [{"t":135,"lat":17.44,"lon":127.99,"psfc":96944,"wind":49.8},{"t":136,"lat":17.54,"lon":127.9,"psfc":96735,"wind":42.5},{"t":137,"lat":17.73,"lon":127.82,"psfc":96690,"wind":43.4},{"t":138,"lat":17.84,"lon":127.63,"psfc":96608,"wind":45.0},{"t":139,"lat":17.85,"lon":127.54,"psfc":96589,"wind":44.5},{"t":140,"lat":17.95,"lon":127.35,"psfc":96515,"wind":42.6},{"t":141,"lat":17.96,"lon":127.25,"psfc":96511,"wind":42.8},{"t":142,"lat":17.98,"lon":126.96,"psfc":96587,"wind":47.5},{"t":143,"lat":17.89,"lon":126.96,"psfc":96482,"wind":45.9},{"t":144,"lat":18.17,"lon":126.88,"psfc":96388,"wind":47.1},{"t":145,"lat":18.09,"lon":126.68,"psfc":96302,"wind":46.5},{"t":146,"lat":18,"lon":126.67,"psfc":96223,"wind":46.9},{"t":147,"lat":18.19,"lon":126.59,"psfc":96120,"wind":44.8},{"t":148,"lat":18.2,"lon":126.49,"psfc":96054,"wind":45.3},{"t":149,"lat":18.3,"lon":126.31,"psfc":95979,"wind":44.5},{"t":150,"lat":18.32,"lon":126.11,"psfc":95856,"wind":49.5},{"t":151,"lat":18.31,"lon":126.21,"psfc":95736,"wind":49.8},{"t":152,"lat":18.6,"lon":126.03,"psfc":95637,"wind":50.5},{"t":153,"lat":18.51,"lon":125.93,"psfc":95647,"wind":51.7},{"t":154,"lat":18.7,"lon":125.85,"psfc":95645,"wind":49.9},{"t":155,"lat":18.72,"lon":125.55,"psfc":95521,"wind":53.8},{"t":156,"lat":18.73,"lon":125.46,"psfc":95381,"wind":51.7},{"t":157,"lat":18.93,"lon":125.18,"psfc":95199,"wind":53.4},{"t":158,"lat":18.84,"lon":125.07,"psfc":95128,"wind":56.8},{"t":159,"lat":18.96,"lon":124.59,"psfc":95165,"wind":52.6},{"t":160,"lat":19.06,"lon":124.5,"psfc":94890,"wind":55.0},{"t":161,"lat":19.16,"lon":124.31,"psfc":94819,"wind":55.5},{"t":162,"lat":19.09,"lon":123.81,"psfc":94647,"wind":56.6},{"t":163,"lat":19.19,"lon":123.82,"psfc":94268,"wind":53.4},{"t":164,"lat":19.1,"lon":123.62,"psfc":94310,"wind":58.6},{"t":165,"lat":19.3,"lon":123.43,"psfc":94343,"wind":56.9},{"t":166,"lat":19.21,"lon":123.23,"psfc":94342,"wind":55.7},{"t":167,"lat":19.23,"lon":122.94,"psfc":94398,"wind":55.3},{"t":168,"lat":19.14,"lon":122.83,"psfc":94480,"wind":60.2},{"t":169,"lat":19.33,"lon":122.55,"psfc":94486,"wind":59.9},{"t":170,"lat":19.34,"lon":122.45,"psfc":94544,"wind":59.3},{"t":171,"lat":19.35,"lon":122.25,"psfc":94588,"wind":59.3},{"t":172,"lat":19.35,"lon":122.06,"psfc":94571,"wind":59.8},{"t":173,"lat":19.46,"lon":121.77,"psfc":94562,"wind":60.1},{"t":174,"lat":19.46,"lon":121.67,"psfc":94529,"wind":58.9},{"t":175,"lat":19.56,"lon":121.38,"psfc":94448,"wind":56.7},{"t":176,"lat":19.47,"lon":121.18,"psfc":94423,"wind":57.2},{"t":177,"lat":19.48,"lon":121.08,"psfc":94458,"wind":54.9},{"t":178,"lat":19.48,"lon":120.98,"psfc":94509,"wind":55.2},{"t":179,"lat":19.49,"lon":120.69,"psfc":94535,"wind":57.4},{"t":180,"lat":19.49,"lon":120.49,"psfc":94611,"wind":53.8},{"t":181,"lat":19.59,"lon":120.3,"psfc":94678,"wind":53.9},{"t":182,"lat":19.59,"lon":120.1,"psfc":94670,"wind":60.7},{"t":183,"lat":19.6,"lon":119.9,"psfc":94755,"wind":58.3},{"t":184,"lat":19.6,"lon":119.61,"psfc":94795,"wind":56.9},{"t":185,"lat":19.65,"lon":119.46,"psfc":94776,"wind":56.7},{"t":186,"lat":19.7,"lon":119.31,"psfc":94757,"wind":57.8},{"t":187,"lat":19.79,"lon":119.32,"psfc":94798,"wind":59.0},{"t":188,"lat":19.89,"lon":119.02,"psfc":94846,"wind":56.6},{"t":189,"lat":19.89,"lon":118.82,"psfc":94892,"wind":55.0},{"t":190,"lat":19.99,"lon":118.63,"psfc":94911,"wind":54.7},{"t":191,"lat":19.9,"lon":118.43,"psfc":94885,"wind":51.0},{"t":192,"lat":19.99,"lon":118.33,"psfc":94873,"wind":52.9},{"t":193,"lat":20.09,"lon":118.14,"psfc":94825,"wind":56.2},{"t":194,"lat":20.18,"lon":118.04,"psfc":94822,"wind":58.9},{"t":195,"lat":20.28,"lon":117.74,"psfc":94848,"wind":56.7},{"t":196,"lat":20.37,"lon":117.54,"psfc":94855,"wind":58.4},{"t":197,"lat":20.46,"lon":117.45,"psfc":94781,"wind":53.2},{"t":198,"lat":20.56,"lon":117.15,"psfc":94719,"wind":57.0},{"t":199,"lat":20.56,"lon":117.05,"psfc":94641,"wind":57.8},{"t":200,"lat":20.56,"lon":116.75,"psfc":94642,"wind":55.5},{"t":201,"lat":20.74,"lon":116.55,"psfc":94653,"wind":59.0},{"t":202,"lat":20.74,"lon":116.45,"psfc":94653,"wind":57.5},{"t":203,"lat":20.83,"lon":116.25,"psfc":94704,"wind":56.1},{"t":204,"lat":20.83,"lon":116.16,"psfc":94742,"wind":56.4},{"t":205,"lat":20.83,"lon":115.96,"psfc":94844,"wind":57.8},{"t":206,"lat":20.92,"lon":115.76,"psfc":94896,"wind":59.1},{"t":207,"lat":21.01,"lon":115.56,"psfc":94972,"wind":57.5},{"t":208,"lat":21.01,"lon":115.36,"psfc":94964,"wind":54.4},{"t":209,"lat":21.1,"lon":115.16,"psfc":94932,"wind":52.4},{"t":210,"lat":21.19,"lon":115.06,"psfc":94915,"wind":51.6},{"t":211,"lat":21.28,"lon":114.86,"psfc":94880,"wind":52.4},{"t":212,"lat":21.28,"lon":114.66,"psfc":94890,"wind":53.7},{"t":213,"lat":21.37,"lon":114.46,"psfc":94919,"wind":55.2},{"t":214,"lat":21.36,"lon":114.16,"psfc":94934,"wind":53.1},{"t":215,"lat":21.36,"lon":114.06,"psfc":94954,"wind":51.6},{"t":216,"lat":21.45,"lon":113.76,"psfc":95010,"wind":57.3},{"t":217,"lat":21.44,"lon":113.56,"psfc":95044,"wind":54.7},{"t":218,"lat":21.44,"lon":113.36,"psfc":95088,"wind":51.0},{"t":219,"lat":21.34,"lon":113.06,"psfc":95138,"wind":50.7},{"t":220,"lat":21.52,"lon":112.95,"psfc":95173,"wind":51.8},{"t":221,"lat":21.33,"lon":112.76,"psfc":95232,"wind":47.5},{"t":222,"lat":21.42,"lon":112.56,"psfc":95238,"wind":47.1},{"t":223,"lat":21.41,"lon":112.46,"psfc":95197,"wind":48.4},{"t":224,"lat":21.5,"lon":112.26,"psfc":95304,"wind":44.9},{"t":225,"lat":21.5,"lon":112.16,"psfc":95478,"wind":42.5},{"t":226,"lat":21.39,"lon":111.86,"psfc":96248,"wind":39.5},{"t":227,"lat":21.39,"lon":111.66,"psfc":96783,"wind":35.0},{"t":228,"lat":21.37,"lon":111.36,"psfc":97293,"wind":35.3},{"t":229,"lat":21.32,"lon":111.12,"psfc":97821,"wind":32.4},{"t":230,"lat":21.26,"lon":110.87,"psfc":98349,"wind":29.8},{"t":231,"lat":21.26,"lon":110.77,"psfc":98683,"wind":25.5},{"t":232,"lat":21.33,"lon":110.16,"psfc":98782,"wind":25.4},{"t":233,"lat":21.39,"lon":109.56,"psfc":98882,"wind":28.1},{"t":234,"lat":21.766441345214844,"lon":109.74038696289062,"psfc":97397,"wind":27.2},{"t":235,"lat":21.66344451904297,"lon":109.54608154296875,"psfc":97938,"wind":22.5},{"t":236,"lat":21.65296173095703,"lon":109.346435546875,"psfc":97945,"wind":27.0},{"t":237,"lat":21.64763641357422,"lon":109.24658203125,"psfc":98226,"wind":22.4},{"t":238,"lat":21.543968200683594,"lon":109.05288696289062,"psfc":98682,"wind":22.2},{"t":239,"lat":21.538436889648438,"lon":108.95318603515625,"psfc":98935,"wind":21.6},{"t":240,"lat":21.625579833984375,"lon":108.84738159179688,"psfc":99097,"wind":17.5},{"t":241,"lat":21.70690155029297,"lon":108.6416015625,"psfc":99238,"wind":13.9},{"t":242,"lat":21.7938232421875,"lon":108.53546142578125,"psfc":99459,"wind":12.9},{"t":243,"lat":21.86865234375,"lon":108.22921752929688,"psfc":98300,"wind":11.1},{"t":244,"lat":22.035614013671875,"lon":107.91583251953125,"psfc":96279,"wind":10.9},{"t":245,"lat":22.02289581298828,"lon":107.71572875976562,"psfc":98041,"wind":10.8},{"t":246,"lat":22.10260772705078,"lon":107.508544921875,"psfc":97474,"wind":9.7},{"t":247,"lat":22.089324951171875,"lon":107.308349609375,"psfc":97701,"wind":9.3},{"t":248,"lat":22.168472290039062,"lon":107.100830078125,"psfc":97747,"wind":9.4},{"t":249,"lat":22.06884002685547,"lon":107.0081787109375,"psfc":97946,"wind":8.9}]
             },
             '山竹': {
                 start: new Date('2018-09-06T00:00:00Z'),
@@ -5286,7 +5497,7 @@ window.__I18N_DICT = {
                 ],
                 windDir: '山竹/',
                 windDirCorrected: '山竹_corr/',
-                track: [{"t":170,"lat":14.86,"lon":130.05,"psfc":97404,"wind":36.0},{"t":171,"lat":14.86,"lon":130.05,"psfc":96557,"wind":36.7},{"t":172,"lat":14.86,"lon":130.05,"psfc":95406,"wind":26.2},{"t":173,"lat":14.77,"lon":130.05,"psfc":94897,"wind":1.8},{"t":174,"lat":14.79,"lon":129.86,"psfc":94789,"wind":2.7},{"t":175,"lat":14.9,"lon":129.68,"psfc":94733,"wind":9.4},{"t":176,"lat":14.91,"lon":129.49,"psfc":94721,"wind":4.7},{"t":177,"lat":15.02,"lon":129.31,"psfc":94780,"wind":10.8},{"t":178,"lat":15.04,"lon":129.12,"psfc":94833,"wind":7.3},{"t":179,"lat":15.06,"lon":128.84,"psfc":94857,"wind":6.1},{"t":180,"lat":15.09,"lon":128.55,"psfc":94900,"wind":9.0},{"t":181,"lat":15.0,"lon":128.45,"psfc":94947,"wind":6.0},{"t":182,"lat":15.01,"lon":128.35,"psfc":94954,"wind":4.1},{"t":183,"lat":15.12,"lon":128.17,"psfc":95034,"wind":6.3},{"t":184,"lat":15.22,"lon":127.99,"psfc":95112,"wind":5.8},{"t":185,"lat":15.34,"lon":127.71,"psfc":95080,"wind":7.3},{"t":186,"lat":15.35,"lon":127.53,"psfc":95056,"wind":3.7},{"t":187,"lat":15.46,"lon":127.34,"psfc":95162,"wind":7.8},{"t":188,"lat":15.56,"lon":127.16,"psfc":95163,"wind":8.4},{"t":189,"lat":15.67,"lon":126.98,"psfc":95212,"wind":8.6},{"t":190,"lat":15.59,"lon":126.78,"psfc":95287,"wind":3.6},{"t":191,"lat":15.7,"lon":126.6,"psfc":95266,"wind":2.5},{"t":192,"lat":15.8,"lon":126.41,"psfc":95305,"wind":4.1},{"t":193,"lat":15.79,"lon":126.51,"psfc":95144,"wind":11.5},{"t":194,"lat":16.18,"lon":126.25,"psfc":94855,"wind":9.9},{"t":195,"lat":16.11,"lon":125.96,"psfc":94858,"wind":5.3},{"t":196,"lat":16.38,"lon":125.97,"psfc":94814,"wind":10.4},{"t":197,"lat":16.6,"lon":125.51,"psfc":94766,"wind":6.2},{"t":198,"lat":16.51,"lon":125.41,"psfc":94722,"wind":4.7},{"t":199,"lat":16.89,"lon":125.24,"psfc":94644,"wind":10.9},{"t":200,"lat":16.82,"lon":124.85,"psfc":94599,"wind":4.3},{"t":201,"lat":17.0,"lon":124.86,"psfc":94594,"wind":6.3},{"t":202,"lat":17.3,"lon":124.49,"psfc":94603,"wind":9.1},{"t":203,"lat":17.32,"lon":124.2,"psfc":94618,"wind":8.6},{"t":204,"lat":17.41,"lon":124.11,"psfc":94392,"wind":15.1},{"t":205,"lat":17.62,"lon":123.64,"psfc":94353,"wind":11.1},{"t":206,"lat":17.54,"lon":123.34,"psfc":94375,"wind":6.2},{"t":207,"lat":17.74,"lon":123.16,"psfc":94503,"wind":13.7},{"t":208,"lat":17.76,"lon":122.67,"psfc":94480,"wind":7.7},{"t":209,"lat":17.66,"lon":122.67,"psfc":94635,"wind":8.1},{"t":210,"lat":17.86,"lon":122.39,"psfc":94841,"wind":10.4},{"t":211,"lat":17.77,"lon":122.29,"psfc":95090,"wind":21.1},{"t":212,"lat":18.34,"lon":121.92,"psfc":95371,"wind":32.1},{"t":213,"lat":18.44,"lon":121.63,"psfc":95519,"wind":35.9},{"t":214,"lat":18.44,"lon":121.63,"psfc":96120,"wind":29.4},{"t":215,"lat":18.2,"lon":120.45,"psfc":96315,"wind":28.1},{"t":216,"lat":18.2,"lon":120.45,"psfc":95834,"wind":24.8},{"t":217,"lat":18.2,"lon":120.45,"psfc":95542,"wind":8.0},{"t":218,"lat":18.2,"lon":120.36,"psfc":95605,"wind":5.0},{"t":219,"lat":18.3,"lon":120.16,"psfc":95629,"wind":5.1},{"t":220,"lat":18.3,"lon":120.07,"psfc":95661,"wind":5.7},{"t":221,"lat":18.48,"lon":120.07,"psfc":95653,"wind":7.5},{"t":222,"lat":18.77,"lon":119.88,"psfc":95655,"wind":11.0},{"t":223,"lat":19.05,"lon":119.3,"psfc":95611,"wind":11.7},{"t":224,"lat":18.87,"lon":119.2,"psfc":95521,"wind":2.6},{"t":225,"lat":19.15,"lon":119.11,"psfc":95561,"wind":10.6},{"t":226,"lat":19.34,"lon":118.82,"psfc":95575,"wind":11.3},{"t":227,"lat":19.43,"lon":118.52,"psfc":95616,"wind":11.0},{"t":228,"lat":19.44,"lon":118.23,"psfc":95642,"wind":6.7},{"t":229,"lat":19.53,"lon":117.93,"psfc":95656,"wind":10.5},{"t":230,"lat":19.53,"lon":117.74,"psfc":95652,"wind":8.4},{"t":231,"lat":19.72,"lon":117.44,"psfc":95625,"wind":9.4},{"t":232,"lat":19.72,"lon":117.15,"psfc":95614,"wind":7.5},{"t":233,"lat":19.72,"lon":117.05,"psfc":95578,"wind":6.9},{"t":234,"lat":19.91,"lon":116.95,"psfc":95492,"wind":10.0},{"t":235,"lat":20.18,"lon":116.65,"psfc":95464,"wind":10.3},{"t":236,"lat":20.37,"lon":116.36,"psfc":95515,"wind":10.1},{"t":237,"lat":20.46,"lon":115.96,"psfc":95530,"wind":9.1},{"t":238,"lat":20.46,"lon":115.76,"psfc":95556,"wind":6.6},{"t":239,"lat":20.64,"lon":115.56,"psfc":95589,"wind":5.4},{"t":240,"lat":20.82,"lon":115.26,"psfc":95667,"wind":9.1},{"t":241,"lat":21.1,"lon":114.96,"psfc":95711,"wind":6.7},{"t":242,"lat":21.18,"lon":114.56,"psfc":95807,"wind":10.6},{"t":243,"lat":20.91,"lon":114.56,"psfc":95816,"wind":5.7},{"t":244,"lat":21.55,"lon":114.35,"psfc":95867,"wind":16.0},{"t":245,"lat":21.72,"lon":113.65,"psfc":95926,"wind":12.4},{"t":246,"lat":21.44,"lon":113.26,"psfc":95913,"wind":6.2},{"t":247,"lat":21.44,"lon":113.36,"psfc":95952,"wind":7.1},{"t":248,"lat":21.61,"lon":112.95,"psfc":96080,"wind":10.6},{"t":249,"lat":21.71,"lon":112.95,"psfc":96180,"wind":18.5},{"t":250,"lat":21.6,"lon":112.35,"psfc":96580,"wind":12.0},{"t":251,"lat":21.59,"lon":112.25,"psfc":96942,"wind":26.0},{"t":252,"lat":21.39,"lon":111.76,"psfc":97507,"wind":27.7},{"t":253,"lat":21.38,"lon":111.46,"psfc":97645,"wind":28.5},{"t":254,"lat":21.37,"lon":111.36,"psfc":98060,"wind":27.9},{"t":255,"lat":21.26,"lon":110.87,"psfc":98548,"wind":22.6}]
+                track: [{"t":170,"lat":14.86,"lon":130.05,"psfc":97404,"wind":36.2},{"t":171,"lat":14.86,"lon":130.05,"psfc":96557,"wind":41.1},{"t":172,"lat":14.86,"lon":130.05,"psfc":95406,"wind":45.4},{"t":173,"lat":14.77,"lon":130.05,"psfc":94897,"wind":44.5},{"t":174,"lat":14.79,"lon":129.86,"psfc":94789,"wind":45.1},{"t":175,"lat":14.9,"lon":129.68,"psfc":94733,"wind":45.1},{"t":176,"lat":14.91,"lon":129.49,"psfc":94721,"wind":45.6},{"t":177,"lat":15.02,"lon":129.31,"psfc":94780,"wind":46.3},{"t":178,"lat":15.04,"lon":129.12,"psfc":94833,"wind":48.7},{"t":179,"lat":15.06,"lon":128.84,"psfc":94857,"wind":52.1},{"t":180,"lat":15.09,"lon":128.55,"psfc":94900,"wind":49.5},{"t":181,"lat":15.0,"lon":128.45,"psfc":94947,"wind":51.1},{"t":182,"lat":15.01,"lon":128.35,"psfc":94954,"wind":49.6},{"t":183,"lat":15.12,"lon":128.17,"psfc":95034,"wind":49.5},{"t":184,"lat":15.22,"lon":127.99,"psfc":95112,"wind":51.5},{"t":185,"lat":15.34,"lon":127.71,"psfc":95080,"wind":52.8},{"t":186,"lat":15.35,"lon":127.53,"psfc":95056,"wind":49.7},{"t":187,"lat":15.46,"lon":127.34,"psfc":95162,"wind":47.6},{"t":188,"lat":15.56,"lon":127.16,"psfc":95163,"wind":47.2},{"t":189,"lat":15.67,"lon":126.98,"psfc":95212,"wind":46.1},{"t":190,"lat":15.59,"lon":126.78,"psfc":95287,"wind":44.4},{"t":191,"lat":15.7,"lon":126.6,"psfc":95266,"wind":46.2},{"t":192,"lat":15.8,"lon":126.41,"psfc":95305,"wind":45.8},{"t":193,"lat":15.79,"lon":126.51,"psfc":95144,"wind":51.6},{"t":194,"lat":16.18,"lon":126.25,"psfc":94855,"wind":49.2},{"t":195,"lat":16.11,"lon":125.96,"psfc":94858,"wind":49.7},{"t":196,"lat":16.38,"lon":125.97,"psfc":94814,"wind":48.7},{"t":197,"lat":16.6,"lon":125.51,"psfc":94766,"wind":48.4},{"t":198,"lat":16.51,"lon":125.41,"psfc":94722,"wind":45.4},{"t":199,"lat":16.89,"lon":125.24,"psfc":94644,"wind":46.9},{"t":200,"lat":16.82,"lon":124.85,"psfc":94599,"wind":44.8},{"t":201,"lat":17.0,"lon":124.86,"psfc":94594,"wind":46.4},{"t":202,"lat":17.3,"lon":124.49,"psfc":94603,"wind":48.8},{"t":203,"lat":17.32,"lon":124.2,"psfc":94618,"wind":49.5},{"t":204,"lat":17.41,"lon":124.11,"psfc":94392,"wind":50.9},{"t":205,"lat":17.62,"lon":123.64,"psfc":94353,"wind":49.5},{"t":206,"lat":17.54,"lon":123.34,"psfc":94375,"wind":50.1},{"t":207,"lat":17.74,"lon":123.16,"psfc":94503,"wind":50.0},{"t":208,"lat":17.76,"lon":122.67,"psfc":94480,"wind":51.5},{"t":209,"lat":17.66,"lon":122.67,"psfc":94635,"wind":47.2},{"t":210,"lat":17.86,"lon":122.39,"psfc":94841,"wind":48.6},{"t":211,"lat":17.77,"lon":122.29,"psfc":95090,"wind":46.1},{"t":212,"lat":18.34,"lon":121.92,"psfc":95371,"wind":46.2},{"t":213,"lat":18.44,"lon":121.63,"psfc":95519,"wind":42.3},{"t":214,"lat":18.44,"lon":121.63,"psfc":96120,"wind":42.8},{"t":215,"lat":18.2,"lon":120.45,"psfc":96315,"wind":38.8},{"t":216,"lat":18.2,"lon":120.45,"psfc":95834,"wind":38.8},{"t":217,"lat":18.2,"lon":120.45,"psfc":95542,"wind":37.5},{"t":218,"lat":18.2,"lon":120.36,"psfc":95605,"wind":37.0},{"t":219,"lat":18.3,"lon":120.16,"psfc":95629,"wind":36.2},{"t":220,"lat":18.3,"lon":120.07,"psfc":95661,"wind":38.8},{"t":221,"lat":18.48,"lon":120.07,"psfc":95653,"wind":40.0},{"t":222,"lat":18.77,"lon":119.88,"psfc":95655,"wind":43.2},{"t":223,"lat":19.05,"lon":119.3,"psfc":95611,"wind":42.6},{"t":224,"lat":18.87,"lon":119.2,"psfc":95521,"wind":39.0},{"t":225,"lat":19.15,"lon":119.11,"psfc":95561,"wind":43.2},{"t":226,"lat":19.34,"lon":118.82,"psfc":95575,"wind":42.1},{"t":227,"lat":19.43,"lon":118.52,"psfc":95616,"wind":40.1},{"t":228,"lat":19.44,"lon":118.23,"psfc":95642,"wind":44.9},{"t":229,"lat":19.53,"lon":117.93,"psfc":95656,"wind":44.0},{"t":230,"lat":19.53,"lon":117.74,"psfc":95652,"wind":41.3},{"t":231,"lat":19.72,"lon":117.44,"psfc":95625,"wind":40.8},{"t":232,"lat":19.72,"lon":117.15,"psfc":95614,"wind":39.9},{"t":233,"lat":19.72,"lon":117.05,"psfc":95578,"wind":43.0},{"t":234,"lat":19.91,"lon":116.95,"psfc":95492,"wind":47.2},{"t":235,"lat":20.18,"lon":116.65,"psfc":95464,"wind":46.7},{"t":236,"lat":20.37,"lon":116.36,"psfc":95515,"wind":43.0},{"t":237,"lat":20.46,"lon":115.96,"psfc":95530,"wind":42.6},{"t":238,"lat":20.46,"lon":115.76,"psfc":95556,"wind":44.6},{"t":239,"lat":20.64,"lon":115.56,"psfc":95589,"wind":47.1},{"t":240,"lat":20.82,"lon":115.26,"psfc":95667,"wind":47.8},{"t":241,"lat":21.1,"lon":114.96,"psfc":95711,"wind":47.7},{"t":242,"lat":21.18,"lon":114.56,"psfc":95807,"wind":45.0},{"t":243,"lat":20.91,"lon":114.56,"psfc":95816,"wind":46.0},{"t":244,"lat":21.55,"lon":114.35,"psfc":95867,"wind":45.8},{"t":245,"lat":21.72,"lon":113.65,"psfc":95926,"wind":40.9},{"t":246,"lat":21.44,"lon":113.26,"psfc":95913,"wind":41.5},{"t":247,"lat":21.44,"lon":113.36,"psfc":95952,"wind":42.9},{"t":248,"lat":21.61,"lon":112.95,"psfc":96080,"wind":39.8},{"t":249,"lat":21.71,"lon":112.95,"psfc":96180,"wind":37.8},{"t":250,"lat":21.6,"lon":112.35,"psfc":96580,"wind":32.4},{"t":251,"lat":21.59,"lon":112.25,"psfc":96942,"wind":31.1},{"t":252,"lat":21.39,"lon":111.76,"psfc":97507,"wind":32.0},{"t":253,"lat":21.38,"lon":111.46,"psfc":97645,"wind":29.6},{"t":254,"lat":21.37,"lon":111.36,"psfc":98060,"wind":30.2},{"t":255,"lat":21.26,"lon":110.87,"psfc":98548,"wind":25.3}]
             },
             '杜苏芮': {
                 start: new Date('2023-07-18T00:00:00Z'),
@@ -5299,11 +5510,15 @@ window.__I18N_DICT = {
                 ],
                 windDir: '杜苏芮/',
                 windDirCorrected: '杜苏芮_corr/',
-                track: [{"t":110,"lat":14.18,"lon":129.51,"psfc":99991,"wind":2.7},{"t":111,"lat":14.27,"lon":129.52,"psfc":99924,"wind":1.2},{"t":112,"lat":14.47,"lon":129.35,"psfc":99835,"wind":1.5},{"t":113,"lat":14.02,"lon":129.21,"psfc":99680,"wind":7.7},{"t":114,"lat":14.19,"lon":129.32,"psfc":99513,"wind":9.8},{"t":115,"lat":14.47,"lon":129.26,"psfc":99366,"wind":11.6},{"t":116,"lat":14.68,"lon":128.99,"psfc":99245,"wind":9.8},{"t":117,"lat":14.61,"lon":128.79,"psfc":99195,"wind":7.5},{"t":118,"lat":14.44,"lon":128.59,"psfc":99181,"wind":6.7},{"t":119,"lat":14.34,"lon":128.67,"psfc":99201,"wind":2.9},{"t":120,"lat":14.33,"lon":128.86,"psfc":99164,"wind":4.0},{"t":121,"lat":14.31,"lon":129.05,"psfc":99113,"wind":13.8},{"t":122,"lat":14.69,"lon":128.9,"psfc":98893,"wind":7.2},{"t":123,"lat":14.81,"lon":128.62,"psfc":98822,"wind":6.6},{"t":124,"lat":14.83,"lon":128.34,"psfc":98784,"wind":9.4},{"t":125,"lat":14.75,"lon":128.24,"psfc":98675,"wind":3.0},{"t":126,"lat":14.56,"lon":128.31,"psfc":98562,"wind":2.7},{"t":127,"lat":15.08,"lon":128.65,"psfc":98328,"wind":8.7},{"t":128,"lat":15.29,"lon":128.28,"psfc":98152,"wind":10.9},{"t":129,"lat":15.06,"lon":127.79,"psfc":98083,"wind":9.1},{"t":130,"lat":14.76,"lon":128.05,"psfc":97898,"wind":3.5},{"t":131,"lat":14.94,"lon":128.16,"psfc":97746,"wind":10.7},{"t":132,"lat":15.32,"lon":127.9,"psfc":97644,"wind":11.3},{"t":133,"lat":15.27,"lon":127.42,"psfc":97515,"wind":9.6},{"t":134,"lat":15.18,"lon":127.42,"psfc":97552,"wind":7.3},{"t":135,"lat":15.37,"lon":127.34,"psfc":97371,"wind":8.9},{"t":136,"lat":15.3,"lon":126.95,"psfc":97143,"wind":6.8},{"t":137,"lat":15.11,"lon":127.03,"psfc":96897,"wind":4.9},{"t":138,"lat":15.3,"lon":126.95,"psfc":96785,"wind":3.9},{"t":139,"lat":15.32,"lon":126.76,"psfc":96709,"wind":7.2},{"t":140,"lat":15.23,"lon":126.75,"psfc":96604,"wind":5.1},{"t":141,"lat":15.33,"lon":126.57,"psfc":96549,"wind":3.1},{"t":142,"lat":15.25,"lon":126.37,"psfc":96564,"wind":6.9},{"t":143,"lat":15.24,"lon":126.56,"psfc":96649,"wind":6.8},{"t":144,"lat":15.26,"lon":126.28,"psfc":96531,"wind":3.4},{"t":145,"lat":15.08,"lon":126.17,"psfc":96436,"wind":11.2},{"t":146,"lat":15.44,"lon":126.29,"psfc":96037,"wind":3.9},{"t":147,"lat":15.45,"lon":126.1,"psfc":96092,"wind":7.7},{"t":148,"lat":15.45,"lon":126.2,"psfc":95973,"wind":4.5},{"t":149,"lat":15.64,"lon":126.02,"psfc":95900,"wind":5.8},{"t":150,"lat":15.64,"lon":126.02,"psfc":95842,"wind":3.3},{"t":151,"lat":15.83,"lon":125.94,"psfc":95726,"wind":5.3},{"t":152,"lat":15.64,"lon":126.02,"psfc":95529,"wind":7.8},{"t":153,"lat":16.02,"lon":125.95,"psfc":95309,"wind":9.5},{"t":154,"lat":15.84,"lon":125.84,"psfc":95313,"wind":5.4},{"t":155,"lat":16.11,"lon":125.96,"psfc":95202,"wind":4.5},{"t":156,"lat":16.22,"lon":125.68,"psfc":95122,"wind":5.0},{"t":157,"lat":16.3,"lon":125.78,"psfc":95141,"wind":9.9},{"t":158,"lat":16.5,"lon":125.6,"psfc":95173,"wind":5.8},{"t":159,"lat":16.5,"lon":125.5,"psfc":95280,"wind":3.9},{"t":160,"lat":16.88,"lon":125.33,"psfc":95181,"wind":7.9},{"t":161,"lat":16.88,"lon":125.33,"psfc":95141,"wind":8.8},{"t":162,"lat":17.1,"lon":124.87,"psfc":95065,"wind":8.8},{"t":163,"lat":17.08,"lon":125.06,"psfc":94968,"wind":5.0},{"t":164,"lat":17.29,"lon":124.78,"psfc":94981,"wind":1.6},{"t":165,"lat":17.46,"lon":124.89,"psfc":95053,"wind":8.9},{"t":166,"lat":17.48,"lon":124.6,"psfc":95045,"wind":5.7},{"t":167,"lat":17.66,"lon":124.71,"psfc":95146,"wind":10.4},{"t":168,"lat":17.68,"lon":124.32,"psfc":95162,"wind":2.0},{"t":169,"lat":18.14,"lon":124.35,"psfc":95148,"wind":18.8},{"t":170,"lat":17.89,"lon":123.85,"psfc":94914,"wind":10.9},{"t":171,"lat":18.16,"lon":123.96,"psfc":94779,"wind":11.4},{"t":172,"lat":18.08,"lon":123.66,"psfc":94791,"wind":2.0},{"t":173,"lat":18.28,"lon":123.48,"psfc":94740,"wind":10.4},{"t":174,"lat":18.36,"lon":123.58,"psfc":94653,"wind":7.2},{"t":175,"lat":18.46,"lon":123.49,"psfc":94674,"wind":9.0},{"t":176,"lat":18.47,"lon":123.19,"psfc":94636,"wind":1.4},{"t":177,"lat":18.66,"lon":123.1,"psfc":94530,"wind":6.6},{"t":178,"lat":18.58,"lon":122.91,"psfc":94531,"wind":0.6},{"t":179,"lat":18.86,"lon":122.82,"psfc":94575,"wind":9.7},{"t":180,"lat":18.78,"lon":122.52,"psfc":94558,"wind":2.7},{"t":181,"lat":18.88,"lon":122.33,"psfc":94608,"wind":7.2},{"t":182,"lat":18.89,"lon":122.14,"psfc":94616,"wind":4.7},{"t":183,"lat":18.89,"lon":122.14,"psfc":94748,"wind":12.3},{"t":184,"lat":18.99,"lon":121.75,"psfc":94767,"wind":15.2},{"t":185,"lat":18.81,"lon":121.64,"psfc":94791,"wind":7.1},{"t":186,"lat":18.9,"lon":121.65,"psfc":94804,"wind":3.2},{"t":187,"lat":18.9,"lon":121.65,"psfc":94821,"wind":5.9},{"t":188,"lat":19.09,"lon":121.46,"psfc":94952,"wind":19.0},{"t":189,"lat":18.92,"lon":121.16,"psfc":95065,"wind":24.4},{"t":190,"lat":18.73,"lon":121.25,"psfc":95174,"wind":12.4},{"t":191,"lat":18.92,"lon":121.16,"psfc":95322,"wind":13.5},{"t":192,"lat":18.92,"lon":121.16,"psfc":95425,"wind":15.6},{"t":193,"lat":18.92,"lon":121.16,"psfc":95412,"wind":8.9},{"t":194,"lat":18.92,"lon":121.16,"psfc":95288,"wind":6.2},{"t":195,"lat":18.92,"lon":121.16,"psfc":95622,"wind":15.3},{"t":196,"lat":19.29,"lon":121.17,"psfc":95339,"wind":7.1},{"t":197,"lat":19.3,"lon":120.88,"psfc":95417,"wind":9.4},{"t":198,"lat":19.2,"lon":120.87,"psfc":95409,"wind":4.6},{"t":199,"lat":19.2,"lon":120.97,"psfc":95381,"wind":3.2},{"t":200,"lat":19.29,"lon":121.07,"psfc":95383,"wind":2.6},{"t":201,"lat":19.48,"lon":121.08,"psfc":95339,"wind":3.5},{"t":202,"lat":19.57,"lon":121.08,"psfc":95471,"wind":2.1},{"t":203,"lat":19.67,"lon":120.99,"psfc":95633,"wind":5.0},{"t":204,"lat":19.95,"lon":120.9,"psfc":95762,"wind":7.9},{"t":205,"lat":20.04,"lon":120.7,"psfc":95856,"wind":8.3},{"t":206,"lat":20.14,"lon":120.61,"psfc":95869,"wind":8.2},{"t":207,"lat":20.14,"lon":120.41,"psfc":95899,"wind":7.6},{"t":208,"lat":20.15,"lon":120.31,"psfc":95908,"wind":5.8},{"t":209,"lat":20.15,"lon":120.31,"psfc":95820,"wind":4.2},{"t":210,"lat":20.33,"lon":120.31,"psfc":95750,"wind":9.0},{"t":211,"lat":20.43,"lon":120.22,"psfc":95732,"wind":5.0},{"t":212,"lat":20.52,"lon":120.12,"psfc":95698,"wind":6.1},{"t":213,"lat":20.62,"lon":120.02,"psfc":95708,"wind":3.8},{"t":214,"lat":20.71,"lon":119.93,"psfc":95732,"wind":7.8},{"t":215,"lat":20.71,"lon":119.83,"psfc":95764,"wind":4.0},{"t":216,"lat":20.71,"lon":119.93,"psfc":95650,"wind":7.1},{"t":217,"lat":20.81,"lon":119.73,"psfc":95487,"wind":0.8},{"t":218,"lat":20.99,"lon":119.74,"psfc":95401,"wind":4.6},{"t":219,"lat":21.0,"lon":119.54,"psfc":95424,"wind":5.4},{"t":220,"lat":21.09,"lon":119.64,"psfc":95320,"wind":8.9},{"t":221,"lat":21.28,"lon":119.44,"psfc":95100,"wind":5.3},{"t":222,"lat":21.37,"lon":119.54,"psfc":94994,"wind":8.2},{"t":223,"lat":21.37,"lon":119.44,"psfc":94829,"wind":1.3},{"t":224,"lat":21.56,"lon":119.45,"psfc":94733,"wind":3.0},{"t":225,"lat":21.65,"lon":119.45,"psfc":94741,"wind":2.6},{"t":226,"lat":21.84,"lon":119.45,"psfc":94727,"wind":7.3},{"t":227,"lat":21.93,"lon":119.36,"psfc":94768,"wind":4.1},{"t":228,"lat":22.02,"lon":119.36,"psfc":94776,"wind":6.0},{"t":229,"lat":22.3,"lon":119.16,"psfc":94735,"wind":10.7},{"t":230,"lat":22.4,"lon":119.16,"psfc":94679,"wind":5.5},{"t":231,"lat":22.49,"lon":119.06,"psfc":94624,"wind":2.0},{"t":232,"lat":22.68,"lon":119.07,"psfc":94524,"wind":7.2},{"t":233,"lat":22.86,"lon":119.07,"psfc":94485,"wind":11.7},{"t":234,"lat":23.05,"lon":119.07,"psfc":94261,"wind":8.8},{"t":235,"lat":23.33,"lon":119.08,"psfc":94491,"wind":12.7},{"t":236,"lat":23.52,"lon":119.08,"psfc":94828,"wind":13.3},{"t":237,"lat":23.7,"lon":118.98,"psfc":95389,"wind":13.2},{"t":238,"lat":23.98,"lon":118.99,"psfc":95271,"wind":14.4},{"t":239,"lat":24.17,"lon":118.89,"psfc":95519,"wind":3.0},{"t":240,"lat":24.26,"lon":118.89,"psfc":96083,"wind":18.2},{"t":241,"lat":24.54,"lon":118.79,"psfc":96183,"wind":2.3},{"t":242,"lat":24.73,"lon":118.9,"psfc":96971,"wind":24.5},{"t":243,"lat":24.73,"lon":118.9,"psfc":98086,"wind":35.3},{"t":244,"lat":24.91,"lon":119.1,"psfc":98864,"wind":28.5},{"t":245,"lat":24.91,"lon":119.1,"psfc":99117,"wind":22.9}]
+                track: [{"t":110,"lat":14.18,"lon":129.51,"psfc":99991,"wind":19.6},{"t":111,"lat":14.27,"lon":129.52,"psfc":99924,"wind":22.3},{"t":112,"lat":14.47,"lon":129.35,"psfc":99835,"wind":21.6},{"t":113,"lat":14.02,"lon":129.21,"psfc":99680,"wind":22.6},{"t":114,"lat":14.19,"lon":129.32,"psfc":99513,"wind":26.3},{"t":115,"lat":14.47,"lon":129.26,"psfc":99366,"wind":26.1},{"t":116,"lat":14.68,"lon":128.99,"psfc":99245,"wind":25.7},{"t":117,"lat":14.61,"lon":128.79,"psfc":99195,"wind":25.2},{"t":118,"lat":14.44,"lon":128.59,"psfc":99181,"wind":24.4},{"t":119,"lat":14.34,"lon":128.67,"psfc":99201,"wind":25.3},{"t":120,"lat":14.33,"lon":128.86,"psfc":99164,"wind":26.6},{"t":121,"lat":14.31,"lon":129.05,"psfc":99113,"wind":26.4},{"t":122,"lat":14.69,"lon":128.9,"psfc":98893,"wind":26.1},{"t":123,"lat":14.81,"lon":128.62,"psfc":98822,"wind":27.0},{"t":124,"lat":14.83,"lon":128.34,"psfc":98784,"wind":26.9},{"t":125,"lat":14.75,"lon":128.24,"psfc":98675,"wind":29.4},{"t":126,"lat":14.56,"lon":128.31,"psfc":98562,"wind":31.5},{"t":127,"lat":15.08,"lon":128.65,"psfc":98328,"wind":33.9},{"t":128,"lat":15.29,"lon":128.28,"psfc":98152,"wind":33.2},{"t":129,"lat":15.06,"lon":127.79,"psfc":98083,"wind":33.5},{"t":130,"lat":14.76,"lon":128.05,"psfc":97898,"wind":30.4},{"t":131,"lat":14.94,"lon":128.16,"psfc":97746,"wind":31.3},{"t":132,"lat":15.32,"lon":127.9,"psfc":97644,"wind":34.0},{"t":133,"lat":15.27,"lon":127.42,"psfc":97515,"wind":35.6},{"t":134,"lat":15.18,"lon":127.42,"psfc":97552,"wind":33.7},{"t":135,"lat":15.37,"lon":127.34,"psfc":97371,"wind":38.9},{"t":136,"lat":15.3,"lon":126.95,"psfc":97143,"wind":36.0},{"t":137,"lat":15.11,"lon":127.03,"psfc":96897,"wind":34.5},{"t":138,"lat":15.3,"lon":126.95,"psfc":96785,"wind":36.6},{"t":139,"lat":15.32,"lon":126.76,"psfc":96709,"wind":35.9},{"t":140,"lat":15.23,"lon":126.75,"psfc":96604,"wind":36.2},{"t":141,"lat":15.33,"lon":126.57,"psfc":96549,"wind":37.2},{"t":142,"lat":15.25,"lon":126.37,"psfc":96564,"wind":36.5},{"t":143,"lat":15.24,"lon":126.56,"psfc":96649,"wind":35.6},{"t":144,"lat":15.26,"lon":126.28,"psfc":96531,"wind":39.3},{"t":145,"lat":15.08,"lon":126.17,"psfc":96436,"wind":40.0},{"t":146,"lat":15.44,"lon":126.29,"psfc":96037,"wind":40.0},{"t":147,"lat":15.45,"lon":126.1,"psfc":96092,"wind":38.8},{"t":148,"lat":15.45,"lon":126.2,"psfc":95973,"wind":40.3},{"t":149,"lat":15.64,"lon":126.02,"psfc":95900,"wind":42.9},{"t":150,"lat":15.64,"lon":126.02,"psfc":95842,"wind":42.0},{"t":151,"lat":15.83,"lon":125.94,"psfc":95726,"wind":41.2},{"t":152,"lat":15.64,"lon":126.02,"psfc":95529,"wind":45.1},{"t":153,"lat":16.02,"lon":125.95,"psfc":95309,"wind":47.5},{"t":154,"lat":15.84,"lon":125.84,"psfc":95313,"wind":46.2},{"t":155,"lat":16.11,"lon":125.96,"psfc":95202,"wind":48.8},{"t":156,"lat":16.22,"lon":125.68,"psfc":95122,"wind":47.7},{"t":157,"lat":16.3,"lon":125.78,"psfc":95141,"wind":45.6},{"t":158,"lat":16.5,"lon":125.6,"psfc":95173,"wind":46.1},{"t":159,"lat":16.5,"lon":125.5,"psfc":95280,"wind":46.0},{"t":160,"lat":16.88,"lon":125.33,"psfc":95181,"wind":46.8},{"t":161,"lat":16.88,"lon":125.33,"psfc":95141,"wind":48.0},{"t":162,"lat":17.1,"lon":124.87,"psfc":95065,"wind":48.5},{"t":163,"lat":17.08,"lon":125.06,"psfc":94968,"wind":46.4},{"t":164,"lat":17.29,"lon":124.78,"psfc":94981,"wind":45.2},{"t":165,"lat":17.46,"lon":124.89,"psfc":95053,"wind":47.9},{"t":166,"lat":17.48,"lon":124.6,"psfc":95045,"wind":47.0},{"t":167,"lat":17.66,"lon":124.71,"psfc":95146,"wind":44.0},{"t":168,"lat":17.68,"lon":124.32,"psfc":95162,"wind":45.8},{"t":169,"lat":18.14,"lon":124.35,"psfc":95148,"wind":49.7},{"t":170,"lat":17.89,"lon":123.85,"psfc":94914,"wind":49.9},{"t":171,"lat":18.16,"lon":123.96,"psfc":94779,"wind":46.8},{"t":172,"lat":18.08,"lon":123.66,"psfc":94791,"wind":48.4},{"t":173,"lat":18.28,"lon":123.48,"psfc":94740,"wind":47.2},{"t":174,"lat":18.36,"lon":123.58,"psfc":94653,"wind":47.0},{"t":175,"lat":18.46,"lon":123.49,"psfc":94674,"wind":50.1},{"t":176,"lat":18.47,"lon":123.19,"psfc":94636,"wind":49.6},{"t":177,"lat":18.66,"lon":123.1,"psfc":94530,"wind":49.1},{"t":178,"lat":18.58,"lon":122.91,"psfc":94531,"wind":50.1},{"t":179,"lat":18.86,"lon":122.82,"psfc":94575,"wind":48.4},{"t":180,"lat":18.78,"lon":122.52,"psfc":94558,"wind":51.7},{"t":181,"lat":18.88,"lon":122.33,"psfc":94608,"wind":50.5},{"t":182,"lat":18.89,"lon":122.14,"psfc":94616,"wind":49.2},{"t":183,"lat":18.89,"lon":122.14,"psfc":94748,"wind":50.9},{"t":184,"lat":18.99,"lon":121.75,"psfc":94767,"wind":48.6},{"t":185,"lat":18.81,"lon":121.64,"psfc":94791,"wind":44.3},{"t":186,"lat":18.9,"lon":121.65,"psfc":94804,"wind":47.5},{"t":187,"lat":18.9,"lon":121.65,"psfc":94821,"wind":44.3},{"t":188,"lat":19.09,"lon":121.46,"psfc":94952,"wind":45.4},{"t":189,"lat":18.92,"lon":121.16,"psfc":95065,"wind":43.8},{"t":190,"lat":18.73,"lon":121.25,"psfc":95174,"wind":40.8},{"t":191,"lat":18.92,"lon":121.16,"psfc":95322,"wind":42.6},{"t":192,"lat":18.92,"lon":121.16,"psfc":95425,"wind":43.0},{"t":193,"lat":18.92,"lon":121.16,"psfc":95412,"wind":42.0},{"t":194,"lat":18.92,"lon":121.16,"psfc":95288,"wind":39.7},{"t":195,"lat":18.92,"lon":121.16,"psfc":95622,"wind":45.3},{"t":196,"lat":19.29,"lon":121.17,"psfc":95339,"wind":46.1},{"t":197,"lat":19.3,"lon":120.88,"psfc":95417,"wind":42.1},{"t":198,"lat":19.2,"lon":120.87,"psfc":95409,"wind":40.0},{"t":199,"lat":19.2,"lon":120.97,"psfc":95381,"wind":41.3},{"t":200,"lat":19.29,"lon":121.07,"psfc":95383,"wind":47.7},{"t":201,"lat":19.48,"lon":121.08,"psfc":95339,"wind":45.1},{"t":202,"lat":19.57,"lon":121.08,"psfc":95471,"wind":41.3},{"t":203,"lat":19.67,"lon":120.99,"psfc":95633,"wind":42.5},{"t":204,"lat":19.95,"lon":120.9,"psfc":95762,"wind":42.5},{"t":205,"lat":20.04,"lon":120.7,"psfc":95856,"wind":41.9},{"t":206,"lat":20.14,"lon":120.61,"psfc":95869,"wind":39.6},{"t":207,"lat":20.14,"lon":120.41,"psfc":95899,"wind":39.3},{"t":208,"lat":20.15,"lon":120.31,"psfc":95908,"wind":40.2},{"t":209,"lat":20.15,"lon":120.31,"psfc":95820,"wind":41.7},{"t":210,"lat":20.33,"lon":120.31,"psfc":95750,"wind":43.2},{"t":211,"lat":20.43,"lon":120.22,"psfc":95732,"wind":39.7},{"t":212,"lat":20.52,"lon":120.12,"psfc":95698,"wind":42.6},{"t":213,"lat":20.62,"lon":120.02,"psfc":95708,"wind":43.3},{"t":214,"lat":20.71,"lon":119.93,"psfc":95732,"wind":41.3},{"t":215,"lat":20.71,"lon":119.83,"psfc":95764,"wind":43.7},{"t":216,"lat":20.71,"lon":119.93,"psfc":95650,"wind":43.7},{"t":217,"lat":20.81,"lon":119.73,"psfc":95487,"wind":46.7},{"t":218,"lat":20.99,"lon":119.74,"psfc":95401,"wind":46.1},{"t":219,"lat":21.0,"lon":119.54,"psfc":95424,"wind":44.6},{"t":220,"lat":21.09,"lon":119.64,"psfc":95320,"wind":45.8},{"t":221,"lat":21.28,"lon":119.44,"psfc":95100,"wind":47.6},{"t":222,"lat":21.37,"lon":119.54,"psfc":94994,"wind":48.2},{"t":223,"lat":21.37,"lon":119.44,"psfc":94829,"wind":48.3},{"t":224,"lat":21.56,"lon":119.45,"psfc":94733,"wind":51.4},{"t":225,"lat":21.65,"lon":119.45,"psfc":94741,"wind":49.7},{"t":226,"lat":21.84,"lon":119.45,"psfc":94727,"wind":48.2},{"t":227,"lat":21.93,"lon":119.36,"psfc":94768,"wind":49.2},{"t":228,"lat":22.02,"lon":119.36,"psfc":94776,"wind":50.1},{"t":229,"lat":22.3,"lon":119.16,"psfc":94735,"wind":50.2},{"t":230,"lat":22.4,"lon":119.16,"psfc":94679,"wind":49.5},{"t":231,"lat":22.49,"lon":119.06,"psfc":94624,"wind":47.5},{"t":232,"lat":22.68,"lon":119.07,"psfc":94524,"wind":48.5},{"t":233,"lat":22.86,"lon":119.07,"psfc":94485,"wind":49.0},{"t":234,"lat":23.05,"lon":119.07,"psfc":94261,"wind":49.1},{"t":235,"lat":23.33,"lon":119.08,"psfc":94491,"wind":49.7},{"t":236,"lat":23.52,"lon":119.08,"psfc":94828,"wind":45.0},{"t":237,"lat":23.7,"lon":118.98,"psfc":95389,"wind":39.4},{"t":238,"lat":23.98,"lon":118.99,"psfc":95271,"wind":37.7},{"t":239,"lat":24.17,"lon":118.89,"psfc":95519,"wind":41.0},{"t":240,"lat":24.26,"lon":118.89,"psfc":96083,"wind":39.5},{"t":241,"lat":24.54,"lon":118.79,"psfc":96183,"wind":36.5},{"t":242,"lat":24.73,"lon":118.9,"psfc":96971,"wind":34.5},{"t":243,"lat":24.73,"lon":118.9,"psfc":98086,"wind":36.6},{"t":244,"lat":24.91,"lon":119.1,"psfc":98864,"wind":34.2},{"t":245,"lat":24.91,"lon":119.1,"psfc":99117,"wind":26.8}]
             }
         };
         // === AUTO:TYPHOON_DATA:END ===
         var currentTyphoonName = '桦加沙';
+
+        /* 2026-10-06：typhoonTrack 的唯一数据来源。原来两处各存一份轨迹，
+           改数据管线只改到 TYPHOON_DATA，页面却显示旧副本 —— 现已合并为一处。 */
+        Array.prototype.push.apply(typhoonTrack, TYPHOON_DATA[currentTyphoonName].track);
 
         function currentTyphoonData() {
             return TYPHOON_DATA[currentTyphoonName];
@@ -5402,12 +5617,18 @@ window.__I18N_DICT = {
         }
 
         // ===== Wind Categories (China Standard) =====
+        /* 2026-10-05 修：原表把 max 写成了各档的**下界**，而 getWindCategory 判的是
+           `wind <= cat.max` —— 于是所有 ≥10.9 m/s 的风都高判一整档（34.6 m/s 被显示成
+           「强台风」，实为「台风」；实测数据面板 115 行里 13 行标错）。
+           已按 GB/T 19201-2006 改为各档**上界**：
+             热带低压 10.8-17.1 / 热带风暴 17.2-24.4 / 强热带风暴 24.5-32.6 /
+             台风 32.7-41.4 / 强台风 41.5-50.9 / 超强台风 ≥51.0。 */
         const WIND_CATEGORIES = [
-            { name: '热带低压', max: 10.8, color: '#29b6f6' },
-            { name: '热带风暴', max: 17.1, color: '#ffca28' },
-            { name: '强热带风暴', max: 24.4, color: '#ff9800' },
-            { name: '台风', max: 32.6, color: '#f44336' },
-            { name: '强台风', max: 41.4, color: '#d50000' },
+            { name: '热带低压', max: 17.1, color: '#29b6f6' },
+            { name: '热带风暴', max: 24.4, color: '#ffca28' },
+            { name: '强热带风暴', max: 32.6, color: '#ff9800' },
+            { name: '台风', max: 41.4, color: '#f44336' },
+            { name: '强台风', max: 50.9, color: '#d50000' },
             { name: '超强台风', max: Infinity, color: '#aa00ff' }
         ];
 
@@ -5872,7 +6093,7 @@ window.__I18N_DICT = {
                 if (currCat !== prevCat) {
                     if (group.length > 1) {
                         segments.push({
-                            points: group.map(function(p) { return [p.lat, p.lon]; }),
+                            points: group.map(function(p) { return [p.lat, p.lon, p.t]; }),
                             color: prevCat.color,
                             category: prevCat.name
                         });
@@ -5885,7 +6106,7 @@ window.__I18N_DICT = {
             }
             if (group.length > 1) {
                 segments.push({
-                    points: group.map(function(p) { return [p.lat, p.lon]; }),
+                    points: group.map(function(p) { return [p.lat, p.lon, p.t]; }),
                     color: prevCat.color,
                     category: prevCat.name
                 });
@@ -5935,7 +6156,7 @@ window.__I18N_DICT = {
                     if (currCat !== prevCat) {
                         if (group.length > 1) {
                             segments.push({
-                                points: group.map(function(p) { return [p.lat, p.lon]; }),
+                                points: group.map(function(p) { return [p.lat, p.lon, p.t]; }),
                                 color: prevCat.color,
                                 category: prevCat.name
                             });
@@ -5948,7 +6169,7 @@ window.__I18N_DICT = {
                 }
                 if (group.length > 1) {
                     segments.push({
-                        points: group.map(function(p) { return [p.lat, p.lon]; }),
+                        points: group.map(function(p) { return [p.lat, p.lon, p.t]; }),
                         color: prevCat.color,
                         category: prevCat.name
                     });
@@ -6104,6 +6325,11 @@ window.__I18N_DICT = {
         function drawHistoryChart(t) {
             var canvas = document.getElementById('history-chart-canvas');
             if (!canvas) return;
+            /* 2026-10-05 修：本函数随播放每 tick 被 updateTimeDisplay 调用，而图表收起时
+               （#history-chart 无 .show → display:none）画出来根本看不见 —— 实测收起状态下
+               推 5 次时间轴会白画 5 次。setChartVisible(true) 本来就会补画一次，直接跳过。 */
+            var hcBox = document.getElementById('history-chart');
+            if (hcBox && !hcBox.classList.contains('show')) return;
 
             // High-DPI (retina) support — fixes blurriness
             var dpr = window.devicePixelRatio || 1;
@@ -6129,6 +6355,9 @@ window.__I18N_DICT = {
             var plotW = cssW - pad.l - pad.r, plotH = cssH - pad.t - pad.b;
 
             var minP = 94000, maxP = 101000;
+            /* 2026-10-07：这个 45 只是「算不出峰值时」的兜底初值 —— 真正的上限在下面
+               按当前台风的实际峰值定（见 peakW 之后那几行）。原来写死 45，数据修正后
+               峰值到 60.7 m/s，曲线被 wY() 的 Math.min 钳成一条直线。 */
             var maxWind = 45;
 
             // 横轴按当前台风路径实际起止时次绘制，曲线横向铺满（拉宽）
@@ -6166,6 +6395,13 @@ window.__I18N_DICT = {
             for (var k = 0; k < typhoonTrack.length; k++) {
                 if (typhoonTrack[k].wind > peakW) { peakW = typhoonTrack[k].wind; peakT = typhoonTrack[k].t; }
             }
+
+            /* 2026-10-07 修：风速轴上限按当前台风的实际峰值定档，向上取整到 10 的倍数
+               （留 2 m/s 顶部余量，最低 40）。原来写死 45 —— 数据修正后桦加沙峰值 60.7 m/s，
+               超出部分被 wY() 的 Math.min 全部钳到顶部，曲线被压成一条水平直线。
+               这里在 peakW 之后重新赋值即可：maxWind 是 var（上方声明），wY() 闭包读的是
+               调用时的值，而首个 wY() 调用在这之后（风场面积填充处）。 */
+            maxWind = Math.max(40, Math.ceil((peakW + 2) / 10) * 10);
 
             // Pressure area fill (red gradient)
             var pGrad = ctx.createLinearGradient(0, pad.t, 0, pad.t + plotH);
@@ -6327,6 +6563,19 @@ window.__I18N_DICT = {
         var landMaskFeatures = null;
         var windQueryPopup = null;
         var windQueryTimer = null;
+        /* 2026-10-05：画完关注区矩形后的「空窗期」。finishFocusRect 在 pointerup 里就把
+           focusDrawActive 置 false，而浏览器随后还会补发一次 DOM click；Leaflet 因为
+           绘制期间 map.dragging.disable() 使 _draggableMoved() 恒为 false，不会吞掉这次
+           click → map 'click' 的守卫失效，每次画完矩形都在松手点弹出「位置风速查询」。 */
+        var focusClickGuardUntil = 0;
+        /* 2026-10-05：统一的气泡收尾入口。原来只在「下一次地图点击」与 3 秒定时器里关，
+           切台风 / 点「收起」后旧气泡会带过期数据继续显示。 */
+        function closeWindQueryPopup() {
+            if (windQueryPopup && map) { map.closePopup(windQueryPopup); }
+            windQueryPopup = null;
+            if (windQueryTimer) { clearTimeout(windQueryTimer); }
+            windQueryTimer = null;
+        }
         var riskSiteMarkers = [];
         var riskGroupMarker = null;
 
@@ -6449,7 +6698,10 @@ window.__I18N_DICT = {
                 entry.marker.setPopupContent(sitePopupHtml(entry.site, sample, risk, typhoonPoint));
                 if (risk.index > maxRisk.index) maxRisk = risk;
                 var warning = sample ? getWarningLevel(sample.speed) : null;
-                if (warning && !maxWarning) maxWarning = warning;
+                /* 2026-10-03 修：原来是「首次命中即锁定」，取到的是 RISK_SITES 里
+                   第一个有预警的目标，而不是级别最高的那个 → 综合预警会低报。
+                   改成按等级表下标取最大（WARNING_LEVELS 有序：蓝→黄→橙→红）。 */
+                if (warning && (!maxWarning || WARNING_LEVELS.indexOf(warning) > WARNING_LEVELS.indexOf(maxWarning))) maxWarning = warning;
                 rows += '<div class="port-risk-row"><span>' + entry.site.name + '</span><span style="color:' + risk.color + ';font-weight:700">' + risk.level + ' ' + risk.name + '</span></div>';
             });
             riskGroupMarker.setStyle({ fillColor: maxRisk.color });
@@ -6668,7 +6920,22 @@ window.__I18N_DICT = {
             };
             console.info('[坐标] 已启用 WGS-84 → GCJ-02 显示转换（数据仍为 WGS-84）');
         }
-        if (typeof L !== 'undefined') patchDisplayCRS();
+        /* ⚠ 2026-09-30：**不调用** patchDisplayCRS() —— 它的前提是错的。
+           该转换按「天地图 / 高德的瓦片是 GCJ-02」来写，但**天地图不是 GCJ-02**：
+           天地图是国家地理信息公共服务平台，瓦片是大地2000（CGCS2000），
+           与 WGS-84 厘米级等同、无偏移。实测把同一 z/x/y 的天地图 vec 瓦片与
+           Esri 影像（WGS-84）叠加，岸线/山体严丝合缝（shots/_crs-check.png）。
+           而本页数据（台风路径 / 26 个重点目标 / 警戒线 / 航线）本来就是 WGS-84。
+           启用它会让这些图层整体偏移 ≈604 m —— 22.5N/114E 实测
+           Δlat -0.002869（南 319 m）、Δlon +0.004992（东 513 m），
+           z12 约 17 px、z14 约 68 px（页面可放到 z18）；
+           而且 Esri 卫星底图本来是对的，也会被一起带偏。
+           附带两个坑：把已偏移过的坐标再喂进 L.marker/L.polyline 会**再偏一次**
+           （实测再南移 318 m，备忘录只防同值重复、防不住回流）；
+           bounds.extend()/setLatLng()/地图点击的 e.latlng 都**没**被包，
+           于是页面内部会同时存在两套坐标系。
+           GCJ 函数暂留作参考，将来若真要挂偏移，必须**按底图分源**启用。 */
+        // if (typeof L !== 'undefined') patchDisplayCRS();
 
         /* 「行政地图（天地图）」是否可用。
            两种模式下都不需要前端有 Key：
@@ -6678,6 +6945,25 @@ window.__I18N_DICT = {
            漏判第二种会导致代理模式被错误地退回卫星影像。 */
         function tdtAvailable() {
             return !!(TDT_KEY || TDT_USE_LOCAL_TILES);
+        }
+
+        /* 审图号角标（左下角）的内容与显隐 —— 唯一维护点。两条硬约束：
+             ① 不能只看 tdtAvailable()：用户切到「卫星地图」(Esri) 后，当前显示的
+                底图已经不是天地图，再标天地图的审图号 = 把别家的号贴到别家影像上。
+             ② 文案必须与 i18n 词表里的键**逐字一致**。词表里是
+                「审图号 GS（2026）4921号（甲测资字 11110974）」（带**圆括号**），
+                原先拼的是全角空格、没有括号 → 永远命中不了，英文模式下
+                左下角一直留中文（与 2026-09-26 的「Hide全部浮层」同源）。 */
+        function syncApprovalBadge() {
+            var el = document.getElementById('map-approval');
+            if (!el) return;
+            var cur = currentLayer || (tdtAvailable() ? 'tdt' : 'satellite');
+            if (tdtAvailable() && cur === 'tdt') {
+                el.textContent = '审图号 ' + TDT_APPROVAL + '（' + TDT_APPROVAL_DESC + '）';
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';      // 卫星影像 / 未配置天地图：没有号可标
+            }
         }
 
         function initMap() {
@@ -6704,14 +6990,8 @@ window.__I18N_DICT = {
             /* 《地图审核管理规定》第二十七条：属于互联网地图服务的，应当在地图页面
                左下角标注审图号。这里把审图号做成常显角标固定在地图左下角，
                与 Leaflet 右下角的底图署名一起满足「注明地图来源和审图号」。 */
-            var approvalEl = document.getElementById('map-approval');
-            if (approvalEl) {
-                if (tdtAvailable()) {
-                    approvalEl.textContent = '审图号 ' + TDT_APPROVAL + '　' + TDT_APPROVAL_DESC;
-                } else {
-                    approvalEl.style.display = 'none';
-                }
-            }
+            /* 角标的内容与显隐交给 syncApprovalBadge() —— 必须等下面
+               currentLayer 定下来之后再调（只看 tdtAvailable() 不够）。 */
 
             /* ==================================================================
                底图瓦片图层（2026-09-25 修「双指缩放时边界线/台风与底图错位」）
@@ -6748,7 +7028,7 @@ window.__I18N_DICT = {
                 baseLayers.tdt = L.layerGroup(tdtChildren, { attribution: TDT_ATTRIBUTION });
             }
             baseLayers.satellite = L.tileLayer('tiles/satellite/{z}/{x}/{y}.png', {
-                attribution: 'Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community', maxZoom: 18, detectRetina: true,
+                attribution: ESRI_ATTRIBUTION, maxZoom: 18, detectRetina: true,
                 updateWhenIdle: false
             });
             /* 未填天地图 Key 时的兜底：直接用卫星影像，并在顶栏给出明确提示，
@@ -6756,6 +7036,7 @@ window.__I18N_DICT = {
             var defaultLayer = tdtAvailable() ? 'tdt' : 'satellite';
             baseLayers[defaultLayer].addTo(map);
             currentLayer = defaultLayer;
+            syncApprovalBadge();          // 审图号角标：只在显示天地图时出现
             /* 按钮高亮与可用性跟着实际可用的底图走 */
             document.querySelectorAll('#layer-switcher button').forEach(function (btn) {
                 var name = btn.getAttribute('data-layer');
@@ -6837,12 +7118,11 @@ window.__I18N_DICT = {
             map.on('zoom', function () { syncWindCanvasToZoom(map.getZoom(), map.getCenter()); });
             map.on('zoomanim', function (e) { syncWindCanvasToZoom(e.zoom, e.center); });
             map.on('moveend zoomend resize', resizeWindCanvas);
-            map.on('moveend zoomend', function() {
-                if (windLayerActive) {
-                    var val = parseInt(document.getElementById('time-slider').value);
-                    drawWindFieldOnCanvas(windCurrentT >= 0 ? windFieldCache[windFieldKey(windCurrentT)] : null);
-                }
-            });
+            /* 2026-10-05 修：这里原本还挂着第二个 moveend/zoomend 处理器，而 resizeWindCanvas
+               的末尾已经会在 windLayerActive && windCurrentT >= 0 时重绘一次 —— 于是每次平移/
+               缩放风场都画两遍（陆地栅格本身有缓存，实测两次缩放只重建 2 次，但逐点陆地判定
+               ≈1000 点 × 180 要素 与风羽绘制确实跑了两遍）。删掉这一个即可：
+               resizeWindCanvas 已挂在 moveend/zoomend/resize 上，覆盖完全等价。 */
             map.on('zoomend', function() {
                 if (lastTyphoonPt) positionTyphoonLabel(lastTyphoonPt);
             });
@@ -7028,8 +7308,14 @@ window.__I18N_DICT = {
                 if (!canvas) return;
                 var dpr = window.devicePixelRatio || 1;
                 var cssW = 280, cssH = 190;
-                canvas.width = cssW * dpr; canvas.height = cssH * dpr;
-                canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+                /* 2026-10-05 修：给 canvas.width/height 赋值会清空位图并重置 2D 上下文，
+                   而本函数随播放每 tick 触发 —— 开着雷达播放时每帧重建整块 canvas。
+                   尺寸没变就不碰它（clearRect 照旧，那才是清屏的正确方式）。 */
+                var wantW = Math.round(cssW * dpr), wantH = Math.round(cssH * dpr);
+                if (canvas.width !== wantW || canvas.height !== wantH) {
+                    canvas.width = wantW; canvas.height = wantH;
+                    canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+                }
                 var ctx = canvas.getContext('2d');
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 ctx.clearRect(0, 0, cssW, cssH);
@@ -7128,13 +7414,20 @@ window.__I18N_DICT = {
             function renderHazardValues(origVals, corrVals) {
                 var el = document.getElementById('hazard-radar-values');
                 if (!el) return;
+                /* 2026-10-03 修：原来无条件渲染「原场」列并算 Δ，而画布雷达图是受
+                   「原场 ⇄ 订正场对比」复选框控制的 —— 取消勾选后图只剩订正场一条，
+                   下方数值表却还挂着原场列和 Δ，两边状态不一致。这里跟同一个开关走。 */
+                var cmpEl = document.getElementById('hazard-radar-compare');
+                var showCompare = !cmpEl || cmpEl.checked;
                 var units = HAZARD_UNITS;
                 var html = '<div class="hr-row hr-head">' +
-                    '<span class="hr-dim">维度</span><span class="hr-val orig">原场</span>' +
-                    '<span class="hr-val corr">订正</span><span class="hr-delta">Δ</span></div>';
+                    '<span class="hr-dim">维度</span>' +
+                    (showCompare ? '<span class="hr-val orig">原场</span>' : '') +
+                    '<span class="hr-val corr">订正</span>' +
+                    (showCompare ? '<span class="hr-delta">Δ</span>' : '') + '</div>';
                 for (var i = 0; i < HAZARD_LABELS.length; i++) {
                     var c = corrVals.raw[i];
-                    var o = origVals ? origVals.raw[i] : null;
+                    var o = (showCompare && origVals) ? origVals.raw[i] : null;
                     var cu = units[i];
                     var cTxt = (c == null) ? '--' : (fmtHazardVal(c) + cu);
                     var oTxt = (o == null) ? '--' : (fmtHazardVal(o) + cu);
@@ -7148,8 +7441,9 @@ window.__I18N_DICT = {
                     }
                     html += '<div class="hr-row">' +
                         '<span class="hr-dim">' + HAZARD_LABELS[i] + '</span>' +
-                        '<span class="hr-val orig">' + oTxt + '</span>' +
-                        '<span class="hr-val corr">' + cTxt + '</span>' + dHtml + '</div>';
+                        (showCompare ? '<span class="hr-val orig">' + oTxt + '</span>' : '') +
+                        '<span class="hr-val corr">' + cTxt + '</span>' +
+                        (showCompare ? dHtml : '') + '</div>';
                 }
                 el.innerHTML = html;
             }
@@ -7204,11 +7498,14 @@ window.__I18N_DICT = {
 
             // Click map to query wind speed/direction at that point
             map.on('click', function(e) {
-                if (measureActive || focusDrawActive) return;
+                if (measureActive || focusDrawActive || Date.now() < focusClickGuardUntil) return;
                 var lat = e.latlng.lat, lon = e.latlng.lng;
                 var t = parseInt(document.getElementById('time-slider').value);
-                hazardPoint = { lat: lat, lon: lon };
+                /* 2026-10-06 修：原来无条件写 hazardPoint —— 雷达关着时点地图（只为看
+                   「位置风速查询」）也会把该点记下，之后一开雷达就直接显示那个与雷达
+                   毫不相干的点，而不是「点击地图任意点查看该处预警」的引导态。 */
                 if (hazardRadarShow) {
+                    hazardPoint = { lat: lat, lon: lon };
                     document.getElementById('hazard-radar').classList.add('show');
                     updateHazardRadar(t);
                 }
@@ -7291,7 +7588,7 @@ window.__I18N_DICT = {
             for (var i = 0; i < segments.length; i++) {
                 var seg = segments[i];
                 var tooltipContent = '<b>' + seg.category + '</b><br>' +
-                    '时间: ' + tToBeijingTime(seg.points[0][0]) + ' → ' + tToBeijingTime(seg.points[seg.points.length - 1][0]) + '<br>' +
+                    '时间: ' + tToBeijingTime(seg.points[0][2]) + ' → ' + tToBeijingTime(seg.points[seg.points.length - 1][2]) + '<br>' +
                     '点数: ' + seg.points.length;
                 var layer = L.polyline(seg.points, {
                     color: seg.color, weight: 3, opacity: 0.85
@@ -7323,7 +7620,7 @@ window.__I18N_DICT = {
             for (var i = 0; i < futureSegments.length; i++) {
                 var seg = futureSegments[i];
                 var tooltipContent = '<b>' + seg.category + ' (未来)</b><br>' +
-                    '时间: ' + tToBeijingTime(seg.points[0][0]) + ' → ' + tToBeijingTime(seg.points[seg.points.length - 1][0]);
+                    '时间: ' + tToBeijingTime(seg.points[0][2]) + ' → ' + tToBeijingTime(seg.points[seg.points.length - 1][2]);
                 var layer = L.polyline(seg.points, {
                     color: seg.color, weight: 2, opacity: 0.35, dashArray: '5,8'
                 }).addTo(map);
@@ -7334,7 +7631,10 @@ window.__I18N_DICT = {
             // Update typhoon marker
             spinAngle += 0.04;
             var markerDataUrl = drawTyphoonMarkerDataUrl(pt.psfc, pt.wind, spinAngle);
-            var markerHtml = '<div class="typhoon-marker-pulse" title="点击查看详情"><img src="' + markerDataUrl + '" width="' + CONFIG.markerSize + '" height="' + CONFIG.markerSize + '" alt="" style="pointer-events:none;"></div>';
+            /* 2026-10-05：原 title="点击查看详情" 承诺了不存在的功能 —— 这个 marker 是
+               interactive:false 且 .leaflet-marker-icon 为 pointer-events:none，
+               既没有原生提示，点击也只会穿透到地图的「位置风速查询」。 */
+            var markerHtml = '<div class="typhoon-marker-pulse"><img src="' + markerDataUrl + '" width="' + CONFIG.markerSize + '" height="' + CONFIG.markerSize + '" alt="" style="pointer-events:none;"></div>';
             var markerIcon = L.divIcon({
                 className: 'typhoon-marker-container',
                 html: markerHtml,
@@ -7400,9 +7700,14 @@ window.__I18N_DICT = {
             if (threshold === 17.2) {
                 radius = Math.max(80, Math.min(160, wind * 4.5));
             } else if (threshold === 32.7) {
-                radius = Math.max(35, Math.min(120, wind * 3.0));
-            } else {
+                /* 2026-10-04 修：12 级风圈（≥32.7 m/s）必须比 10 级风圈小。
+                   原来这里用 3.0 / 上限 120，而 10 级（else 分支）却用 2.5 / 上限 100，
+                   导致 12 级圈恒 ≥ 10 级圈、把 10 级整个包住。
+                   实测（山竹 t=170，三圈同现）：7级 136px > 12级 92px > 10级 76px —— 颠倒。
+                   两档系数对调后为 7级 160 > 10级 110 > 12级 92。 */
                 radius = Math.max(35, Math.min(100, wind * 2.5));
+            } else {
+                radius = Math.max(35, Math.min(120, wind * 3.0));
             }
             return radius / 111;
         }
@@ -7482,20 +7787,66 @@ window.__I18N_DICT = {
            主逻辑里的状态变量（measureActive / focusDrawActive / compareMode…）
            会与界面脱节，下次再点那些功能键就会错乱。
            ------------------------------------------------------------------ */
+        /* 2026-10-04 新增：清空灾害雷达面板上残留的画面与数值。
+           用于「切换台风」—— 此时 hazardPoint 被置 null，重开面板不会触发重绘，
+           不清就会显示上一条台风的雷达图。 */
+        function clearHazardRadarDisplay() {
+            var c = document.getElementById('hazard-radar-canvas');
+            if (c) {
+                var ctx = c.getContext('2d');
+                if (ctx) ctx.clearRect(0, 0, c.width, c.height);
+            }
+            var v = document.getElementById('hazard-radar-values');
+            if (v) v.innerHTML = '';
+            var p = document.getElementById('hazard-radar-pos');
+            if (p) p.textContent = '';
+        }
+
+        /* 2026-10-04 新增：测距 / 灾害雷达打开时收起右下角 FAB 按钮组（z 1520）。
+           这两块浮层都占 Dock 上方那一带，FAB 会盖住测距条的「完成」或雷达右缘并抢点击
+           （实测「完成」按钮中心命中的是 FAB 的「收起」）。与 Sheet 用同一套做法。
+           PC 端没有 FAB，类加上也无副作用。 */
+        function syncFabHide() {
+            var de = document.documentElement;
+            if (!de || !de.classList) return;
+            /* 2026-10-05 修：关注区小窗（#focus-window, z1350）右缘就是 44×44 的缩放手柄，
+               而 FAB(z1520) 正压在上面 —— 实测重叠 8800px²，手柄上沿命中的是 FAB 的
+               「收起」（一键清屏会把小窗一起清掉）。与测距条/雷达同样处理：打开时收起 FAB。
+               用 DOM 状态判断，避免依赖 focusWindow 变量在本作用域是否可见。 */
+            var fw = document.getElementById('focus-window');
+            var fwOpen = !!(fw && fw.style.display === 'flex');
+            de.classList.toggle('md-fab-hide', !!(measureActive || hazardRadarShow || fwOpen));
+        }
+
         function clearAllOverlays() {
             // 1) 底部 Sheet / 数据面板 / 图例弹窗（mobile-ui.js 建的，已暴露 closeAll）
             if (window.MobileUI && typeof window.MobileUI.closeAll === "function") {
                 window.MobileUI.closeAll();
+            } else {
+                /* 2026-10-05 修：桌面端 mobile-ui.js 在构建前就 return，window.MobileUI
+                   只剩 qr-popup 挂的 .QR，没有 closeAll —— 于是 PC 上点「收起」关不掉
+                   图例弹窗与数据面板（实测两者仍可见）。这里补一条等价路径。 */
+                var lmPC = document.getElementById("legend-modal");
+                if (lmPC) lmPC.classList.remove("open");
+                var lpPC = document.getElementById("left-panel");
+                if (lpPC) lpPC.classList.remove("open");
             }
+            /* 日历弹窗两端都可能开着，统一关掉 */
+            var tdpPC = document.getElementById("time-date-panel");
+            if (tdpPC) tdpPC.classList.remove("open");
             // 2) 强度演变图（setChartVisible 会一并同步按钮的 active 状态）
             setChartVisible(false);
             // 3) 灾害预警雷达
             if (hazardRadarShow) {
                 hazardRadarShow = false;
+                /* 2026-10-05 修：与「✕」和「再点开关」两条关闭路径对齐 —— 原来不收 hazardPoint，
+                   于是收起后重开并不是空态，而是直接显示上一次那一点的旧雷达。 */
+                hazardPoint = null;
                 var hr = document.getElementById("hazard-radar");
                 if (hr) hr.classList.remove("show");
                 var hb = document.getElementById("btn-hazard");
                 if (hb) hb.classList.remove("active");
+                clearHazardRadarDisplay();
             }
             // 4) 原场/订正场对比：直接复用按钮自己的 toggle，状态与它完全一致
             var cmpBtn = document.getElementById("btn-compare");
@@ -7510,9 +7861,15 @@ window.__I18N_DICT = {
                 updateCompareLayers();
             }
             // 6) 测距 / 关注区绘制 / 关注区小窗
-            if (measureActive) stopMeasure(true);
+            /* 2026-10-05 修：原为 stopMeasure(true)（保留折线）——「收起」后测距条隐藏了，
+               蓝色折线与圆点却还留在地图上，而且没有按钮能删它（只能重进测距再点「清除」）。
+               与 switchTyphoon 的处理对齐（false = 连测量结果一起清）。 */
+            if (measureActive) stopMeasure(false);
+            else clearMeasure();
             if (focusDrawActive) cancelFocusDraw();
             closeFocusWindow();
+            // 6.5) 位置风速查询气泡（2026-10-05 补：原来不在清理清单里）
+            closeWindQueryPopup();
             // 7) 各处下拉菜单（VS 选择、对比选择、台风切换）
             ["vs-menu", "compare-menu", "typhoon-menu"].forEach(function (id) {
                 var m = document.getElementById(id);
@@ -7520,6 +7877,38 @@ window.__I18N_DICT = {
             });
             var tEl = document.getElementById("title");
             if (tEl) tEl.classList.remove("open");
+            /* 2026-10-04：必须放在所有关闭动作之后 —— 雷达是在第 3) 步才关的，
+               提前同步会读到 hazardRadarShow 仍为 true，按钮组就再也回不来了。 */
+            syncFabHide();
+        }
+
+        /* 2026-10-06 新增：移动端「Dock 上沿」浮层互斥。
+           测距条(#measure-info) / 双台风对比状态条(#compare-legend) / 灾害雷达(#hazard-radar)
+           在移动端都是 position:fixed; left:8; right:8; bottom:calc(--dock-h + 8px) ——
+           同一个槽位。实测：对比条(z1450) 压住测距条(z1420) 重叠 20104px²，测距的「完成」
+           键中心命中的是 #compare-legend；雷达(z1460) 同理压测距条。三者同时开只会互相
+           挡点击，所以开一个就收掉其它两个。桌面端三者位置互不相干，不做互斥。 */
+        function closeDockStrips(except) {
+            var de = document.documentElement;
+            if (!de || !de.classList.contains('mobile-ui')) return;
+            if (except !== 'measure' && measureActive) stopMeasure(true);
+            if (except !== 'compare' && (compareMode || compareTarget)) {
+                compareTarget = null;
+                compareMode = false;
+                var mb = document.getElementById('btn-multi');
+                if (mb) mb.classList.remove('active');
+                updateCompareLayers();
+            }
+            if (except !== 'radar' && hazardRadarShow) {
+                hazardRadarShow = false;
+                hazardPoint = null;
+                var hr = document.getElementById('hazard-radar');
+                if (hr) hr.classList.remove('show');
+                var hb = document.getElementById('btn-hazard');
+                if (hb) hb.classList.remove('active');
+                clearHazardRadarDisplay();
+            }
+            syncFabHide();
         }
 
         /* 台风等级标签：原来死钉在台风点右侧 5px，正好压在路径延伸的方向上。
@@ -7770,6 +8159,13 @@ window.__I18N_DICT = {
            预加载与左侧小地图都按「返回数组」统一处理。
            底图只有两种：天地图（合规行政底图）与 Esri 卫星影像。
            高德备选已按合规要求移除，见文件上方「底图配置」注释。 */
+        /* 2026-10-04 新增：小地图 / 主图共用的 Esri 影像署名，以及按底图取署名的助手。
+           Esri World Imagery 的必署内容见 https://www.esri.com/en-us/legal/terms/full-master-agreement */
+        var ESRI_ATTRIBUTION = 'Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community';
+        function focusMiniAttribution(layerName) {
+            return layerName === 'tdt' ? TDT_ATTRIBUTION : ESRI_ATTRIBUTION;
+        }
+
         function basemapTileUrls(layerName) {
             if (layerName === 'tdt' && tdtAvailable()) {
                 return [tdtTileUrl('vec'), tdtTileUrl('cva')];
@@ -7851,7 +8247,18 @@ window.__I18N_DICT = {
                 /* 天地图是双层：左上角小地图只挂矢量底图那一层就够了
                    （注记在小尺寸下看不清，反而糊）。 */
                 focusMiniLayer.setUrl(basemapTileUrls(layerName)[0]);
+                /* 2026-10-04：署名随底图一起换（setUrl 不会自动改 attribution）。 */
+                var _newAttr = focusMiniAttribution(layerName);
+                if (focusMiniLayer.options.attribution !== _newAttr) {
+                    var _oldAttr = focusMiniLayer.options.attribution;
+                    focusMiniLayer.options.attribution = _newAttr;
+                    if (focusMiniMap.attributionControl) {
+                        focusMiniMap.attributionControl.removeAttribution(_oldAttr);
+                        focusMiniMap.attributionControl.addAttribution(_newAttr);
+                    }
+                }
             }
+            syncApprovalBadge();          // 切到卫星影像后不再标天地图的审图号
             document.querySelectorAll('#layer-switcher button').forEach(function(btn) {
                 btn.classList.toggle('active', btn.getAttribute('data-layer') === layerName);
             });
@@ -7870,6 +8277,10 @@ window.__I18N_DICT = {
                 windCanvasCtx.clearRect(0, 0, windCanvasSize.x, windCanvasSize.y);
                 hideDiffLegend();
                 if (focusMiniMap) syncMiniWind(null);
+                /* 2026-10-06 修：没有风场就无从「对比」，但 #btn-compare 仍亮着 ——
+                   按钮状态与事实不符（再打开风场又会自动回到差值配色）。复用它的 toggle。 */
+                var cmpB = document.getElementById('btn-compare');
+                if (cmpB && cmpB.classList.contains('active')) cmpB.click();
             }
         }
 
@@ -7901,7 +8312,15 @@ window.__I18N_DICT = {
                 syncMiniWind(data);
             } catch (err) {
                 console.error('Failed to load wind field:', err);
-                if (seq === windRequestSeq && windCurrentT === t) updateRiskSiteRisks(null, t);
+                /* 2026-10-03 补：失败分支原来不清画布 —— 从有效时次步进到缺数据的时次时，
+                   canvas 上会留着上一时刻的风羽，而重点目标标记已变成「暂无数据」。
+                   成功分支对应的是 drawWindFieldOnCanvas(data) + 差值图例 + syncMiniWind。 */
+                if (seq === windRequestSeq && windCurrentT === t) {
+                    updateRiskSiteRisks(null, t);
+                    drawWindFieldOnCanvas(null);
+                    hideDiffLegend();
+                    syncMiniWind(null);
+                }
             }
         }
 
@@ -8298,6 +8717,10 @@ window.__I18N_DICT = {
             if (hc) hc.classList.toggle('show', show);
             var btn = document.getElementById('btn-chart');
             if (btn) btn.classList.toggle('active', show);
+            /* 2026-10-06：暴露给 mobile-ui.js —— 移动端 Dock 的「数据」标签走的是
+               toggleDataDrawer，那条路拿不到这里的 setChartVisible，于是面板铺满时
+               强度演变图仍开着（PC 的 toggleLeftPanel 会收起它），两端行为不一致。 */
+            window.__closeChartForDrawer = function () { setChartVisible(false); };
             /* 刚由 display:none 变为可见时 canvas 才量得到真实尺寸，此前绘制走的是兜底
                宽度。这里补一次重绘，让移动端 width:100% 也按实际宽度铺满。 */
             if (show) {
@@ -8404,9 +8827,12 @@ window.__I18N_DICT = {
 
         function initLegendCategories() {
             var container = document.getElementById('legend-categories');
-            container.innerHTML = WIND_CATEGORIES.map(function(cat) {
-                var maxText = cat.max === Infinity ? '41.4 m/s 以上' : '≤ ' + cat.max + ' m/s';
-                return '<div class="legend-item"><span class="color-dot" style="background:' + cat.color + '"></span><span>' + cat.name + ' (' + maxText + ')</span></div>';
+            /* 2026-10-05 修：原来渲染成「热带低压 (≤ 10.8 m/s)」，与本页下方的预警图例
+               （10.8-17.1 / 17.2-24.4 / 24.5-32.6 / ≥32.7）自相矛盾 —— 表本身也写错了。
+               改为显式区间，两端一致。 */
+            var CAT_RANGES = ['10.8-17.1', '17.2-24.4', '24.5-32.6', '32.7-41.4', '41.5-50.9', '≥51.0'];
+            container.innerHTML = WIND_CATEGORIES.map(function(cat, i) {
+                return '<div class="legend-item"><span class="color-dot" style="background:' + cat.color + '"></span><span>' + cat.name + ' (' + CAT_RANGES[i] + ' m/s)</span></div>';
             }).join('');
         }
 
@@ -8445,7 +8871,8 @@ window.__I18N_DICT = {
                 // 标签先按当前语言翻译好再量宽：否则会拿中文的宽度去排版英文标签
                 var full = isEn ? window.I18N.t(tick.label) : tick.label;
                 var label = (isEn && TICK_SHORT_EN[tick.label]) ? TICK_SHORT_EN[tick.label] : full;
-                html += '<div class="time-tick' + (tick.major ? ' major' : '') + '" style="left:' + rawPct[i] +
+                html += '<div class="time-tick' + (tick.major ? ' major' : '') + '" data-t="' + tick.t +
+                    '" style="left:' + rawPct[i] +
                     '%;" title="' + tToBeijingTime(tick.t) + ' ' + full + '">' + label + '</div>';
             }
             container.innerHTML = html;
@@ -8516,6 +8943,7 @@ window.__I18N_DICT = {
 
         function startMeasure() {
             if (focusDrawActive) cancelFocusDraw();
+            closeDockStrips('measure');   // 2026-10-06：别让对比条/雷达压住测距条的按钮
             measureActive = true;
             measurePoints = [];
             if (measureLine) { map.removeLayer(measureLine); measureLine = null; }
@@ -8529,6 +8957,7 @@ window.__I18N_DICT = {
             document.getElementById('measure-info').style.display = 'flex';
             document.getElementById('measure-text').textContent = '点击地图添加测距点，双击结束';
             showMeasureTip('测距模式：点击添加测距点，双击结束');
+            syncFabHide();   // 2026-10-04
         }
 
         function stopMeasure(keepResult) {
@@ -8545,6 +8974,7 @@ window.__I18N_DICT = {
             } else {
                 updateMeasureText();
             }
+            syncFabHide();   // 2026-10-04
         }
 
         function clearMeasure() {
@@ -8864,6 +9294,7 @@ window.__I18N_DICT = {
 
         function finishFocusRect(bounds) {
             focusDrawActive = false;
+            focusClickGuardUntil = Date.now() + 400;   // 2026-10-05：挡住浏览器补发的 click
             unbindFocusRectEvents();
             map.doubleClickZoom.enable();
             map.dragging.enable();
@@ -8889,6 +9320,7 @@ window.__I18N_DICT = {
             focusWindow.style.top = 'auto';
             focusWindow.style.right = 'auto';
             focusWindow.style.bottom = '90px';
+            syncFabHide();   // 2026-10-05：FAB 会让开小窗右缘的缩放手柄
             if (!focusMiniMap) initFocusMiniMap();
             if (focusMiniPolygon) focusMiniMap.removeLayer(focusMiniPolygon);
             var style = { color: '#1e88e5', weight: 2, fillColor: '#1e88e5', fillOpacity: 0.15 };
@@ -8906,14 +9338,17 @@ window.__I18N_DICT = {
         }
 
         function initFocusMiniMap() {
+            /* 2026-10-04 合规：小地图同样加载受版权保护的瓦片（天地图 / Esri），
+               原来 attributionControl:false 等于完全不署名。改为开启，并给图层带上
+               与主图一致的 attribution（切底图时在下方 switchLayer 里同步更新）。 */
             focusMiniMap = L.map('focus-window-map', {
-                zoomControl: false, attributionControl: false, zoomSnap: 0.5
+                zoomControl: false, attributionControl: true, zoomSnap: 0.5
             });
             var layerName = currentLayer || 'tdt';
             /* 同主图：真机上 updateWhenIdle 默认 true，会让小窗双指缩放时底图也不加载新瓦片
                （底图停住、矢量照常动）。这里一并显式关掉，保持与主图行为一致。
                天地图是双层，小地图只挂第一层（矢量底图），见 switchLayer 注释。 */
-            focusMiniLayer = L.tileLayer(basemapTileUrls(layerName)[0], { maxZoom: 18, updateWhenIdle: false }).addTo(focusMiniMap);
+            focusMiniLayer = L.tileLayer(basemapTileUrls(layerName)[0], { maxZoom: 18, updateWhenIdle: false, attribution: focusMiniAttribution(layerName) }).addTo(focusMiniMap);
             var pane = focusMiniMap.createPane('miniWindPane');
             pane.style.zIndex = '350';
             pane.style.pointerEvents = 'none';
@@ -9063,6 +9498,7 @@ window.__I18N_DICT = {
         function closeFocusWindow() {
             if (!focusWindow) focusWindow = document.getElementById('focus-window');
             focusWindow.style.display = 'none';
+            syncFabHide();   // 2026-10-05：小窗关掉，FAB 回来
             if (focusMainPolygon) { map.removeLayer(focusMainPolygon); focusMainPolygon = null; }
             if (focusMainRect) { map.removeLayer(focusMainRect); focusMainRect = null; }
             focusDrawPoints = [];
@@ -9089,7 +9525,7 @@ window.__I18N_DICT = {
                 }
                 var ico = (name && name.length) ? name.charAt(0) : '🌀';
                 var active = name === currentTyphoonName;
-                return '<div class="history-item' + (active ? ' active' : '') + '" data-name="' + name + '">' +
+                return '<div class="history-item' + (active ? ' active' : '') + '" role="button" tabindex="0" data-name="' + name + '">' +
                     '<div class="history-ico">' + ico + '</div>' +
                     '<div class="history-info">' +
                         '<span class="history-name">' + name + '</span>' +
@@ -9154,6 +9590,10 @@ window.__I18N_DICT = {
             if (hazardBtn) hazardBtn.classList.remove('active');
             var hazardPanel = document.getElementById('hazard-radar');
             if (hazardPanel) hazardPanel.classList.remove('show');
+            /* 2026-10-04 修：切换台风后必须把雷达画布与数值表清空。重开面板时只有
+               hazardPoint 非空才会重绘，而上一行刚把它置 null —— 于是画布一直留着
+               上一条台风的雷达图与数值（实测切台风后重开，canvas 指纹完全不变）。 */
+            clearHazardRadarDisplay();
             var cmpBtn = document.getElementById('btn-compare');
             if (cmpBtn) cmpBtn.classList.remove('active');
             compareTarget = null;
@@ -9164,7 +9604,22 @@ window.__I18N_DICT = {
             /* ② 修：原来写 `if (compareMode)`，而上一行刚把 compareMode 置为 false，
                条件恒假 → 切换台风后上一条台风的对比虚线/标签/状态条全部残留。
                updateCompareLayers() 在 compareMode 为 false 时正好负责移除图层并收起状态条。 */
+            /* 2026-10-03 补：切换台风时没有复位测距 / 关注区绘制状态 ——
+               旧的测距线、#measure-info、focus-done-btn 会残留，而且 measureActive /
+               focusDrawActive 仍为 true，之后点地图会被这两个 handler 吃掉，
+               不再触发风场查询。 */
+            /* 2026-10-04 修：原来是 stopMeasure(true)，keepResult 分支只复位状态、
+               不删线（删线只在 clearMeasure 里），上一条台风的测距折线/圆点会留在
+               地图上。这里改成 false 走完整清理。 */
+            if (measureActive) stopMeasure(false);
+            if (focusDrawActive) cancelFocusDraw();
             updateCompareLayers();
+            /* 2026-10-05 修：updateCompareLayers 只收起 #compare-legend（状态条），
+               子菜单的 .open 会留着 —— 下次进入对比模式时菜单会自弹。 */
+            var cmEl = document.getElementById('compare-menu');
+            if (cmEl) cmEl.classList.remove('open');
+            var vmEl = document.getElementById('vs-menu');
+            if (vmEl) vmEl.classList.remove('open');
 
             var bounds = L.latLngBounds([]);
             typhoonTrack.forEach(function(p) { bounds.extend([p.lat, p.lon]); });
@@ -9173,6 +9628,10 @@ window.__I18N_DICT = {
             document.getElementById('typhoon-menu').classList.remove('open');
             var tEl2 = document.getElementById('title');
             if (tEl2) tEl2.classList.remove('open');
+            /* 2026-10-04：上面把 hazardRadarShow 置成了 false，这里要同步一次，
+               否则切台风后 md-fab-hide 会一直留在 <html> 上、按钮组不回来。 */
+            syncFabHide();
+            closeWindQueryPopup();   // 2026-10-05：切台风后旧查询气泡不再残留
             updateTimeDisplay();
         }
 
@@ -9188,7 +9647,7 @@ window.__I18N_DICT = {
                     var t1 = d.start.getTime() + d.track[d.track.length - 1].t * 3600 * 1000 + 8 * 3600 * 1000;
                     period = new Date(t0).toISOString().slice(0, 10) + ' ~ ' + new Date(t1).toISOString().slice(0, 10);
                 }
-                return '<div class="vs-item' + (n === compareTarget ? ' active' : '') + '" data-name="' + n + '">' +
+                return '<div class="vs-item' + (n === compareTarget ? ' active' : '') + '" role="button" tabindex="0" data-name="' + n + '">' +
                     '<span class="vs-check"></span><span>' + n + '</span>' +
                     '<span style="margin-left:auto;font-size:0.7rem;color:#888;">' + period + '</span></div>';
             }).join('');
@@ -9213,7 +9672,7 @@ window.__I18N_DICT = {
             if (menu) {
                 var others = Object.keys(TYPHOON_DATA).filter(function(n) { return n !== currentTyphoonName; });
                 menu.innerHTML = others.map(function(n) {
-                    return '<div class="compare-item' + (n === compareTarget ? ' active' : '') + '" data-name="' + n + '">' + n + '</div>';
+                    return '<div class="compare-item' + (n === compareTarget ? ' active' : '') + '" role="button" tabindex="0" data-name="' + n + '">' + n + '</div>';
                 }).join('');
             }
 
@@ -9257,6 +9716,15 @@ window.__I18N_DICT = {
         }
 
         function init() {
+            /* 移动端：工具/设置 Sheet 里的按钮所打开的浮层 —— 灾害雷达(1000)、
+               测距条(1420)、关注区小窗(1350)、强度演变图(1250)、对比菜单(1450) ——
+               移动端 z-index 全都低于 Sheet 的 1490，会被面板整个盖住
+               （2026-10-03 实测：雷达被盖 126727 px²、测距条 100%）。
+               这些浮层与工具面板占同一块底部空间、不可能并存，故打开前先收起 Sheet。
+               PC 端 window.MobileUI 不存在，守卫直接跳过。 */
+            function closeSheetsForOverlay() {
+                if (window.MobileUI && window.MobileUI.closeAll) window.MobileUI.closeAll();
+            }
             initMap();
             updateLegend(currentLayer);
             initLeftPanel();
@@ -9289,11 +9757,23 @@ window.__I18N_DICT = {
             document.getElementById('history-list').addEventListener('click', function(e) {
                 var item = e.target.closest('.history-item');
                 if (item && item.getAttribute('data-name')) {
+                    /* 2026-10-04 修：必须在这里截断冒泡。switchTyphoon() 内部会调
+                       updateHistoryList() 重建 #history-list 的 innerHTML，被点的
+                       .history-item 随即脱离文档；等事件冒到 #title 时，
+                       e.target.closest('#typhoon-menu') 已找不到祖先（节点已摘离）——
+                       于是 #title 那层「点在菜单里就跳过」的守卫失效，它又把菜单 toggle
+                       回打开了。stopPropagation 让它根本到不了 #title / document。 */
+                    e.stopPropagation();
                     switchTyphoon(item.getAttribute('data-name'));
                 }
             });
             document.getElementById('title').addEventListener('click', function(e) {
                 e.stopPropagation();
+                /* 2026-10-04 修：#typhoon-menu 是 #title 的子节点，点某个台风条目时
+                   事件会冒泡到这里，无条件 toggle 又把刚被 switchTyphoon() 收起的下拉
+                   重新打开（实测切换后 typhoon-menu.open 仍为 true）。菜单内部的选择
+                   自己处理，这里直接跳过。 */
+                if (e.target.closest && e.target.closest('#typhoon-menu')) return;
                 document.getElementById('typhoon-menu').classList.toggle('open');
                 this.classList.toggle('open');
             });
@@ -9319,7 +9799,12 @@ window.__I18N_DICT = {
                     document.getElementById('time-date-panel').classList.remove('open');
                 }
             });
-            document.getElementById('legend').addEventListener('click', toggleLegend);
+            /* 2026-10-04：图例框里现在含许可链接（天地图官网），点链接时不要顺手把
+               图例弹窗也弹出来。 */
+            document.getElementById('legend').addEventListener('click', function (e) {
+                if (e.target.closest && e.target.closest('a')) return;
+                toggleLegend();
+            });
             document.getElementById('legend-close').addEventListener('click', toggleLegend);
             document.getElementById('legend-modal').addEventListener('click', function(e) {
                 if (e.target === document.getElementById('legend-modal')) toggleLegend();
@@ -9334,15 +9819,24 @@ window.__I18N_DICT = {
                 var hc = document.getElementById('history-chart');
                 var show = !hc.classList.contains('show');
                 setChartVisible(show);
-                if (show) document.getElementById('left-panel').classList.remove('open');
+                if (show) { closeSheetsForOverlay(); document.getElementById('left-panel').classList.remove('open'); }
             });
             document.getElementById('btn-hazard').addEventListener('click', function() {
                 hazardRadarShow = !hazardRadarShow;
+                if (hazardRadarShow) { closeSheetsForOverlay(); closeDockStrips('radar'); }
                 this.classList.toggle('active', hazardRadarShow);
                 document.getElementById('hazard-radar').classList.toggle('show', hazardRadarShow);
+                if (!hazardRadarShow) clearHazardRadarDisplay();   // 2026-10-04
+                syncFabHide();   // 2026-10-04
                 if (hazardRadarShow) {
                     if (hazardPoint) {
-                    if (hazardRefresh) hazardRefresh(parseInt(document.getElementById('time-slider').value));
+                        if (hazardRefresh) hazardRefresh(parseInt(document.getElementById('time-slider').value));
+                    } else {
+                        /* 2026-10-05 修：clearHazardRadarDisplay() 会把 #hazard-radar-pos 置空，
+                           重开时没人回填 —— 用户再也看不到「点击地图任意点查看该处预警」。
+                           （该串在词表里，英文界面由 i18n 观察器照常翻译。） */
+                        var hzPos = document.getElementById('hazard-radar-pos');
+                        if (hzPos) hzPos.textContent = '点击地图任意点查看该处预警';
                     }
                 } else {
                     hazardPoint = null;
@@ -9354,6 +9848,8 @@ window.__I18N_DICT = {
                 var hb = document.getElementById('btn-hazard');
                 if (hb) hb.classList.remove('active');
                 document.getElementById('hazard-radar').classList.remove('show');
+                clearHazardRadarDisplay();   // 2026-10-04：别把旧图留给下次重开
+                syncFabHide();
             });
             document.getElementById('hazard-radar-compare').addEventListener('change', function() {
                 if (hazardRadarShow && hazardPoint) {
@@ -9370,7 +9866,7 @@ window.__I18N_DICT = {
             // Tool buttons
             document.getElementById('btn-measure').addEventListener('click', function() {
                 if (measureActive) stopMeasure(true);
-                else startMeasure();
+                else { closeSheetsForOverlay(); startMeasure(); }
             });
             document.getElementById('btn-focus').addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -9379,6 +9875,17 @@ window.__I18N_DICT = {
                     cancelFocusDraw();
                     menu.classList.remove('open');
                 } else {
+                    /* 2026-10-04 修：这里原来调 closeSheetsForOverlay()，而 #focus-menu
+                       本身就在工具 Sheet 里（HTML 里是 #tool-controls 的后代，由
+                       buildSheets() 搬进 Sheet），Sheet 一关，菜单立刻被 translateY(105%)
+                       推出屏幕且 visibility:hidden —— 手机上「矩形/多边形」完全点不到
+                       （实测首项 elementFromPoint 返回 null，菜单落在视口外 1121~1225px）。
+                       这两个菜单本就是以 Sheet 为定位基准的（见 html.mobile-ui .md-sheet
+                       #focus-menu），必须让 Sheet 保持打开；改在选完形状后再收。 */
+                    /* 2026-10-06：两个菜单在移动端同为 left:8/right:8/bottom:calc(--dock-h+8)、
+                       z1450，可以同时打开并**完全重叠**（实测 37336px²，「矩形」点不到）。 */
+                    var vmX = document.getElementById('vs-menu');
+                    if (vmX) vmX.classList.remove('open');
                     menu.classList.toggle('open');
                 }
             });
@@ -9390,18 +9897,22 @@ window.__I18N_DICT = {
             document.getElementById('btn-focus-rect').addEventListener('click', function(e) {
                 e.stopPropagation();
                 document.getElementById('focus-menu').classList.remove('open');
+                /* 选完形状后必须收起 Sheet —— 否则蒙层盖住地图，画不了。 */
                 if (focusDrawActive && focusShape === 'rect') cancelFocusDraw();
-                else startFocusDraw('rect');
+                else { closeSheetsForOverlay(); startFocusDraw('rect'); }
             });
             document.getElementById('btn-focus-poly').addEventListener('click', function(e) {
                 e.stopPropagation();
                 document.getElementById('focus-menu').classList.remove('open');
                 if (focusDrawActive && focusShape === 'poly') cancelFocusDraw();
-                else startFocusDraw('poly');
+                else { closeSheetsForOverlay(); startFocusDraw('poly'); }
             });
             document.getElementById('measure-clear').addEventListener('click', clearMeasure);
             document.getElementById('measure-done').addEventListener('click', function() {
-                stopMeasure(false);
+                /* 2026-10-05 修：原来传 false，即 keepResult=false → clearMeasure()，
+                   「完成」会把刚测的折线与分段/总计一并删掉（与旁边的「清除」同效）。
+                   其余四条退出路径（双击结束 / Esc / 再点测距 / 收起）都是 stopMeasure(true)。 */
+                stopMeasure(true);
             });
             document.getElementById('focus-window-close').addEventListener('click', closeFocusWindow);
             document.getElementById('focus-window-close').addEventListener('pointerdown', function(e) {
@@ -9412,6 +9923,18 @@ window.__I18N_DICT = {
             document.getElementById('btn-clean').addEventListener('click', enterCleanMode);
             document.getElementById('btn-clear-overlays').addEventListener('click', clearAllOverlays);
             document.getElementById('btn-clean-exit').addEventListener('click', exitCleanMode);
+            /* 2026-10-03 无障碍：台风标题与三个下拉条目是 <div>，键盘用户无法激活。
+               统一委托：聚焦后用 Enter / 空格 等价于点一下。 */
+            document.addEventListener('keydown', function(e) {
+                if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+                var el = e.target;
+                if (!el || !el.classList) return;
+                if (el.id === 'title' || el.classList.contains('vs-item') ||
+                    el.classList.contains('compare-item') || el.classList.contains('history-item')) {
+                    e.preventDefault();
+                    el.click();
+                }
+            });
             document.getElementById('btn-lock').addEventListener('click', function() {
                 typhoonLock = !typhoonLock;
                 this.classList.toggle('active', typhoonLock);
@@ -9442,7 +9965,24 @@ window.__I18N_DICT = {
             });
             document.getElementById('btn-multi').addEventListener('click', function(e) {
                 e.stopPropagation();
+                /* 2026-10-05 修：原来只切菜单 —— 对比开着之后没有任何关闭入口
+                   （#compare-legend 里没有关闭键，compareMode=false 只在「收起」与切台风里出现），
+                   再点 VS 只是把菜单又打开。改为：已在对比中 → 再点即退出。 */
+                if (compareMode) {
+                    compareTarget = null;
+                    compareMode = false;
+                    this.classList.remove('active');
+                    updateCompareLayers();
+                    var vmOff = document.getElementById('vs-menu');
+                    if (vmOff) vmOff.classList.remove('open');
+                    return;
+                }
+                /* 2026-10-06：两个菜单同槽位，先收掉另一个（见 btn-focus 处说明）。 */
+                var fmX = document.getElementById('focus-menu');
+                if (fmX) fmX.classList.remove('open');
                 buildVsMenu();
+                /* 2026-10-04 修：同 btn-focus —— #vs-menu 也在工具 Sheet 里，
+                   关掉 Sheet 等于把菜单一起推出屏幕，手机上选不了对比台风。 */
                 document.getElementById('vs-menu').classList.toggle('open');
             });
             document.getElementById('vs-menu').addEventListener('click', function(e) {
@@ -9451,11 +9991,13 @@ window.__I18N_DICT = {
                 var name = item.getAttribute('data-name');
                 compareTarget = name;
                 compareMode = true;
+                closeDockStrips('compare');   // 2026-10-06
                 document.getElementById('btn-multi').classList.add('active');
                 document.getElementById('vs-menu').classList.remove('open');
                 document.getElementById('compare-menu').classList.remove('open');
                 updateCompareLayers();
                 fitCompareBounds();
+                closeSheetsForOverlay();   // 2026-10-04 修：选完对比台风再收 Sheet
             });
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('#vs-menu-wrap')) {
@@ -9464,6 +10006,7 @@ window.__I18N_DICT = {
             });
             document.getElementById('compare-select').addEventListener('click', function(e) {
                 e.stopPropagation();
+                closeSheetsForOverlay();
                 document.getElementById('compare-menu').classList.toggle('open');
             });
             document.getElementById('compare-menu').addEventListener('click', function(e) {
@@ -9484,6 +10027,20 @@ window.__I18N_DICT = {
                 loopPlayback = !loopPlayback;
                 this.classList.toggle('active', loopPlayback);
             });
+            /* 2026-10-05 新增：里程碑刻度（生成/登陆/巅峰/消散）原来只有 title 提示，
+               点了没有任何反应。委托到容器上，跳转到该刻度的时次。 */
+            (function () {
+                var ticksBox = document.getElementById('time-ticks');
+                if (!ticksBox) return;
+                ticksBox.addEventListener('click', function (e) {
+                    var el = e.target.closest ? e.target.closest('.time-tick') : null;
+                    if (!el) return;
+                    var tv = parseInt(el.getAttribute('data-t'), 10);
+                    if (!isFinite(tv)) return;
+                    document.getElementById('time-slider').value = tv;
+                    updateTimeDisplay();
+                });
+            })();
             document.getElementById('btn-shot').addEventListener('click', function() {
                 if (!window.html2canvas) {
                     alert(tCanvas('截图组件未加载，请检查网络后重试'));
@@ -9576,7 +10133,17 @@ window.__I18N_DICT = {
 
             // Keyboard controls
             document.addEventListener('keydown', function(e) {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+                /* 2026-10-05 修：原来只放过 INPUT/SELECT，Tab 聚焦到任意真实 <button> 后
+                   按空格会被下面的 preventDefault(); togglePlay() 顶掉（按钮自身的空格
+                   激活失效、变成起停播放）。按钮/输入类元素一律交给浏览器原生处理。 */
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' ||
+                    e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' ||
+                    e.target.isContentEditable) return;
+                /* 2026-10-04 修：上面那个无障碍委托已经用空格激活 #title / .history-item /
+                   .vs-item / .compare-item（它们都是 role=button 的 div），下面这句又
+                   把空格当成起停播放 —— 一次空格既切台风又播放。这里跳过这些元素。 */
+                if ((e.key === ' ' || e.key === 'Spacebar') && e.target.closest &&
+                    e.target.closest('#title, .history-item, .vs-item, .compare-item')) return;
                 if (e.key === 'Escape') {
                     if (focusDrawActive) cancelFocusDraw();
                     else if (measureActive) stopMeasure(true);

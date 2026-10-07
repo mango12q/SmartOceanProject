@@ -53,11 +53,18 @@
 
 - 纯 CSS 文件，**移动端规则**必须包在：
   ```css
-  @media (max-width: 768px) {
+  @media (max-width: 768px), (max-height: 480px) and (pointer: coarse) {
     html.mobile-ui { ... }
   }
   ```
   外层断点保证桌面端零影响；`html.mobile-ui` 由 JS 加上（双保险，也用于真机/模拟器一致）。
+- **门控串变更（2026-10-05 实现 / 2026-10-07 规范追认）**：原来只认 `max-width:768px`。
+  横屏手机（844×390 等）宽度越过 768 → 整套移动端 CSS 失效，而 `html.mobile-ui` 类
+  在竖屏首帧加上后不会撤销（**类还在、样式没了**）：Dock 从 `fixed` 掉成 `static`
+  飞出视口，播放键与工具条随之整块消失。故补「矮屏 + 触屏」这一支；
+  `pointer: coarse` 把鼠标设备排除在外，桌面端零影响不变。
+  **index.html 首屏脚本的判定串必须与这里同一串**，两侧不一致就是上面那个半死状态。
+  `selftest-css.mjs` 的 `GATE_PRELUDES` 同时登记新旧两串，便于对历史版本回归。
 - **例外（2026-09-30 补记：实现先行，规范追认）** —— 以下两类规则在物理上不满足上述包裹，
   各有硬理由，**逐条登记**在 `mobile/selftest-css.mjs` 的白名单里：
 
@@ -93,6 +100,10 @@
      内部 `#left-panel-content` 可滚动、表格可横向滚动（`overflow-x:auto`），
      `#left-panel-header` 保留关闭按钮且触控 ≥44px。
    - `#left-panel-toggle`：手机端隐藏（入口在 Dock `data-tab="data"`）。
+   - `padding-bottom: var(--dock-h)` 即可为 Dock 让位 —— `--dock-h` 是 Dock 的**实测高度**
+     （`getBoundingClientRect().height`），已含安全区（见 §2.2.16），**不要**再叠加
+     `env(safe-area-inset-bottom)`；那是重复计算，刘海机上会多空出约一整条安全区
+     （2026-10-07 修正）。
 4. **顶部**：`#title` 移到 `top:8px` 居中、字号 0.95rem、最大宽度 `calc(100vw - 96px)` 且文字省略；
    `#top-controls` 右上角只保留必要项，`#layer-switcher` 隐藏（入口在图层 Sheet）。
 5. **弹出菜单改为底部弹层**（这些元素现在是 `position:absolute` 展开到右侧，手机上会溢出屏幕，
@@ -106,8 +117,11 @@
 8. **`#legend`**：保持圆形缩略按钮（沿用现有 480px 方案的精神），位置 `right:8px; bottom:calc(var(--dock-h) + 8px)`；
    点击走 `#legend-modal`（已有），modal 内容 `max-height:72vh`、字号放大到可读。
 9. **`#news-ticker`**：`left:8px; right:8px; transform:none; max-width:none; min-width:0;`
-   位置在 `#title` 下方（`top:52px`）；字号 0.72rem。
-10. **`#gba-label`**：`top:52px; left:8px;`，字号 0.72rem，不能与 `#title` 重叠。
+   位置在 `#title` 下方（`top: calc(46px + var(--md-safe-t))`，`min-height:34px`）；
+   字号 0.74rem。
+10. **`#gba-label`**：`top: calc(86px + var(--md-safe-t)); left:8px;`，字号 0.74rem。
+    必须让到快讯条下方（2026-10-03 实测：原来 `top:50` 整块落在 `z-index:1230` 的
+    快讯条底下被遮住；46+34=80 ≤ 86），且不与 `#title` 重叠。
 11. **`#measure-info`**：`position:fixed; left:8px; right:8px; bottom:calc(var(--dock-h) + 8px);` 横排不换行，
     按钮触控 ≥40px。
 12. **`#focus-window`**：`left:8px; right:8px; width:auto; height:38vh; bottom:calc(var(--dock-h) + 8px);`
@@ -121,6 +135,9 @@
 16. **安全区**：Dock 底部 `padding-bottom: calc(10px + env(safe-area-inset-bottom))`；
     所有 `bottom: calc(var(--dock-h) + Npx)` 的定位取 `--dock-h` 值时需包含安全区
     （JS 会写入真实像素值，CSS 提供 fallback `--dock-h: 150px`）。
+    **推论（2026-10-07 补）**：既然 `--dock-h` 已含安全区，凡是以 `--dock-h` 让位的容器
+    就**不得**再自带 `env(safe-area-inset-bottom)` —— 那是叠加两次（`.md-sheet` 曾有此写法，
+    已改）。顶部同理，统一用 `var(--md-safe-t)`（2026-10-05 新增，PWA 独立运行时防状态栏压字）。
 17. **横屏/矮屏**（`max-height: 480px`）：Dock 压缩为单行标签栏（隐藏 `.md-slider` 行，时间滑块移入「设置」？——
    不，横屏时把 `#time-slider` 放回 Dock 行1，`#playback-controls` 收紧到 32px），保证地图可用高度 ≥55vh。
 18. **性能**：不使用 `backdrop-filter` 于大面积元素（手机上掉帧），Dock/Sheet 用不透明或 0.98 透明度纯色；

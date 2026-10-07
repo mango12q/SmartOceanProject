@@ -17,7 +17,7 @@
     if (window.__mobileUiReady) return;
     window.__mobileUiReady = true;
 
-    var MQ = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+    var MQ = window.matchMedia ? window.matchMedia('(max-width: 768px), (max-height: 480px) and (pointer: coarse)') : null;
     var IS_MOBILE = !!(MQ && MQ.matches);
     if (!IS_MOBILE) return;                       // 桌面端：什么都不做
 
@@ -78,7 +78,7 @@
         var s = doc.createElement('style');
         s.id = 'mobile-ui-overrides';
         s.textContent =
-            '@media (max-width: 768px){' +
+            '@media (max-width: 768px), (max-height: 480px) and (pointer: coarse){' +
             'html.mobile-ui #btn-qr{display:none !important;}' +
             'html.mobile-ui #qr-modal{display:none !important;}' +
             // 圆形「图例」按钮：与底部 Dock 的「图例」标签打开同一个 #legend-modal，
@@ -119,20 +119,41 @@
                约 46px 并抢走点击（点最右列按钮会误触全屏/缩放）。面板自带 ✕ 与蒙层，
                收起入口不缺。 */
             'html.mobile-ui.md-sheet-open #md-fab-group{display:none;}' +
+            /* 2026-10-04 修：测距条 / 灾害雷达都贴在 Dock 上方那一带，而 FAB（z 1520）
+               比它们高，实测「测距条的完成按钮」中心命中的是 FAB 的「收起」—— 点完成
+               会把整个测距清掉。这两块浮层打开时把 FAB 收起来（与 Sheet 同一套做法）。
+               类由主逻辑的 syncFabHide() 维护。 */
+            'html.mobile-ui.md-fab-hide #md-fab-group{display:none;}' +
             /* 同上：图例弹窗打开时也藏掉按钮组。⑪ 把 #legend-modal 降到 1495 后，
                z 1520 的按钮组会浮到蒙层之上压住图例内容右缘（实测重叠 8800px²）。
                图例自带 ✕ 与「点蒙层关闭」两条退出路径，藏掉不影响使用。 */
             'html.mobile-ui:has(#legend-modal.open) #md-fab-group{display:none;}' +
-            /* 底图来源（Leaflet attribution）：抬到 Dock 上沿之上，与 PC 端右下角一致 */
+            /* 上一条依赖 :has()（Safari 15.4 / Chrome 105 起才支持）。旧浏览器会整条
+               丢弃，按钮组就浮到图例弹窗上抢点击。这里补一条由 JS 维护的类兜底 ——
+               类在 openSheet('legend') 里加、在 closeAll() 里去（两条关闭路径都经过它）。 */
+            'html.mobile-ui.md-legend-open #md-fab-group{display:none;}' +
+            /* 底图来源 + 审图号（Leaflet attribution）。2026-10-04 调整：
+               ① 原本 12px 要占两整行、横跨整屏，与 #eye-coord 重叠 2331px²
+                  （经纬度被压住）→ 字号压到 10px；
+               ② 用户要求「把经纬度挪到审图号右边那块空白」→ 署名条**收窄靠左**，
+                  右侧固定留出 124px 给经纬度。float:left 是必须的 —— Leaflet 的
+                  .leaflet-right 默认 float:right，不收窄就还是贴右、挤不出空间。
+               ⚠ 实测：署名条单行自然宽 465px；375 视口下 max-width 251 → 两行(29px)，
+                  245 → 三行(43px)。所以右侧留白不能超过 vw-251，取 124px。
+               ⚠ 窄屏（≤345px）右侧挤不出这一列，见文末的 @media 兜底。 */
             'html.mobile-ui .leaflet-bottom.leaflet-right{' +
-            'bottom:calc(var(--dock-h, 150px) + 6px);}' +
-            /* ⑫ 比例尺（Leaflet scale，创建时 position:bottomleft）：同样抬到 Dock 之上。
-               ⚠ 不能照抄底图来源的 +6px —— 那条高度正好是 #eye-coord 所在的横带
-               （eye-coord 固定在 dock-h+8、高 21px），会与其完全重叠（实测 x 5..114 对
-               12..123、y 616..639 对 616..637）。故再往上让一行：
-               dock-h + 8(eye-coord 偏移) + 21(其高度) + 5(间隙) = dock-h + 34。 */
+            'bottom:calc(var(--dock-h, 150px) + 4px);left:0;right:0;}' +
+            'html.mobile-ui .leaflet-bottom.leaflet-right .leaflet-control-attribution{' +
+            'float:left;clear:both;max-width:calc(100vw - 124px);}' +
+            'html.mobile-ui .leaflet-control-attribution{' +
+            'font-size:10px;line-height:1.35;padding:1px 5px;}' +
+            /* ⑫ 比例尺（Leaflet scale，创建时 position:bottomleft）。
+               2026-10-04 用户要求**放回原来的位置**（左侧）——撤掉「让到 left:132
+               与经纬度并排」那版。但署名条为此收窄了、会涨到三行（43px，顶边 +47），
+               所以锚点由 +38 抬到 **+52**：两行(+33) / 三行(+47) 两种都躲得开。
+               ⚠ 改这个值请一并复验重叠（_chk-mobile2.html 的 A 段）。 */
             'html.mobile-ui .leaflet-bottom.leaflet-left{' +
-            'bottom:calc(var(--dock-h, 150px) + 34px);}' +
+            'bottom:calc(var(--dock-h, 150px) + 52px);}' +
             /* 点击底部标签时收起前三行（2026-09-26 用户要求）：只留标签栏，露出更多
                地图。类名由 JS 在 openSheet / toggleDataDrawer / closeAll 里切换。 */
             /* Dock 前三行收起（2026-09-26）：改用 max-height + opacity 过渡，替掉原来的
@@ -153,16 +174,33 @@
             /* 风眼经纬度：不再藏进 Dock，改固定在地图左下角、Dock 上沿之上，
                与 PC 端左下角（比例尺同行）保持一致（2026-09-26 用户要求）。 */
             'html.mobile-ui #eye-coord{' +
-            'position:fixed;left:12px;bottom:calc(var(--dock-h, 150px) + 8px);' +
+            /* 2026-10-04：用户要求挪到「审图号右边那块空白」——署名条已收窄靠左
+               （右侧留 130px），经纬度就落在那块留白里：right:6、与署名条同一横带。
+               y 取 +6 而不是 +4：FAB 最低那颗按钮在 dock-h+30，经纬度高 21px，
+               这样上下留 3px 余量不打架。 */
+            'position:fixed;left:auto;right:6px;bottom:calc(var(--dock-h, 150px) + 6px);' +
             /* ⑥ 修：必须显式 margin:0 —— PC 段 `#eye-coord.in-scale-row` 的
                `margin:0 0 5px 8px` 仍然命中（主逻辑给它加过 in-scale-row 类），
                不重置就会把实际位置从 12px/8px 顶到 20px/13px。
-               z-index 1450 → 1340：与测距条(1420)、关注区小窗(1350)共用同一个
-               `bottom: dock-h+8px` 锚点，降低后由它们盖住，不再互相叠字。 */
+               z-index 1450 → 1340：与测距条(1420)、关注区小窗(1350)共用同一条
+               Dock 上沿锚点，降低后由它们盖住，不再互相叠字。 */
             'z-index:1340;margin:0;max-width:60vw;padding:2px 8px;border-radius:8px;' +
             'background:rgba(255,255,255,0.82);font-size:0.72rem;font-weight:700;' +
             'letter-spacing:0.02em;color:#222;pointer-events:none;white-space:nowrap;}' +
-            'html.mobile-ui #mobile-dock #playback-controls button{min-width:34px;}' +
+            /* 2026-10-04：320 级窄屏右侧挤不出 111px 的列 —— 署名条会涨到四行
+               （56px、顶边 +60），把比例尺整个顶掉。这种宽度下改成：署名条恢复整宽
+               （回到两行），经纬度挪到署名条上方、与比例尺并排。
+               （这套就是 10-04 第一版，实测 375/320/横屏重叠均为 0。） */
+            '@media (max-width:345px){' +
+            'html.mobile-ui .leaflet-bottom.leaflet-right .leaflet-control-attribution{max-width:100%;}' +
+            'html.mobile-ui #eye-coord{left:12px;right:auto;bottom:calc(var(--dock-h, 150px) + 40px);}' +
+            'html.mobile-ui .leaflet-bottom.leaflet-left{left:132px;right:auto;bottom:calc(var(--dock-h, 150px) + 40px);}}' +
+            /* 播放键触控尺寸（2026-10-03 修）：@media (max-height:480px) 把播放键压到
+               flex-basis 32px / min-height 32px（§0.5b），加上原本这条 min-width:34px，
+               横屏实测只有 34×32px —— 远低于 44px 触控下限，而横屏 Dock 宽 715px 明明有富余。
+               注入段在文档序最后、与 §0.5b 同特异性 (2,1,2)，所以直接在这一条里兜住 44px。
+               竖屏不受影响：那里的播放键由 flex 均分到约 67px 宽。 */
+            'html.mobile-ui #mobile-dock #playback-controls button{min-width:44px;min-height:44px;}' +
             // 洁净（全屏）模式：Dock 必须让位，否则「全屏」名不副实。
             // ⚠ #mobile-dock 挂在 <html> 下（是 <body> 的**兄弟节点**，不是子节点），
             //   所以 `body.clean-mode #mobile-dock`（后代）永远不匹配 —— 实测踩到。
@@ -260,6 +298,15 @@
             b.type = 'button';
             b.className = 'md-tab';
             b.setAttribute('data-tab', t.id);
+            /* 2026-10-04 无障碍：补上 tab 语义与选中态。
+               原先只有 .active 类，而 §… 里那条 .md-tab[aria-selected="true"]
+               选择器因为没人设过该属性而永不生效（死规则）。 */
+            b.setAttribute('role', 'tab');
+            b.setAttribute('aria-selected', 'false');
+            var _ctl = { layers: 'md-sheet-layers', tools: 'md-sheet-tools',
+                         settings: 'md-sheet-settings', data: 'left-panel',
+                         legend: 'legend-modal' }[t.id];
+            if (_ctl) b.setAttribute('aria-controls', _ctl);
             b.innerHTML = ICONS[t.id] + '<span>' + t.label + '</span>';
             tabs.appendChild(b);
         });
@@ -420,7 +467,16 @@
             if (id === 'data') { toggleDataDrawer(tab); return; }
             var sec = $('md-sheet-' + id);
             if (!sec) return;
-            var isOpen = sec.classList.contains('open');
+            /* 2026-10-05 修：「图例」标签的实际载体是 #legend-modal，而 openSheet('legend')
+               只给弹窗加 .open、从不给 #md-sheet-legend 加 —— 于是 isOpen 恒为 false，
+               再点一次等于「先关再开」，看着就是关不掉（只能点 ✕ 或蒙层）。 */
+            var isOpen;
+            if (id === 'legend') {
+                var lm = $('legend-modal');
+                isOpen = !!(lm && lm.classList.contains('open'));
+            } else {
+                isOpen = sec.classList.contains('open');
+            }
             closeAll();
             if (!isOpen) openSheet(id, tab);
         });
@@ -437,6 +493,7 @@
             var lm = $('legend-modal');
             if (lm) {
                 lm.classList.add('open');
+                html.classList.add('md-legend-open');
                 bindLegendModalClose();
             }
             setActiveTab(tab);
@@ -453,6 +510,7 @@
         closeAll();
         if (lp && !wasOpen) {
             lp.classList.add('open');
+            if (window.__closeChartForDrawer) window.__closeChartForDrawer();  // 2026-10-06
             html.classList.add('md-dock-collapsed');
             html.classList.add('md-sheet-open');
             syncDockHeightAnimated();
@@ -471,7 +529,11 @@
 
     function setActiveTab(tab) {
         var all = doc.querySelectorAll('#mobile-dock .md-tab');
-        for (var i = 0; i < all.length; i++) all[i].classList.toggle('active', all[i] === tab);
+        for (var i = 0; i < all.length; i++) {
+            var isOn = all[i] === tab;
+            all[i].classList.toggle('active', isOn);
+            all[i].setAttribute('aria-selected', isOn ? 'true' : 'false');   // 2026-10-04
+        }
     }
 
     function closeAll() {
@@ -483,6 +545,7 @@
         if (lm) lm.classList.remove('open');
         html.classList.remove('md-sheet-open');
         html.classList.remove('md-dock-collapsed');
+        html.classList.remove('md-legend-open');
         syncDockHeightAnimated();
         setActiveTab(null);
     }

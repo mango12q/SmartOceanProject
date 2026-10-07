@@ -15,7 +15,7 @@
     var btn = $('btn-qr');
     if (!btn) return;                       // 没有入口（例如手机端被隐藏）就不装任何东西
     // 手机端：扫码是「电脑→手机」的入口，手机自己不需要；直接不初始化，省掉一次 DOM/画布开销
-    if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) return;
+    if (window.matchMedia && window.matchMedia('(max-width: 768px), (max-height: 480px) and (pointer: coarse)').matches) return;
 
     var DEFAULT_HINT = '手机与电脑需在同一网络（局域网 IP），或使用公网地址。';
     var state = { url: '', ready: false, modal: null };
@@ -68,8 +68,9 @@
                 '<div class="qr-head"><h3>📱 手机扫码进入</h3>' +
                 '<button type="button" class="qr-close" aria-label="关闭">✕</button></div>' +
                 '<div class="qr-sub">用手机相机 / 微信扫一扫，直接打开下面这个地址（无需联网外网）。</div>' +
-                '<div class="qr-canvas-wrap"><canvas id="qr-canvas" width="228" height="228"></canvas></div>' +
+                '<div class="qr-canvas-wrap"><canvas id="qr-canvas" width="228" height="228" role="img" aria-label="离线访问二维码"></canvas></div>' +
                 '<div class="qr-url-row"><input id="qr-url-input" type="text" spellcheck="false" ' +
+                'aria-label="离线访问地址" ' +
                 'placeholder="http://192.168.x.x:8899/"></div>' +
                 '<div class="qr-btns">' +
                     '<button type="button" class="qr-act primary" data-act="copy">复制链接</button>' +
@@ -108,10 +109,12 @@
         var origin = location.origin;
         var host = location.hostname;
         var port = location.port ? ':' + location.port : '';
+        /* 2026-10-05 修：两个分支都漏了 location.search —— 带 ?lang=zh 之类的地址，
+           一点「换成局域网 IP」查询串就没了（而「用当前地址」是保留的）。 */
         if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
-            return 'http://192.168.1.100' + port + location.pathname;
+            return 'http://192.168.1.100' + port + location.pathname + location.search;
         }
-        return origin + location.pathname;
+        return origin + location.pathname + location.search;
     }
 
     function validate(u) {

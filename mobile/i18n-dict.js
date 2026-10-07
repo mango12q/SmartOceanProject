@@ -7,7 +7,7 @@
  *   + 台风首字徽标 3 条
  *   + 从 HTML 片段派生的纯文本词条 54 条（运行时拿到的是文本节点，不是片段）
  *   + 实体别名 6 条（源码 &lt; ↔ 运行时 <）
- * 共 379 条。
+ * 共 380 条。
  * 重新生成：node .dev/gen-i18n-dict.mjs
  */
 window.__I18N_DICT = {
@@ -193,7 +193,9 @@ window.__I18N_DICT = {
   "港口": "Port",
   "港珠澳大桥": "Hong Kong–Zhuhai–Macao Bridge",
   "澳门国际机场": "Macao International Airport",
+  "台风路径可视化：路径、强度演变、风场与灾害预警": "Typhoon track visualization: track, intensity evolution, wind field and hazard alerts",
   "灾害预警六维雷达": "Hazard alert six-axis radar",
+  "灾害预警六维雷达图": "Hazard alert six-axis radar chart",
   "点击地图任意点查看该处预警": "Click anywhere on the map to view the warning there",
   "点击地图添加测距点，双击结束": "Click the map to add measurement points, double-click to finish",
   "点数: ": "Points: ",
@@ -239,6 +241,7 @@ window.__I18N_DICT = {
   "较高": "Relatively high",
   "这是本地文件路径（file://），手机无法访问。请改用电脑的局域网 IP 或公网地址。": "This is a local file path (file://), which a phone cannot access. Use your computer's LAN IP or a public address instead.",
   "退出全屏": "Exit fullscreen",
+  "选择台风": "Select typhoon",
   "选择台风 ▾": "Select typhoon ▾",
   "透明度": "Opacity",
   "重要设施": "Key facility",
@@ -308,6 +311,7 @@ window.__I18N_DICT = {
   "大鹏LNG能源科普参观基地（对外开放）": "Dapeng LNG Energy Science Education & Visitor Base (open to the public)",
   "数据来源": "Data sources",
   "开源许可": "Open-source licences",
+  "国家地理信息公共服务平台 天地图": "Tianditu, the National Platform for Common Geospatial Information Services",
   "行政底图：国家地理信息公共服务平台「天地图」，审图号 GS（2026）4921号（甲测资字 11110974）。": "Administrative basemap: Tianditu, the National Platform for Common Geospatial Information Services. Map approval number GS(2026)4921 (surveying and mapping qualification no. 11110974).",
   "卫星影像：Esri World Imagery（Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community）。": "Satellite imagery: Esri World Imagery (Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community).",
   "陆地掩膜：Natural Earth 1:50m（公有领域）。风场与台风数据：WRF 模式输出，经本项目自研订正算法处理。": "Land mask: Natural Earth 1:50m (public domain). Wind field and typhoon data: WRF model output, processed by this project's own correction algorithm.",
@@ -321,6 +325,8 @@ window.__I18N_DICT = {
   "未配置天地图 Key": "Tianditu key not configured",
   "⚠ 行政底图未配置": "⚠ Administrative basemap not configured",
   "需先在 index.html 的 TDT_KEY 处填入天地图 Key": "Fill in the Tianditu key at TDT_KEY in index.html first",
+  "离线访问二维码": "Offline access QR code",
+  "离线访问地址": "Offline access URL",
   "手机扫码进入": "Scan the QR code to open on your phone",
   "点击查看详情": "Click for details",
   "台山核电站": "Taishan Nuclear Power Science Education Base (open to the public)",

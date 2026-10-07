@@ -130,6 +130,25 @@
                 if (r && (a in r) && el.getAttribute(a) !== r[a]) el.setAttribute(a, r[a]);
             }
         }
+        /* 2026-10-05：<meta> 的 content 是文案，却不在 ATTRS 里，也没有文本节点，
+           两条路都接不住（英文下分享卡片仍是中文）。viewport 那条绝不能被翻，
+           所以只认显式标了 data-i18n-meta 的 meta（og / twitter / description）。 */
+        if (el.tagName === 'META' && el.hasAttribute && el.hasAttribute('data-i18n-meta')) {
+            var mv = el.getAttribute('content');
+            if (lang === EN) {
+                if (mv && HAS_CN.test(mv)) {
+                    var mrec = zhAttr.get(el);
+                    if (!mrec) { mrec = {}; zhAttr.set(el, mrec); }
+                    if (!('content' in mrec)) mrec.content = mv;
+                    var mnv = t(mrec.content);
+                    if (mnv !== mv) el.setAttribute('content', mnv);
+                }
+            } else {
+                var mr = zhAttr.get(el);
+                if (mr && mr.content && el.getAttribute('content') !== mr.content)
+                    el.setAttribute('content', mr.content);
+            }
+        }
     }
 
     function walk(root, lang) {
