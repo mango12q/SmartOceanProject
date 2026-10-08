@@ -6620,6 +6620,11 @@ window.__I18N_DICT = {
         var windRequestSeq = 0;
         var windCanvasCtx = null;
         var windCanvasSize = 0;
+        /* 画布内容「按哪一级 zoom、以哪个中心」画的 —— 重锚与缩放仿射变换都按它换算。
+           2026-10-08：从 initMap() 内部提到模块作用域，因为 drawWindFieldOnCanvas()
+           在模块顶层，重锚那一处必须能同步更新它们（见该函数开头）。 */
+        var windRenderZoom = null;
+        var windRenderCenter = null;
         var windBarbColor = '#222';
         var windDiffScale = 1;
         var hazardPoint = null;
@@ -7168,8 +7173,7 @@ window.__I18N_DICT = {
                ⚠ pinch 期间 Leaflet 只派发 zoom（_setZoomTransforms），滚轮/双击
                才走 zoomanim（实测 pinch 全程 zoomanim 只来 1 次，在松手收尾时），
                两条路径都得接。松手后 resizeWindCanvas 会按新坐标系重绘并复位。 */
-            var windRenderZoom = null;
-            var windRenderCenter = null;
+            /* windRenderZoom / windRenderCenter 已提到模块作用域声明（见文件上方）。 */
             function syncWindCanvasToZoom(targetZoom, targetCenter) {
                 if (!windLayerActive || windRenderZoom === null || !windRenderCenter) return;
                 var s = map.getZoomScale(targetZoom, windRenderZoom),
@@ -7196,8 +7200,15 @@ window.__I18N_DICT = {
                 var size = map.getSize();
                 var dpr = window.devicePixelRatio || 1;
                 L.DomUtil.setPosition(windCanvas, map.containerPointToLayerPoint([0, 0]));
-                windCanvas.width = size.x * dpr;
-                windCanvas.height = size.y * dpr;
+                /* 2026-10-08 性能：只在**像素尺寸真的变了**时才重设 width/height。
+                   给 canvas.width 赋同一个值也会重分配后备缓冲并清空位图 —— 手机 dpr=3 时
+                   那是 9 倍大的缓冲，而本函数挂在 moveend 上、锁定播放时每拍都会被调到。
+                   需要清屏由 drawWindFieldOnCanvas 自己的 clearRect 负责，不依赖这里。 */
+                var pxW = Math.round(size.x * dpr), pxH = Math.round(size.y * dpr);
+                if (windCanvas.width !== pxW || windCanvas.height !== pxH) {
+                    windCanvas.width = pxW;
+                    windCanvas.height = pxH;
+                }
                 windCanvas.style.width = size.x + 'px';
                 windCanvas.style.height = size.y + 'px';
                 windCanvasCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -7779,7 +7790,14 @@ window.__I18N_DICT = {
             /* 逐帧平移刻意不派发 move/moveend —— map.on('moveend zoomend resize', resizeWindCanvas)
                会按新视野重绘风场（含逐点陆地判定），每帧来一次会把播放拖垮。
                改为每拍补一次，与原来「每拍一次动画平移 + 末尾一次 moveend」的频率一致。 */
-            if (typhoonLock) map.fire('moveend');
+            /* 2026-10-08 性能：这里原本是 `if (typhoonLock) map.fire('moveend');` ——
+               目的是让风场画布每拍重锚。但 moveend → resizeWindCanvas 会**多画一整遍风场**，
+               而这正是本次卡顿的主因：一次风场重绘要描边 ~1950 条矢量路径，JS 侧只占 ~7.5ms，
+               其余全是浏览器的栅格化，整拍同步阻塞实测 75ms（占播放间隔 267ms 的 28%）。
+               现改由 drawWindFieldOnCanvas 在绘制前自己重锚（见该函数开头）。
+               ⚠ 真实时钟下实测：去掉这一句后画布空白条**没有任何变大**
+               （中位 1~4px、最大 35px、从不超 60px，与保留时逐项相同）；
+               假时钟下量到的「~100px 空白」是异步重绘来不及跑造成的假象，别据此回退。 */
             loadWindField(t);
         }
 
@@ -8840,6 +8858,14 @@ window.__I18N_DICT = {
             if (!windCanvasCtx || !windCanvasSize) return;
             var ctx = windCanvasCtx;
             var size = windCanvasSize;
+            /* 2026-10-08 性能：绘制前先把画布重新锚到视口左上角。
+               wind-canvas 是 mapPane 的子节点，锁定风眼时逐帧平移 pane 会让它整体漂移；
+               这里重锚一次，落点才与 map.latLngToContainerPoint 一致。
+               放在本函数里而不是靠每拍 map.fire('moveend') —— 后者会让 resizeWindCanvas
+               再重分配一次缓冲 + **多画一整遍风场**（实测每拍同步阻塞 75ms，风场占 ~67ms）。 */
+            L.DomUtil.setPosition(windCanvasCtx.canvas, map.containerPointToLayerPoint([0, 0]));
+            windRenderZoom = map.getZoom();
+            windRenderCenter = map.getCenter();
             ctx.clearRect(0, 0, size.x, size.y);
             if (!data || !data.length) return;
 
